@@ -1,0 +1,167 @@
+[
+  {
+    "name": "French Defense Winawer Variation",
+    "eco": "C15",
+    "family": "Semi-Open Game",
+    "variation": "Winawer",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Dynamic",
+    "description": "A sharp French line where Black pins the knight on c3 and fights against White's center.",
+    "movesPreview": "1. e4 e6 2. d4 d5 3. Nc3 Bb4"
+  },
+  {
+    "name": "French Defense Classical Variation",
+    "eco": "C11",
+    "family": "Semi-Open Game",
+    "variation": "Classical",
+    "level": "Intermediate",
+    "color": "Black",
+    "style": "Classical",
+    "description": "A main French structure where Black develops naturally and attacks White's center.",
+    "movesPreview": "1. e4 e6 2. d4 d5 3. Nc3 Nf6"
+  },
+  {
+    "name": "French Defense Rubinstein Variation",
+    "eco": "C10",
+    "family": "Semi-Open Game",
+    "variation": "Rubinstein",
+    "level": "Intermediate",
+    "color": "Black",
+    "style": "Solid",
+    "description": "A practical French line where Black exchanges on e4 early and aims for a sound structure.",
+    "movesPreview": "1. e4 e6 2. d4 d5 3. Nc3 dxe4"
+  },
+  {
+    "name": "Caro-Kann Panov Attack",
+    "eco": "B13",
+    "family": "Semi-Open Game",
+    "variation": "Panov Attack",
+    "level": "Intermediate",
+    "color": "White",
+    "style": "Dynamic",
+    "description": "An active way for White to meet the Caro-Kann, often leading to an isolated queen's pawn structure.",
+    "movesPreview": "1. e4 c6 2. d4 d5 3. exd5 cxd5 4. c4"
+  },
+  {
+    "name": "Caro-Kann Exchange Variation",
+    "eco": "B11",
+    "family": "Semi-Open Game",
+    "variation": "Exchange Variation",
+    "level": "Beginner",
+    "color": "White",
+    "style": "Solid",
+    "description": "A simple Caro-Kann line where White exchanges early and plays a straightforward structure.",
+    "movesPreview": "1. e4 c6 2. d4 d5 3. exd5 cxd5"
+  },
+  {
+    "name": "Caro-Kann Fantasy Variation",
+    "eco": "B15",
+    "family": "Semi-Open Game",
+    "variation": "Fantasy Variation",
+    "level": "Advanced",
+    "color": "White",
+    "style": "Aggressive",
+    "description": "A sharp anti-Caro-Kann where White supports the center with f3 and aims for attacking play.",
+    "movesPreview": "1. e4 c6 2. d4 d5 3. f3"
+  },
+  {
+    "name": "Sicilian Defense Classical Variation",
+    "eco": "B56",
+    "family": "Sicilian Defense",
+    "variation": "Classical",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Dynamic",
+    "description": "A classical Sicilian with ...Nc6 and ...d6, leading to rich middlegame positions.",
+    "movesPreview": "1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 d6"
+  },
+  {
+    "name": "Sicilian Defense Scheveningen Variation",
+    "eco": "B80",
+    "family": "Sicilian Defense",
+    "variation": "Scheveningen",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Dynamic",
+    "description": "A flexible Sicilian setup with ...e6 and ...d6, balancing solidity and counterplay.",
+    "movesPreview": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 e6"
+  },
+  {
+    "name": "Sicilian Defense Wing Gambit",
+    "eco": "B20",
+    "family": "Sicilian Defense",
+    "variation": "Wing Gambit",
+    "level": "Intermediate",
+    "color": "White",
+    "style": "Aggressive",
+    "description": "A gambit against the Sicilian where White offers the b-pawn for open lines and initiative.",
+    "movesPreview": "1. e4 c5 2. b4"
+  },
+  {
+    "name": "Queen's Gambit Declined Tartakower Variation",
+    "eco": "D58",
+    "family": "Queen's Gambit",
+    "variation": "Tartakower",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Positional",
+    "description": "A respected QGD system where Black develops flexibly and fights for long-term structural balance.",
+    "movesPreview": "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3 O-O 6. Nf3 h6 7. Bh4 b6"
+  },
+  {
+    "name": "Queen's Gambit Declined Lasker Defense",
+    "eco": "D56",
+    "family": "Queen's Gambit",
+    "variation": "Lasker Defense",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Solid",
+    "description": "A reliable QGD setup where Black aims for simplification and structural resilience.",
+    "movesPreview": "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3 O-O 6. Nf3 h6 7. Bh4 Ne4"
+  },
+  {
+    "name": "Catalan Open Defense",
+    "eco": "E04",
+    "family": "Queen's Pawn",
+    "variation": "Open Defense",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Positional",
+    "description": "A Catalan structure where Black accepts the c4 pawn and White pressures the queenside long-term.",
+    "movesPreview": "1. d4 Nf6 2. c4 e6 3. g3 d5 4. Bg2 dxc4"
+  },
+  {
+    "name": "Nimzo-Indian Defense Leningrad Variation",
+    "eco": "E30",
+    "family": "Indian Defense",
+    "variation": "Leningrad",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Positional",
+    "description": "A Nimzo-Indian system with early ...b6 or queenside pressure ideas and flexible development.",
+    "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4"
+  },
+  {
+    "name": "King's Indian Defense Four Pawns Attack",
+    "eco": "E76",
+    "family": "Indian Defense",
+    "variation": "Four Pawns Attack",
+    "level": "Advanced",
+    "color": "White",
+    "style": "Aggressive",
+    "description": "A very ambitious setup against the King's Indian where White grabs space and challenges Black immediately.",
+    "movesPreview": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. f4"
+  },
+  {
+    "name": "Benoni Modern Variation",
+    "eco": "A65",
+    "family": "Indian Defense",
+    "variation": "Modern Variation",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Dynamic",
+    "description": "A sharp Benoni structure where Black accepts space disadvantage for queenside and central counterplay.",
+    "movesPreview": "1. d4 Nf6 2. c4 c5 3. d5 e6"
+  }
+]

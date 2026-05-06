@@ -1,0 +1,167 @@
+[
+  {
+    "id": "london-system",
+    "name": "London System",
+    "level": "Beginner",
+    "description": "Solid, simple, and easy to learn.",
+    "eco": "D02",
+    "movesPreview": "1. d4 d5 2. Nf3 Nf6 3. Bf4",
+    "color": "White",
+    "family": "Queen's Pawn",
+    "style": "Solid"
+  },
+  {
+    "id": "italian-game",
+    "name": "Italian Game",
+    "level": "Beginner",
+    "description": "Classical opening focused on development and attack.",
+    "eco": "C50",
+    "movesPreview": "1. e4 e5 2. Nf3 Nc6 3. Bc4",
+    "color": "White",
+    "family": "Open Game",
+    "style": "Classical"
+  },
+  {
+    "id": "four-knights-game",
+    "name": "Four Knights Game",
+    "level": "Beginner",
+    "description": "Logical development and balanced positions.",
+    "eco": "C47",
+    "movesPreview": "1. e4 e5 2. Nf3 Nc6 3. Nc3 Nf6",
+    "color": "White",
+    "family": "Open Game",
+    "style": "Balanced"
+  },
+  {
+    "id": "scotch-game",
+    "name": "Scotch Game",
+    "level": "Beginner",
+    "description": "Open center early and learn attacking ideas.",
+    "eco": "C45",
+    "movesPreview": "1. e4 e5 2. Nf3 Nc6 3. d4",
+    "color": "White",
+    "family": "Open Game",
+    "style": "Aggressive"
+  },
+  {
+    "id": "queens-gambit-declined",
+    "name": "Queen's Gambit Declined",
+    "level": "Beginner",
+    "description": "Solid positional opening with classical ideas.",
+    "eco": "D30",
+    "movesPreview": "1. d4 d5 2. c4 e6",
+    "color": "Black",
+    "family": "Queen's Gambit",
+    "style": "Solid"
+  },
+  {
+    "id": "ruy-lopez",
+    "name": "Ruy Lopez",
+    "level": "Intermediate",
+    "description": "Rich positional opening with deep strategic ideas.",
+    "eco": "C60",
+    "movesPreview": "1. e4 e5 2. Nf3 Nc6 3. Bb5",
+    "color": "White",
+    "family": "Open Game",
+    "style": "Positional"
+  },
+  {
+    "id": "sicilian-dragon",
+    "name": "Sicilian Defense (Dragon Variation)",
+    "level": "Intermediate",
+    "description": "Sharp and aggressive counterattacking opening.",
+    "eco": "B70",
+    "movesPreview": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6",
+    "color": "Black",
+    "family": "Sicilian Defense",
+    "style": "Tactical"
+  },
+  {
+    "id": "caro-kann",
+    "name": "Caro-Kann",
+    "level": "Intermediate",
+    "description": "Very solid defense with strong pawn structure.",
+    "eco": "B10",
+    "movesPreview": "1. e4 c6 2. d4 d5",
+    "color": "Black",
+    "family": "Semi-Open Game",
+    "style": "Solid"
+  },
+  {
+    "id": "kings-indian-classical",
+    "name": "King's Indian Defense (Classical)",
+    "level": "Intermediate",
+    "description": "Dynamic opening with kingside attacking chances.",
+    "eco": "E90",
+    "movesPreview": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6",
+    "color": "Black",
+    "family": "Indian Defense",
+    "style": "Aggressive"
+  },
+  {
+    "id": "catalan-opening",
+    "name": "Catalan Opening",
+    "level": "Intermediate",
+    "description": "Positional opening with long-term pressure.",
+    "eco": "E01",
+    "movesPreview": "1. d4 Nf6 2. c4 e6 3. g3",
+    "color": "White",
+    "family": "Queen's Pawn",
+    "style": "Positional"
+  },
+  {
+    "id": "najdorf-sicilian",
+    "name": "Najdorf Sicilian",
+    "level": "Advanced",
+    "description": "One of the sharpest and most theoretical openings.",
+    "eco": "B90",
+    "movesPreview": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6",
+    "color": "Black",
+    "family": "Sicilian Defense",
+    "style": "Tactical"
+  },
+  {
+    "id": "grunfeld-defense",
+    "name": "Grunfeld Defense",
+    "level": "Advanced",
+    "description": "Dynamic defense based on central counterplay.",
+    "eco": "D85",
+    "movesPreview": "1. d4 Nf6 2. c4 g6 3. Nc3 d5",
+    "color": "Black",
+    "family": "Indian Defense",
+    "style": "Dynamic"
+  },
+  {
+    "id": "berlin-defense",
+    "name": "Berlin Defense (Ruy López)",
+    "level": "Advanced",
+    "description": "Solid opening known for endgame-heavy positions.",
+    "eco": "C65",
+    "movesPreview": "1. e4 e5 2. Nf3 Nc6 3. Bb5 Nf6",
+    "color": "Black",
+    "family": "Open Game",
+    "style": "Solid"
+  },
+  {
+    "id": "english-symmetrical",
+    "name": "English Opening (Symmetrical Variation)",
+    "level": "Advanced",
+    "description": "Flexible opening with subtle positional play.",
+    "eco": "A34",
+    "movesPreview": "1. c4 c5",
+    "color": "White",
+    "family": "English Opening",
+    "style": "Flexible"
+  },
+  {
+    "id": "queens-indian-petrosian",
+    "name": "Queen's Indian Defense (Petrosian Variation)",
+    "level": "Advanced",
+    "description": "Hypermodern defense with strong control ideas.",
+    "eco": "E12",
+    "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nf3 b6",
+    "color": "Black",
+    "family": "Indian Defense",
+    "style": "Positional"
+  }
+]

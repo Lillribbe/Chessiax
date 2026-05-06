@@ -1,0 +1,10 @@
+C20	King's Pawn Game	1. e4 e5	e2e4 e7e5	rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -
+C23	Bishop's Opening	1. e4 e5 2. Bc4	e2e4 e7e5 f1c4	rnbqkbnr/pppp1ppp/8/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR b KQkq -
+C25	Vienna Game	1. e4 e5 2. Nc3	e2e4 e7e5 b1c3	rnbqkbnr/pppp1ppp/8/4p3/4P3/2N5/PPPP1PPP/R1BQKBNR b KQkq -
+C30	King's Gambit	1. e4 e5 2. f4	e2e4 e7e5 f2f4	rnbqkbnr/pppp1ppp/8/4p3/4PP2/8/PPPP2PP/RNBQKBNR b KQkq -
+B01	Scandinavian Defense	1. e4 d5	e2e4 d7d5	rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -
+B20	Sicilian Defense	1. e4 c5	e2e4 c7c5	rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq -
+D06	Queen's Gambit	1. d4 d5 2. c4	d2d4 d7d5 c2c4	rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR b KQkq -
+E20	Nimzo-Indian Defense	1. d4 Nf6 2. c4 e6 3. Nc3 Bb4	d2d4 g8f6 c2c4 e7e6 b1c3 f8b4	rn1qkbnr/pppp1ppp/4pn2/8/1bPP4/2N5/PP2PPPP/R1BQKBNR w KQkq -
+A10	English Opening	1. c4	c2c4	rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq -
+A04	Reti Opening	1. Nf3	g1f3	rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq -

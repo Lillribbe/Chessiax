@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="style.css">
+    <title>Chess Opening Finder</title>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <button class="back-btn" onclick="window.location.href='home.html'">⬅ Home</button>
+
+        <!-- 🔹 Huvudrubrik -->
+        <h1>♟️ Chess Opening Finder</h1>
+        <p class="subtitle">Discover the best openings for your rating instantly.</p>
+
+        <p class="subtitle">
+            Recommendations are based on your level, opening difficulty and learning value.
+        </p>
+
+        <!-- 🔹 Input + knapp -->
+        <div class="input-group">
+            <input id="eloInput" type="number" placeholder="Enter your ELO">
+            <button onclick="getOpenings()">Analyze</button>
+        </div>
+
+        <!-- 🔹 Resultat -->
+        <h2 class="section-title">Your Recommendations</h2>
+
+        <div id="results" class="results-container">
+            <!-- 🔹 Rad med två kolumner -->
+            <div class="results-row">
+                
+                <!-- Vänsterkolumn -->
+                <div class="results-col left-col" id="leftCol">
+                    <div class="left-top" id="leftTop"></div>       <!-- AI Insight övre halvan -->
+                    <div class="left-bottom" id="leftBottom"></div> <!-- Openings To Avoid nedre halvan -->
+                </div>
+                
+                <!-- Högerkolumn -->
+                <div class="results-col right-col" id="rightCol">
+                    <!-- Best Openings hamnar här -->
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="config.js"></script>
+
+    <script>
+        async function getOpenings() {
+            const elo = document.getElementById("eloInput").value;
+
+            if (!elo || elo <= 0) {
+                alert("Please enter a valid ELO");
+                return;
+            }
+
+            const resultsDiv = document.getElementById("results");
+
+            // 🔹 Rensa tidigare resultat
+            document.getElementById("leftCol").innerHTML = "";
+            document.getElementById("rightCol").innerHTML = "";
+
+            // 🔹 Tillfällig text medan AI jobbar
+            resultsDiv.innerHTML = `<h2 class="section-title">Analyzing your level...</h2>`;
+
+            const response = await fetch(`${API_BASE_URL}/get_opening_details`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ elo: parseInt(elo) })
+            });
+
+            const data = await response.json();
+            localStorage.setItem("elo", elo);
+            localStorage.setItem("results", JSON.stringify(data));
+
+            // 🔹 Återställ huvudrubrik
+            resultsDiv.innerHTML = `
+                <h2 class="section-title">Your Recommendations</h2>
+                <div class="results-row">
+                    <div class="results-col left-col" id="leftCol">
+                        <div class="left-top" id="leftTop"></div>
+                        <div class="left-bottom" id="leftBottom"></div>
+                    </div>
+                    <div class="results-col right-col" id="rightCol"></div>
+                </div>
+            `;
+
+            renderResults(data);
+
+        }
+
+        function renderResults(data) {
+            const resultsDiv = document.getElementById("results");
+
+            resultsDiv.innerHTML = `
+                <h2 class="section-title">Your Recommendations</h2>
+                <div class="results-row">
+                    <div class="results-col left-col" id="leftCol">
+                        <div class="left-top" id="leftTop"></div>
+                        <div class="left-bottom" id="leftBottom"></div>
+                    </div>
+                    <div class="results-col right-col" id="rightCol"></div>
+                </div>
+            `;
+
+            // 🔹 AI Insight
+            const insightCard = document.createElement("div");
+            insightCard.className = "card ai-insight";
+            insightCard.innerHTML = `<h3>🤖 AI Insight</h3><p>${data.insight}</p>`;
+            document.getElementById("leftTop").appendChild(insightCard);
+
+            // 🔹 Tactics
+            const tacticsTitle = document.createElement("h3");
+            tacticsTitle.innerText = "⚔️ Tactics Tips";
+            document.getElementById("leftTop").appendChild(tacticsTitle);
+
+            data.tactics.forEach(tip => {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.innerHTML = `<p>${tip}</p>`;
+                document.getElementById("leftTop").appendChild(card);
+            });
+
+            // 🔹 Endgame
+            const endgameTitle = document.createElement("h3");
+            endgameTitle.innerText = "🏁 Endgame Tips";
+            document.getElementById("leftTop").appendChild(endgameTitle);
+
+            data.endgames.forEach(tip => {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.innerHTML = `<p>${tip}</p>`;
+                document.getElementById("leftTop").appendChild(card);
+            });
+
+            // 🔹 Best Openings
+            const bestTitle = document.createElement("h3");
+            bestTitle.innerText = "🟢 Best Openings For You";
+            document.getElementById("rightCol").appendChild(bestTitle);
+
+            const ranks = ["🥇", "🥈", "🥉"];
+            data.recommendations.forEach((opening, index) => {
+                const card = document.createElement("div");
+                card.className = "card best-opening";
+                card.innerHTML = `
+                    <div class="rank">${ranks[index] || ""} ${opening.name}</div>
+                    <p><strong>Recommendation Score:</strong> ${opening.winrate}/100</p>
+                    <p>${opening.reason}</p>
+                    <button class="learn-btn">Learn More</button>
+                `;
+
+                const button = card.querySelector(".learn-btn");
+
+                button.addEventListener("click", () => {
+                    console.log(opening.name);
+                    goToOpening(opening.name);
+                });
+                document.getElementById("rightCol").appendChild(card);
+            });
+
+            // 🔹 Avoid
+            const avoidTitle = document.createElement("h3");
+            avoidTitle.innerText = "🔴 Openings To Avoid";
+            document.getElementById("leftBottom").appendChild(avoidTitle);
+
+            data.avoid.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "card avoid-opening";
+                card.innerHTML = `<div class="rank">❌ ${item.name}</div><p>${item.reason}</p>`;
+                document.getElementById("leftBottom").appendChild(card);
+            });
+        }
+
+        function goToOpening(openingName) {
+            window.location.href = `opening.html?name=${encodeURIComponent(openingName)}`;
+        }
+
+        window.onload = function () {
+            const savedElo = localStorage.getItem("elo");
+            const savedResults = localStorage.getItem("results");
+
+            if (savedElo && savedResults) {
+                document.getElementById("eloInput").value = savedElo;
+
+                const data = JSON.parse(savedResults);
+
+                renderResults(data);
+            }
+        };
+
+    </script>
+
+</body>
+</html>

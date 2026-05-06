@@ -1,0 +1,122 @@
+[
+  {
+    "id": "c20-kings-pawn-game",
+    "name": "King's Pawn Game",
+    "eco": "C20",
+    "family": "Open Game",
+    "variation": "Main Line",
+    "level": "Beginner",
+    "color": "White",
+    "style": "Flexible",
+    "description": "Imported from TSV source: King's Pawn Game.",
+    "movesPreview": "1. e4 e5"
+  },
+  {
+    "id": "c23-bishops-opening",
+    "name": "Bishop's Opening",
+    "eco": "C23",
+    "family": "Open Game",
+    "variation": "Main Line",
+    "level": "Beginner",
+    "color": "White",
+    "style": "Flexible",
+    "description": "Imported from TSV source: Bishop's Opening.",
+    "movesPreview": "1. e4 e5 2. Bc4"
+  },
+  {
+    "id": "c25-vienna-game",
+    "name": "Vienna Game",
+    "eco": "C25",
+    "family": "Open Game",
+    "variation": "Main Line",
+    "level": "Beginner",
+    "color": "White",
+    "style": "Flexible",
+    "description": "Imported from TSV source: Vienna Game.",
+    "movesPreview": "1. e4 e5 2. Nc3"
+  },
+  {
+    "id": "c30-kings-gambit",
+    "name": "King's Gambit",
+    "eco": "C30",
+    "family": "Open Game",
+    "variation": "Main Line",
+    "level": "Intermediate",
+    "color": "White",
+    "style": "Aggressive",
+    "description": "Imported from TSV source: King's Gambit.",
+    "movesPreview": "1. e4 e5 2. f4"
+  },
+  {
+    "id": "b01-scandinavian-defense",
+    "name": "Scandinavian Defense",
+    "eco": "B01",
+    "family": "Semi-Open Game",
+    "variation": "Main Line",
+    "level": "Beginner",
+    "color": "Black",
+    "style": "Flexible",
+    "description": "Imported from TSV source: Scandinavian Defense.",
+    "movesPreview": "1. e4 d5"
+  },
+  {
+    "id": "b20-sicilian-defense",
+    "name": "Sicilian Defense",
+    "eco": "B20",
+    "family": "Sicilian Defense",
+    "variation": "Main Line",
+    "level": "Intermediate",
+    "color": "Black",
+    "style": "Flexible",
+    "description": "Imported from TSV source: Sicilian Defense.",
+    "movesPreview": "1. e4 c5"
+  },
+  {
+    "id": "d06-queens-gambit",
+    "name": "Queen's Gambit",
+    "eco": "D06",
+    "family": "Queen's Gambit",
+    "variation": "Main Line",
+    "level": "Intermediate",
+    "color": "White",
+    "style": "Aggressive",
+    "description": "Imported from TSV source: Queen's Gambit.",
+    "movesPreview": "1. d4 d5 2. c4"
+  },
+  {
+    "id": "e20-nimzo-indian-defense",
+    "name": "Nimzo-Indian Defense",
+    "eco": "E20",
+    "family": "Indian Defense",
+    "variation": "Main Line",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Flexible",
+    "description": "Imported from TSV source: Nimzo-Indian Defense.",
+    "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4"
+  },
+  {
+    "id": "a10-english-opening",
+    "name": "English Opening",
+    "eco": "A10",
+    "family": "English Opening",
+    "variation": "Main Line",
+    "level": "Intermediate",
+    "color": "White",
+    "style": "Flexible",
+    "description": "Imported from TSV source: English Opening.",
+    "movesPreview": "1. c4"
+  },
+  {
+    "id": "a04-reti-opening",
+    "name": "Reti Opening",
+    "eco": "A04",
+    "family": "Flank Opening",
+    "variation": "Main Line",
+    "level": "Beginner",
+    "color": "White",
+    "style": "Flexible",
+    "description": "Imported from TSV source: Reti Opening.",
+    "movesPreview": "1. Nf3"
+  }
+]

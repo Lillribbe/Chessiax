@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chess AI Trainer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <section class="home-hero">
+            <h1>Chess AI Trainer</h1>
+            <p>
+                Learn openings, practice lines, review mistakes, and track your progress.
+            </p>
+        
+            <div class="home-hero-actions">
+                <button onclick="window.location.href='openings.html'">Start Learning</button>
+                <button onclick="window.location.href='index.html'">Analyze My Chess</button>
+            </div>
+        </section>
+
+        <section class="onboarding-section">
+            <h2>How it works</h2>
+            <p class="onboarding-subtitle">
+                Improve your chess openings with AI recommendations, structured study, and practice feedback.
+            </p>
+        
+            <div class="onboarding-grid">
+                <div class="onboarding-card">
+                    <h3>1. Analyze</h3>
+                    <p>Enter your ELO or Chess.com username to get personalized improvement ideas.</p>
+                    <button onclick="window.location.href='index.html'">Analyze Profile</button>
+                </div>
+        
+                <div class="onboarding-card">
+                    <h3>2. Learn</h3>
+                    <p>Browse the openings library, filter by style, level, ECO range, and choose what to study.</p>
+                    <button onclick="window.location.href='openings.html'">Open Library</button>
+                </div>
+        
+                <div class="onboarding-card">
+                    <h3>3. Practice</h3>
+                    <p>Train opening lines with feedback, hints, mistakes review, score tracking, and progress history.</p>
+                    <button onclick="window.location.href='openings.html'">Start Practicing</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="home-grid">
+
+            <div class="card home-card">
+                <h2>🎯 Opening Finder</h2>
+                <p>Get opening recommendations, tactics, endgames, and AI insights based on your ELO.</p>
+                <button onclick="window.location.href='index.html'">Go to Finder</button>
+            </div>
+
+            <div class="card home-card">
+                <h2>📚 Openings Library</h2>
+                <p>Browse openings directly, search them, and click any opening to start learning it move by move.</p>
+                <button onclick="window.location.href='openings.html'">Open Library</button>
+            </div>
+
+            <div class="card home-card">
+                <h2>👤 Analyze My Profile</h2>
+                <p>Enter your Chess.com username and start building toward personalized recommendations and game-based insights.</p>
+                <button onclick="window.location.href='profile.html'">Open Profile Analysis</button>
+            </div>
+
+            <div class="card">
+                <h2>📊 Your Practice Progress</h2>
+                <div id="globalPracticeStats">
+                    <p>Loading practice stats...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>▶ Continue Learning</h2>
+                <div id="continueLearningBox">
+                    <p>Loading your latest practice...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🕘 Recent Practiced Openings</h2>
+                <div id="recentPracticeList">
+                    <p>No recent practice yet.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🎯 Recommended Next Practice</h2>
+                <div id="recommendedPractice">
+                    <p>Loading recommendation...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔥 Daily Goal & Streak</h2>
+                <div id="dailyGoalBox">
+                    <p>Loading daily progress...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🏆 Achievements</h2>
+                <div id="achievementsBox" class="achievements-box">
+                    <p>Loading achievements...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🧠 Smart Study Recommendations</h2>
+                <div id="smartStudyRecommendations">
+                    <p>Loading recommendations...</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+<script src="config.js"></script>
+    
+<script>
+function loadGlobalPracticeStats() {
+    let totalAttempts = 0;
+    let totalAccuracy = 0;
+    let openingsPracticed = 0;
+
+    let bestOpening = null;
+    let bestAccuracy = -1;
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+
+        if (!key.startsWith("practice_stats_")) continue;
+
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+
+        const stats = JSON.parse(raw);
+        const openingName = key.replace("practice_stats_", "");
+
+        openingsPracticed++;
+        totalAttempts += stats.attempts || 0;
+        totalAccuracy += stats.lastAccuracy || 0;
+
+        if ((stats.bestAccuracy || 0) > bestAccuracy) {
+            bestAccuracy = stats.bestAccuracy || 0;
+            bestOpening = openingName;
+        }
+    }
+
+    const averageAccuracy =
+        openingsPracticed === 0 ? 0 : Math.round(totalAccuracy / openingsPracticed);
+
+    const container = document.getElementById("globalPracticeStats");
+
+    if (!container) return;
+
+    if (openingsPracticed === 0) {
+        container.innerHTML = "<p>No practice data yet. Study an opening to start tracking progress.</p>";
+        return;
+    }
+
+    container.innerHTML = `
+        <p><strong>Openings practiced:</strong> ${openingsPracticed}</p>
+        <p><strong>Total attempts:</strong> ${totalAttempts}</p>
+        <p><strong>Average accuracy:</strong> ${averageAccuracy}%</p>
+        <p><strong>Best opening:</strong> ${bestOpening} (${bestAccuracy}%)</p>
+    `;
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    loadContinueLearning();
+    loadGlobalPracticeStats();
+    loadRecentPracticeList();
+    loadRecommendedPractice();
+    loadDailyGoalAndStreak();
+    loadAchievements();
+    loadSmartStudyRecommendations();
+});
+
+function loadRecentPracticeList() {
+    const container = document.getElementById("recentPracticeList");
+    if (!container) return;
+
+    const practiced = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+
+        if (!key.startsWith("practice_stats_")) continue;
+
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+
+        const stats = JSON.parse(raw);
+        const openingName = key.replace("practice_stats_", "");
+
+        practiced.push({
+            name: openingName,
+            lastAccuracy: stats.lastAccuracy || 0,
+            bestAccuracy: stats.bestAccuracy || 0,
+            attempts: stats.attempts || 0,
+            lastPracticed: stats.lastPracticed || null
+        });
+    }
+
+    practiced.sort((a, b) => {
+        const dateA = a.lastPracticed ? new Date(a.lastPracticed) : new Date(0);
+        const dateB = b.lastPracticed ? new Date(b.lastPracticed) : new Date(0);
+        return dateB - dateA;
+    });
+
+    const recent = practiced.slice(0, 5);
+
+    if (recent.length === 0) {
+        container.innerHTML = "<p>No recent practice yet.</p>";
+        return;
+    }
+
+    container.innerHTML = recent.map(item => `
+        <div class="recent-practice-item">
+            <h3>${item.name}</h3>
+            <p><strong>Last:</strong> ${item.lastAccuracy}% | <strong>Best:</strong> ${item.bestAccuracy}% | <strong>Attempts:</strong> ${item.attempts}</p>
+            <button onclick="goToOpening('${item.name.replace(/'/g, "\\'")}')">Continue Practice</button>
+        </div>
+    `).join("");
+}
+
+function loadContinueLearning() {
+    const container = document.getElementById("continueLearningBox");
+    if (!container) return;
+
+    let latest = null;
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+
+        if (!key.startsWith("practice_stats_")) continue;
+
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+
+        let stats;
+
+        try {
+            stats = JSON.parse(raw);
+        } catch {
+            continue;
+        }
+
+        if (!stats.lastPracticed) continue;
+
+        const openingName = key.replace("practice_stats_", "");
+
+        const item = {
+            name: openingName,
+            lastAccuracy: stats.lastAccuracy || 0,
+            bestAccuracy: stats.bestAccuracy || 0,
+            attempts: stats.attempts || 0,
+            lastPracticed: stats.lastPracticed
+        };
+
+        if (!latest || new Date(item.lastPracticed) > new Date(latest.lastPracticed)) {
+            latest = item;
+        }
+    }
+
+    if (!latest) {
+        container.innerHTML = `
+            <p>You have not practiced any opening yet.</p>
+            <button onclick="window.location.href='openings.html'">Start Learning</button>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="continue-learning-card">
+            <h3>${latest.name}</h3>
+            <p><strong>Last Accuracy:</strong> ${latest.lastAccuracy}%</p>
+            <p><strong>Best Accuracy:</strong> ${latest.bestAccuracy}%</p>
+            <p><strong>Attempts:</strong> ${latest.attempts}</p>
+            <button onclick="goToOpening('${latest.name.replace(/'/g, "\\'")}')">
+                Continue
+            </button>
+        </div>
+    `;
+}
+
+function loadRecommendedPractice() {
+    const container = document.getElementById("recommendedPractice");
+    if (!container) return;
+
+    const practiced = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+
+        if (!key.startsWith("practice_stats_")) continue;
+
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+
+        const stats = JSON.parse(raw);
+        const openingName = key.replace("practice_stats_", "");
+
+        practiced.push({
+            name: openingName,
+            lastAccuracy: stats.lastAccuracy || 0,
+            bestAccuracy: stats.bestAccuracy || 0,
+            attempts: stats.attempts || 0
+        });
+    }
+
+    if (practiced.length === 0) {
+        container.innerHTML = `
+            <p>You have not practiced any openings yet.</p>
+            <button onclick="window.location.href='openings.html'">Start with Openings Library</button>
+        `;
+        return;
+    }
+
+    practiced.sort((a, b) => {
+        if (a.lastAccuracy !== b.lastAccuracy) {
+            return a.lastAccuracy - b.lastAccuracy;
+        }
+
+        return a.attempts - b.attempts;
+    });
+
+    const recommendation = practiced[0];
+
+    let reason = "This opening has the lowest recent accuracy, so it is a good one to review.";
+
+    if (recommendation.lastAccuracy >= 80) {
+        reason = "You are doing well overall. This is still a good opening to reinforce.";
+    }
+
+    container.innerHTML = `
+        <div class="recommended-practice-card">
+            <h3>${recommendation.name}</h3>
+            <p><strong>Last Accuracy:</strong> ${recommendation.lastAccuracy}%</p>
+            <p><strong>Best Accuracy:</strong> ${recommendation.bestAccuracy}%</p>
+            <p><strong>Attempts:</strong> ${recommendation.attempts}</p>
+            <p>${reason}</p>
+            <button onclick="goToOpening('${recommendation.name.replace(/'/g, "\\'")}')">
+                Practice Now
+            </button>
+        </div>
+    `;
+}
+
+function loadDailyGoalAndStreak() {
+    const container = document.getElementById("dailyGoalBox");
+    if (!container) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const todayRaw = localStorage.getItem("daily_practice_" + today);
+    const todayData = todayRaw ? JSON.parse(todayRaw) : { completedSessions: 0 };
+
+    const dailyGoal = 3;
+    const completed = todayData.completedSessions || 0;
+    const progressPercent = Math.min(100, Math.round((completed / dailyGoal) * 100));
+
+    let streak = 0;
+    const date = new Date();
+
+    while (true) {
+        const dateKey = date.toISOString().slice(0, 10);
+        const raw = localStorage.getItem("daily_practice_" + dateKey);
+
+        if (!raw) break;
+
+        const data = JSON.parse(raw);
+
+        if (!data.completedSessions || data.completedSessions <= 0) break;
+
+        streak++;
+        date.setDate(date.getDate() - 1);
+    }
+
+    container.innerHTML = `
+        <p><strong>Today's Goal:</strong> ${completed} / ${dailyGoal} sessions</p>
+        <div class="goal-bar">
+            <div class="goal-progress" style="width:${progressPercent}%"></div>
+        </div>
+        <p><strong>Current Streak:</strong> ${streak} day${streak === 1 ? "" : "s"}</p>
+    `;
+}
+
+function loadAchievements() {
+    const container = document.getElementById("achievementsBox");
+    if (!container) return;
+
+    let totalAttempts = 0;
+    let bestAccuracy = 0;
+    let openingsPracticed = 0;
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+
+        if (!key.startsWith("practice_stats_")) continue;
+
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+
+        const stats = JSON.parse(raw);
+
+        openingsPracticed++;
+        totalAttempts += stats.attempts || 0;
+        bestAccuracy = Math.max(bestAccuracy, stats.bestAccuracy || 0);
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const todayRaw = localStorage.getItem("daily_practice_" + today);
+    const todayData = todayRaw ? JSON.parse(todayRaw) : { completedSessions: 0 };
+
+    let streak = 0;
+    const date = new Date();
+
+    while (true) {
+        const dateKey = date.toISOString().slice(0, 10);
+        const raw = localStorage.getItem("daily_practice_" + dateKey);
+
+        if (!raw) break;
+
+        const data = JSON.parse(raw);
+        if (!data.completedSessions || data.completedSessions <= 0) break;
+
+        streak++;
+        date.setDate(date.getDate() - 1);
+    }
+
+    const achievements = [
+        {
+            title: "First Line Completed",
+            description: "Complete your first opening practice line.",
+            unlocked: totalAttempts >= 1
+        },
+        {
+            title: "Sharp Preparation",
+            description: "Reach 90%+ accuracy on any opening.",
+            unlocked: bestAccuracy >= 90
+        },
+        {
+            title: "Daily Grinder",
+            description: "Complete 3 practice sessions today.",
+            unlocked: (todayData.completedSessions || 0) >= 3
+        },
+        {
+            title: "Consistency",
+            description: "Build a 3-day practice streak.",
+            unlocked: streak >= 3
+        },
+        {
+            title: "Opening Explorer",
+            description: "Practice at least 5 different openings.",
+            unlocked: openingsPracticed >= 5
+        }
+    ];
+
+    container.innerHTML = achievements.map(a => `
+        <div class="achievement ${a.unlocked ? "achievement-unlocked" : "achievement-locked"}">
+            <h3>${a.unlocked ? "✅" : "🔒"} ${a.title}</h3>
+            <p>${a.description}</p>
+        </div>
+    `).join("");
+}
+
+async function loadSmartStudyRecommendations() {
+    const container = document.getElementById("smartStudyRecommendations");
+    if (!container) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/get_library_openings?source=master`);
+        const openings = await response.json();
+
+        if (!Array.isArray(openings)) {
+            container.innerHTML = "<p>Could not load opening recommendations.</p>";
+            return;
+        }
+
+        const scored = openings.map(opening => {
+            const raw = localStorage.getItem("practice_stats_" + opening.name);
+            const stats = raw ? JSON.parse(raw) : null;
+
+            let score = 0;
+            let reason = "";
+
+            if (!stats) {
+                score = 100;
+                reason = "You have not practiced this opening yet.";
+            } else if ((stats.lastAccuracy || 0) < 70) {
+                score = 90;
+                reason = "Your recent accuracy is low, so this is worth reviewing.";
+            } else if ((stats.attempts || 0) < 3) {
+                score = 75;
+                reason = "You have practiced this only a few times.";
+            } else {
+                score = 30;
+                reason = "Good reinforcement candidate.";
+            }
+
+            return {
+                ...opening,
+                score,
+                reason,
+                stats
+            };
+        });
+
+        scored.sort((a, b) => b.score - a.score);
+
+        const recommendations = scored.slice(0, 5);
+
+        container.innerHTML = recommendations.map(opening => `
+            <div class="study-recommendation-item">
+                <h3>${opening.name}</h3>
+                <p><strong>ECO:</strong> ${opening.eco || "N/A"} | <strong>Family:</strong> ${opening.family || "N/A"}</p>
+                <p>${opening.reason}</p>
+                <button onclick="goToOpening('${opening.name.replace(/'/g, "\\'")}')">Study Now</button>
+            </div>
+        `).join("");
+
+    } catch (error) {
+        console.error("SMART RECOMMENDATION ERROR:", error);
+        container.innerHTML = "<p>Could not load smart recommendations.</p>";
+    }
+}
+
+function goToOpening(openingName) {
+    window.location.href = `opening.html?name=${encodeURIComponent(openingName)}`;
+}
+
+</script>
+</body>
+</html>

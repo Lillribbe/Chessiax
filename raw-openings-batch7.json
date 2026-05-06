@@ -1,0 +1,156 @@
+[
+    {
+      "name": "Sicilian Defense Morphy Variation",
+      "eco": "B30",
+      "family": "Sicilian Defense",
+      "variation": "Morphy Variation",
+      "level": "Intermediate",
+      "color": "Black",
+      "style": "Dynamic",
+      "description": "A common Sicilian setup with ...Nc6, leading into many important branches.",
+      "movesPreview": "1. e4 c5 2. Nf3 Nc6"
+    },
+    {
+      "name": "Sicilian Defense Richter-Rauzer Variation",
+      "eco": "B60",
+      "family": "Sicilian Defense",
+      "variation": "Richter-Rauzer",
+      "level": "Advanced",
+      "color": "White",
+      "style": "Aggressive",
+      "description": "A sharp Sicilian system where White develops with Bg5 and attacks Black's kingside structure.",
+      "movesPreview": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 Nc6 6. Bg5"
+    },
+    {
+      "name": "Sicilian Defense Kalashnikov Variation",
+      "eco": "B32",
+      "family": "Sicilian Defense",
+      "variation": "Kalashnikov",
+      "level": "Advanced",
+      "color": "Black",
+      "style": "Dynamic",
+      "description": "A close relative of the Sveshnikov where Black gains space with ...e5 and active piece play.",
+      "movesPreview": "1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 e5"
+    },
+    {
+      "name": "Slav Defense Exchange Variation",
+      "eco": "D10",
+      "family": "Queen's Gambit",
+      "variation": "Exchange Variation",
+      "level": "Beginner",
+      "color": "White",
+      "style": "Solid",
+      "description": "A straightforward Slav line where White exchanges early and plays a simple structure.",
+      "movesPreview": "1. d4 d5 2. c4 c6 3. cxd5"
+    },
+    {
+      "name": "Slav Defense Chebanenko Variation",
+      "eco": "D17",
+      "family": "Queen's Gambit",
+      "variation": "Chebanenko",
+      "level": "Advanced",
+      "color": "Black",
+      "style": "Flexible",
+      "description": "A flexible Slav system where Black plays ...a6 early to prepare queenside development.",
+      "movesPreview": "1. d4 d5 2. c4 c6 3. Nc3 Nf6 4. Nf3 a6"
+    },
+    {
+      "name": "Semi-Slav Botvinnik Variation",
+      "eco": "D45",
+      "family": "Queen's Gambit",
+      "variation": "Botvinnik",
+      "level": "Advanced",
+      "color": "Black",
+      "style": "Dynamic",
+      "description": "One of the sharpest Semi-Slav lines, full of deep theory and tactical complications.",
+      "movesPreview": "1. d4 d5 2. c4 e6 3. Nc3 c6 4. Nf3 Nf6 5. Bg5 dxc4"
+    },
+    {
+      "name": "Semi-Slav Meran Variation",
+      "eco": "D47",
+      "family": "Queen's Gambit",
+      "variation": "Meran",
+      "level": "Advanced",
+      "color": "Black",
+      "style": "Dynamic",
+      "description": "A major Semi-Slav system where Black supports the center and prepares queenside counterplay.",
+      "movesPreview": "1. d4 d5 2. c4 e6 3. Nc3 c6 4. Nf3 Nf6 5. e3 Nbd7 6. Bd3 dxc4"
+    },
+    {
+      "name": "Queen's Indian Defense Capablanca Variation",
+      "eco": "E14",
+      "family": "Indian Defense",
+      "variation": "Capablanca",
+      "level": "Advanced",
+      "color": "Black",
+      "style": "Positional",
+      "description": "A refined Queen's Indian line with deep strategic play and careful dark-square control.",
+      "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nf3 b6 4. g3 Ba6"
+    },
+    {
+      "name": "Nimzo-Indian Defense Sämisch Variation",
+      "eco": "E25",
+      "family": "Indian Defense",
+      "variation": "Sämisch",
+      "level": "Advanced",
+      "color": "White",
+      "style": "Aggressive",
+      "description": "An ambitious Nimzo-Indian line where White builds a broad center and bishop pair potential.",
+      "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. a3"
+    },
+    {
+      "name": "Grunfeld Defense Fianchetto Variation",
+      "eco": "D94",
+      "family": "Indian Defense",
+      "variation": "Fianchetto",
+      "level": "Advanced",
+      "color": "White",
+      "style": "Positional",
+      "description": "A controlled anti-Grunfeld system where White fianchettos and aims for stability and central pressure.",
+      "movesPreview": "1. d4 Nf6 2. c4 g6 3. Nf3 d5 4. g3"
+    },
+    {
+      "name": "English Opening Four Knights System",
+      "eco": "A28",
+      "family": "English Opening",
+      "variation": "Four Knights",
+      "level": "Intermediate",
+      "color": "White",
+      "style": "Balanced",
+      "description": "A solid English structure with both sides developing naturally and keeping many transpositional options.",
+      "movesPreview": "1. c4 Nf6 2. Nc3 e6 3. Nf3 Nc6"
+    },
+    {
+      "name": "English Opening Reversed Sicilian",
+      "eco": "A20",
+      "family": "English Opening",
+      "variation": "Reversed Sicilian",
+      "level": "Intermediate",
+      "color": "White",
+      "style": "Flexible",
+      "description": "An English structure with Sicilian-like ideas but with White having the extra tempo.",
+      "movesPreview": "1. c4 e5"
+    },
+    {
+      "name": "Réti Opening Grünfeld Reversed",
+      "eco": "A06",
+      "family": "Flank Opening",
+      "variation": "Grünfeld Reversed",
+      "level": "Intermediate",
+      "color": "White",
+      "style": "Flexible",
+      "description": "A Réti setup where White uses kingside fianchetto and central pressure in reversed Grünfeld-like structures.",
+      "movesPreview": "1. Nf3 d5 2. c4"
+    },
+    {
+      "name": "Polish Opening Orangutan Variation",
+      "eco": "A00",
+      "family": "Flank Opening",
+      "variation": "Orangutan",
+      "level": "Advanced",
+      "color": "White",
+      "style": "Unorthodox",
+      "description": "A flank opening starting with b4, aiming for asymmetrical play and unusual queenside pressure.",
+      "movesPreview": "1. b4"
+    }
+  ]

@@ -1,0 +1,200 @@
+[
+  {
+    "id": "ruy-lopez",
+    "name": "Ruy Lopez",
+    "level": "Intermediate",
+    "description": "A classical opening focused on long-term pressure and positional play.",
+    "eco": "C60",
+    "movesPreview": "1. e4 e5 2. Nf3 Nc6 3. Bb5",
+    "color": "White",
+    "family": "Open Game",
+    "style": "Positional"
+  },
+  {
+    "id": "italian-game",
+    "name": "Italian Game",
+    "level": "Beginner",
+    "description": "A classical opening built around development, center control, and quick kingside pressure.",
+    "eco": "C50",
+    "movesPreview": "1. e4 e5 2. Nf3 Nc6 3. Bc4",
+    "color": "White",
+    "family": "Open Game",
+    "style": "Classical"
+  },
+  {
+    "id": "four-knights-game",
+    "name": "Four Knights Game",
+    "level": "Beginner",
+    "description": "A simple and logical opening where both sides develop naturally.",
+    "eco": "C47",
+    "movesPreview": "1. e4 e5 2. Nf3 Nc6 3. Nc3 Nf6",
+    "color": "White",
+    "family": "Open Game",
+    "style": "Balanced"
+  },
+  {
+    "id": "scotch-game",
+    "name": "Scotch Game",
+    "level": "Beginner",
+    "description": "A direct opening that opens the center early and leads to active piece play.",
+    "eco": "C45",
+    "movesPreview": "1. e4 e5 2. Nf3 Nc6 3. d4",
+    "color": "White",
+    "family": "Open Game",
+    "style": "Aggressive"
+  },
+  {
+    "id": "london-system",
+    "name": "London System",
+    "level": "Beginner",
+    "description": "A reliable setup-based opening with simple development and a clear plan.",
+    "eco": "D02",
+    "movesPreview": "1. d4 d5 2. Nf3 Nf6 3. Bf4",
+    "color": "White",
+    "family": "Queen's Pawn",
+    "style": "Solid"
+  },
+  {
+    "id": "queens-gambit",
+    "name": "Queen's Gambit",
+    "level": "Intermediate",
+    "description": "One of the most important openings in chess, built around central tension and long-term pressure.",
+    "eco": "D06",
+    "movesPreview": "1. d4 d5 2. c4",
+    "color": "White",
+    "family": "Queen's Gambit",
+    "style": "Classical"
+  },
+  {
+    "id": "queens-gambit-declined",
+    "name": "Queen's Gambit Declined",
+    "level": "Beginner",
+    "description": "A solid black response to the Queen's Gambit, built around e6 and central stability.",
+    "eco": "D30",
+    "movesPreview": "1. d4 d5 2. c4 e6",
+    "color": "Black",
+    "family": "Queen's Gambit",
+    "style": "Solid"
+  },
+  {
+    "id": "catalan-opening",
+    "name": "Catalan Opening",
+    "level": "Intermediate",
+    "description": "A positional opening combining Queen's Gambit ideas with a kingside fianchetto.",
+    "eco": "E01",
+    "movesPreview": "1. d4 Nf6 2. c4 e6 3. g3",
+    "color": "White",
+    "family": "Queen's Pawn",
+    "style": "Positional"
+  },
+  {
+    "id": "english-opening",
+    "name": "English Opening",
+    "level": "Intermediate",
+    "description": "A flexible flank opening that often transposes into many different structures.",
+    "eco": "A10",
+    "movesPreview": "1. c4",
+    "color": "White",
+    "family": "English Opening",
+    "style": "Flexible"
+  },
+  {
+    "id": "sicilian-defense",
+    "name": "Sicilian Defense",
+    "level": "Intermediate",
+    "description": "Black's most combative response to 1.e4, aiming for imbalance and counterplay.",
+    "eco": "B20",
+    "movesPreview": "1. e4 c5",
+    "color": "Black",
+    "family": "Sicilian Defense",
+    "style": "Tactical"
+  },
+  {
+    "id": "sicilian-dragon",
+    "name": "Sicilian Defense (Dragon Variation)",
+    "level": "Intermediate",
+    "description": "A sharp Sicilian where Black fianchettos the bishop and often launches kingside counterplay.",
+    "eco": "B70",
+    "movesPreview": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6",
+    "color": "Black",
+    "family": "Sicilian Defense",
+    "style": "Tactical"
+  },
+  {
+    "id": "najdorf-sicilian",
+    "name": "Najdorf Sicilian",
+    "level": "Advanced",
+    "description": "One of the richest and most theoretical openings in all of chess.",
+    "eco": "B90",
+    "movesPreview": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6",
+    "color": "Black",
+    "family": "Sicilian Defense",
+    "style": "Dynamic"
+  },
+  {
+    "id": "caro-kann",
+    "name": "Caro-Kann",
+    "level": "Intermediate",
+    "description": "A dependable black defense with a strong pawn structure and solid plans.",
+    "eco": "B10",
+    "movesPreview": "1. e4 c6 2. d4 d5",
+    "color": "Black",
+    "family": "Semi-Open Game",
+    "style": "Solid"
+  },
+  {
+    "id": "french-defense",
+    "name": "French Defense",
+    "level": "Intermediate",
+    "description": "A resilient black defense that challenges the center from a distance.",
+    "eco": "C00",
+    "movesPreview": "1. e4 e6 2. d4 d5",
+    "color": "Black",
+    "family": "Semi-Open Game",
+    "style": "Solid"
+  },
+  {
+    "id": "pirc-defense",
+    "name": "Pirc Defense",
+    "level": "Intermediate",
+    "description": "A flexible hypermodern defense where Black lets White build a center and attacks it later.",
+    "eco": "B07",
+    "movesPreview": "1. e4 d6 2. d4 Nf6 3. Nc3 g6",
+    "color": "Black",
+    "family": "Semi-Open Game",
+    "style": "Dynamic"
+  },
+  {
+    "id": "kings-indian-defense",
+    "name": "King's Indian Defense",
+    "level": "Intermediate",
+    "description": "A dynamic opening where Black allows White space and then counterattacks aggressively.",
+    "eco": "E60",
+    "movesPreview": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7",
+    "color": "Black",
+    "family": "Indian Defense",
+    "style": "Aggressive"
+  },
+  {
+    "id": "grunfeld-defense",
+    "name": "Grunfeld Defense",
+    "level": "Advanced",
+    "description": "A dynamic defense based on pressure against White's center.",
+    "eco": "D85",
+    "movesPreview": "1. d4 Nf6 2. c4 g6 3. Nc3 d5",
+    "color": "Black",
+    "family": "Indian Defense",
+    "style": "Dynamic"
+  },
+  {
+    "id": "nimzo-indian-defense",
+    "name": "Nimzo-Indian Defense",
+    "level": "Advanced",
+    "description": "A highly respected defense with deep strategic ideas and flexible pawn structures.",
+    "eco": "E20",
+    "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4",
+    "color": "Black",
+    "family": "Indian Defense",
+    "style": "Positional"
+  }
+]

@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Opening Details</title>
+
+    <!-- Din CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- ✅ Chessboard CSS (FUNKAR) -->
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+</head>
+
+<body>
+<div class="container">
+
+    <!-- 🔙 Back -->
+    <button class="back-btn" onclick="window.history.back()">⬅ Back</button>
+    <button class="back-btn" onclick="window.location.href='home.html'">🏠 Home</button>
+
+    <!-- 🔹 Titel -->
+    <h1 id="openingTitle">Loading...</h1>
+    <div id="openingMeta" class="opening-meta"></div>
+    <div id="openingPreview" class="opening-preview"></div>
+    <div id="openingActions" class="opening-actions"></div>
+    <div id="openingInfo" class="opening-info"></div>
+
+    <div class="board-section">
+        <div id="board" style="width: 450px"></div>
+
+        <div class="card">
+            <h3>📖 Move Explanation</h3>
+            <p id="moveExplanation">Click next to start learning</p>
+        </div>
+
+        <div class="move-controls">
+            <button id="prevBtn" onclick="prevMove()">⬅ Prev</button>
+            <button id="resetBtn" onclick="resetMoves()">⟲ Reset</button>
+            <button id="playBtn" onclick="startAutoplay()">▶ Play</button>
+            <button id="pauseBtn" onclick="stopAutoplay()">⏸ Pause</button>
+            <button id="nextBtn" onclick="nextMove()">Next ➡</button>
+        </div>
+        <div class="study-status">
+            <p id="moveProgress">Move 0 of 0</p>
+            <p id="studyStatusText">Ready to study this opening.</p>
+        
+            <label for="speedSelect">Autoplay speed:</label>
+            <select id="speedSelect">
+                <option value="1800">Slow</option>
+                <option value="1200" selected>Normal</option>
+                <option value="700">Fast</option>
+            </select>
+        </div>
+        <div class="practice-box">
+            <h3>🎯 Practice Mode</h3>
+            <p id="practiceStatus" class="practice-status neutral-status">
+                Click Start Practice to test yourself.
+            </p>
+            
+            <div class="practice-score">
+                <p><strong>Correct:</strong> <span id="practiceCorrect">0</span></p>
+                <p><strong>Mistakes:</strong> <span id="practiceMistakes">0</span></p>
+                <p><strong>Accuracy:</strong> <span id="practiceAccuracy">0%</span></p>
+            </div>
+
+            <div class="difficulty-box">
+                <label for="difficultySelect">Difficulty:</label>
+                <select id="difficultySelect">
+                    <option value="easy">Easy</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+
+            <div class="practice-history">
+                <h4>📊 Practice History</h4>
+                <p><strong>Last Accuracy:</strong> <span id="lastAccuracy">N/A</span></p>
+                <p><strong>Best Accuracy:</strong> <span id="bestAccuracy">N/A</span></p>
+                <p><strong>Attempts:</strong> <span id="practiceAttempts">0</span></p>
+            </div>
+            <div id="sessionSummary" class="session-summary" style="display:none;"></div>
+            <div class="practice-input-group">
+                <input id="practiceMoveInput" type="text" placeholder="Enter next move, e.g. e4">
+                <button onclick="checkPracticeMove()">Submit</button>
+            </div>
+        
+            <div class="practice-controls">
+                <button onclick="startPracticeMode()">Start Practice</button>
+                <button onclick="stopPracticeMode()">Stop Practice</button>
+                <button onclick="showPracticeHint()">Hint</button>
+                <button onclick="showPracticeAnswer()">Show Answer</button>
+                <button onclick="playPracticeAnswer()">Play Answer</button>
+                <button onclick="nextMistakeReview()">Next Mistake</button>
+            </div>
+        </div>
+        <div id="moveList" class="move-list"></div>
+    </div>
+
+    <!-- 🔹 Loading -->
+    <p id="loadingText">Analyzing opening...</p>
+    <div id="errorBox" class="error-box" style="display:none;"></div>
+
+    <!-- 🔹 Content -->
+    <div id="content" class="opening-content" style="display:none;">
+
+    <div class="opening-stack">
+
+        <div class="card">
+            <h3>♟️ How to Play</h3>
+            <p id="howToPlay"></p>
+        </div>
+
+        <div class="card">
+            <h3>💡 Key Ideas</h3>
+            <p id="ideas"></p>
+        </div>
+
+        <div class="card">
+            <h3>⚠️ Common Traps</h3>
+            <p id="traps"></p>
+        </div>
+
+        <div class="related-section">
+            <h2>🔗 Related Openings</h2>
+            <div id="relatedOpenings" class="home-grid"></div>
+        </div>
+
+    </div>
+        
+</div>
+
+
+</div>
+
+<!-- ✅ jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- ✅ Chess.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+<!-- ✅ Chessboard (RÄTT VERSION SOM FUNKAR) -->
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+
+<script src="config.js"></script>
+
+<script>
+
+let board;
+let game;
+let moves = [];
+let currentMove = 0;
+let autoplayInterval = null;
+let practiceMode = false;
+let practiceCorrect = 0;
+let practiceMistakes = 0;
+let missedPositions = [];
+let mistakeReviewMode = false;
+let reviewIndex = 0;
+let reviewMoveSolved = false;
+
+function updateMoveButtons() {
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const playBtn = document.getElementById("playBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+
+    const hasMoves = moves && moves.length > 0;
+    const isPlaying = autoplayInterval !== null;
+
+    if (prevBtn) {
+        prevBtn.disabled = currentMove <= 0 || isPlaying;
+    }
+
+    if (nextBtn) {
+        nextBtn.disabled = !hasMoves || currentMove >= moves.length || isPlaying;
+    }
+
+    if (resetBtn) {
+        resetBtn.disabled = !hasMoves;
+    }
+
+    if (playBtn) {
+        playBtn.disabled = !hasMoves || currentMove >= moves.length || isPlaying;
+    }
+
+    if (pauseBtn) {
+        pauseBtn.disabled = !isPlaying;
+    }
+}
+
+function showError(message) {
+    const errorBox = document.getElementById("errorBox");
+    const loadingText = document.getElementById("loadingText");
+
+    if (loadingText) {
+        loadingText.style.display = "none";
+    }
+
+    if (errorBox) {
+        errorBox.style.display = "block";
+        errorBox.innerHTML = `
+            <strong>Error</strong>
+            <p>${message}</p>
+            <button onclick="window.location.reload()">Try Again</button>
+            <button onclick="window.location.href='openings.html'">Back to Library</button>
+        `;
+    }
+}
+
+function hideError() {
+    const errorBox = document.getElementById("errorBox");
+
+    if (errorBox) {
+        errorBox.style.display = "none";
+        errorBox.innerHTML = "";
+    }
+}
+
+function resetBoardState() {
+    moves = [];
+    currentMove = 0;
+    game = new Chess();
+
+    if (board) {
+        board.position('start');
+    }
+
+    document.getElementById("moveExplanation").innerText = "Loading moves...";
+    updateMoveButtons();
+}
+
+async function loadOpening() {
+    const params = new URLSearchParams(window.location.search);
+    const openingName = params.get("name");
+
+    hideError();
+
+    if (!openingName) {
+        showError("No opening name was provided.");
+        return;
+    }
+
+    document.getElementById("openingTitle").innerText = openingName;
+    document.getElementById("loadingText").style.display = "block";
+    document.getElementById("content").style.display = "none";
+    loadOpeningMetadata(openingName);
+
+    if (!board) {
+        board = window.Chessboard('board', {
+            position: 'start',
+            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+        });
+    }
+
+    resetBoardState();
+
+    const cacheKey = "opening_v3_" + openingName;
+    const cached = localStorage.getItem(cacheKey);
+
+    if (cached) {
+        let data;
+
+        try {
+            data = JSON.parse(cached);
+        } catch (error) {
+            localStorage.removeItem(cacheKey);
+            data = null;
+        }
+
+        if (data.moves && data.moves.length > 0) {
+            moves = data.moves;
+            currentMove = 0;
+            game.reset();
+            board.position(game.fen());
+
+            document.getElementById("moveExplanation").innerText = "Click next to start learning";
+            
+            renderMoveList();
+            updateMoveButtons();
+            updateStudyStatus();
+            updatePracticeScore();
+            loadPracticeStats();
+
+            renderOpening(data);
+            loadRelatedOpenings(openingName);
+            return;
+        } else {
+            localStorage.removeItem(cacheKey);
+        }
+    }
+
+    let data;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/get_opening_details`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ opening: openingName })
+        });
+
+        if (!response.ok) {
+            throw new Error("Backend returned an error.");
+        }
+
+        data = await response.json();
+
+    } catch (error) {
+        console.error("LOAD OPENING ERROR:", error);
+        showError("Could not load this opening. Make sure the backend is running and try again.");
+        return;
+    }
+
+    console.log("DATA FROM BACKEND:", data);
+
+    moves = data.moves || [];
+    if (!Array.isArray(moves)) {
+        moves = [];
+    }
+    currentMove = 0;
+    game.reset();
+    board.position(game.fen());
+    renderMoveList();
+    updateMoveButtons();
+    updateStudyStatus();
+    updatePracticeScore();
+    loadPracticeStats();
+
+    console.log("MOVES SET:", moves);
+
+    document.getElementById("moveExplanation").innerText = "Click next to start learning";
+    updateMoveButtons();
+
+    if (!moves || moves.length === 0) {
+        document.getElementById("moveExplanation").innerText =
+            "No move line available yet. You can still read the opening information below.";
+
+        setPracticeStatus("No moves available for practice yet.", "info");
+    }
+
+    localStorage.setItem(cacheKey, JSON.stringify(data));
+
+    renderOpening(data);
+
+    loadRelatedOpenings(openingName);
+}
+
+function renderOpening(data) {
+    const details = data.details || {};
+
+    document.getElementById("howToPlay").innerText =
+        details.how_to_play || "No explanation available yet.";
+
+    document.getElementById("ideas").innerText =
+        details.ideas || "No key ideas available yet.";
+
+    document.getElementById("traps").innerText =
+        details.traps || "No trap information available yet.";
+
+    document.getElementById("loadingText").style.display = "none";
+    document.getElementById("content").style.display = "block";
+}
+
+function showTab(tab) {
+
+    // Ta bort active från alla knappar
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    // Ta bort active från alla panels
+    document.querySelectorAll(".tab-panel").forEach(panel => {
+        panel.classList.remove("active");
+    });
+
+    // Aktivera rätt tab
+    document.querySelector(`[onclick="showTab('${tab}')"]`).classList.add("active");
+    document.getElementById("tab-" + tab).classList.add("active");
+}
+
+function nextMove() {
+    practiceMode = false;
+
+    if (!moves || moves.length === 0) {
+        return;
+    }
+
+    if (currentMove >= moves.length) {
+        stopAutoplay();
+        updateStudyStatus();
+        return;
+    }
+
+    let step = moves[currentMove];
+    let result = game.move(step.move);
+
+    while (!result && currentMove < moves.length - 1) {
+        console.log("Skipping invalid move:", step.move);
+        currentMove++;
+        step = moves[currentMove];
+        result = game.move(step.move);
+    }
+
+    if (!result) {
+        document.getElementById("moveExplanation").innerText = "Could not play any more valid moves.";
+        updateMoveButtons();
+        return;
+    }
+
+    board.position(game.fen());
+    document.getElementById("moveExplanation").innerText = step.explanation || "";
+
+    currentMove++;
+    renderMoveList();
+    
+    updateMoveButtons();
+    updateStudyStatus();
+}
+
+function updateStudyStatus() {
+    const progress = document.getElementById("moveProgress");
+    const statusText = document.getElementById("studyStatusText");
+
+    const totalMoves = moves ? moves.length : 0;
+
+    if (progress) {
+        progress.innerText = `Move ${currentMove} of ${totalMoves}`;
+    }
+
+    if (!statusText) return;
+
+    if (!moves || moves.length === 0) {
+        statusText.innerText = "No moves loaded yet.";
+    } else if (currentMove === 0) {
+        statusText.innerText = "Ready to study this opening.";
+    } else if (currentMove >= moves.length) {
+        statusText.innerText = "Line complete. You have reached the end of this opening line.";
+    } else {
+        statusText.innerText = "Studying line step by step.";
+    }
+}
+
+function goToOpening(openingName) {
+    window.location.href = `opening.html?name=${encodeURIComponent(openingName)}`;
+}
+
+function goToFamily(familyName) {
+    window.location.href = `openings.html?family=${encodeURIComponent(familyName)}`;
+}
+
+function goToEcoRange(ecoLetter) {
+    window.location.href = `openings.html?eco=${encodeURIComponent(ecoLetter)}`;
+}
+
+function goToStyle(styleName) {
+    window.location.href = `openings.html?style=${encodeURIComponent(styleName)}`;
+}
+
+function goToLevel(levelName) {
+    window.location.href = `openings.html?level=${encodeURIComponent(levelName)}`;
+}
+
+function prevMove() {
+    practiceMode = false;
+
+    if (currentMove <= 0) return;
+
+    stopAutoplay();
+
+    game.undo();
+    currentMove--;
+    board.position(game.fen());
+
+    if (currentMove > 0) {
+        document.getElementById("moveExplanation").innerText = moves[currentMove - 1].explanation || "Click next to continue";
+    } else {
+        document.getElementById("moveExplanation").innerText = "Click next to start learning";
+    }
+
+    updateMoveButtons();
+    renderMoveList();
+    updateStudyStatus();
+}
+
+function resetMoves() {
+    practiceMode = false;
+
+    stopAutoplay();
+
+    game.reset();
+    board.position(game.fen());
+    currentMove = 0;
+
+    document.getElementById("moveExplanation").innerText = "Click next to start learning";
+
+    renderMoveList();
+    updateMoveButtons();
+}
+
+function startAutoplay() {
+    if (!moves || moves.length === 0) return;
+
+    stopAutoplay();
+
+    const speedSelect = document.getElementById("speedSelect");
+    const speed = speedSelect ? parseInt(speedSelect.value) : 1200;
+
+    autoplayInterval = setInterval(() => {
+        if (currentMove >= moves.length) {
+            stopAutoplay();
+            return;
+        }
+
+        nextMove();
+    }, speed);
+
+    updateMoveButtons();
+}
+
+function stopAutoplay() {
+    if (autoplayInterval) {
+        clearInterval(autoplayInterval);
+        autoplayInterval = null;
+    }
+
+    updateMoveButtons();
+    updateStudyStatus();
+}
+
+function startPracticeMode() {
+    if (!moves || moves.length === 0) {
+        alert("No moves loaded for practice.");
+        return;
+    }
+
+    stopAutoplay();
+
+    practiceMode = true;
+    resetPracticeScore();
+    missedPositions = [];
+    mistakeReviewMode = false;
+    reviewIndex = 0;
+
+    const summaryDiv = document.getElementById("sessionSummary");
+    if (summaryDiv) {
+        summaryDiv.style.display = "none";
+        summaryDiv.innerHTML = "";
+    }
+
+    game.reset();
+    board.position(game.fen());
+    currentMove = 0;
+
+    setPracticeStatus("Practice started. Find the first move.", "neutral");
+    document.getElementById("moveExplanation").innerText = "Your turn. Enter the next move.";
+
+    const input = document.getElementById("practiceMoveInput");
+    if (input) {
+        input.disabled = false;
+        input.value = "";
+        input.focus();
+    }
+
+    renderMoveList();
+    updateMoveButtons();
+    updateStudyStatus();
+}
+
+function stopPracticeMode() {
+    practiceMode = false;
+
+    document.getElementById("practiceStatus").innerText = "Practice stopped.";
+    document.getElementById("moveExplanation").innerText = "Click next to continue studying.";
+
+    renderMoveList();
+    updateMoveButtons();
+    updateStudyStatus();
+}
+
+function checkPracticeMove() {
+    if (!practiceMode) {
+        alert("Start Practice Mode first.");
+        return;
+    }
+
+    const input = document.getElementById("practiceMoveInput");
+    const userMove = input.value.trim();
+
+    if (!userMove) return;
+
+    if (mistakeReviewMode) {
+        checkMistakeReviewMove(userMove);
+        return;
+    }
+  
+    if (!moves || currentMove >= moves.length) {
+        setPracticeStatus("Practice complete.", "complete");
+        return;
+    }
+
+    const expectedMove = moves[currentMove].move;
+
+    const normalizedUserMove = normalizeMoveText(userMove);
+    const normalizedExpectedMove = normalizeMoveText(expectedMove);
+
+    if (normalizedUserMove === normalizedExpectedMove) {
+        practiceCorrect++;
+        updatePracticeScore();
+
+        const result = game.move(expectedMove, { sloppy: true });
+
+        if (!result) {
+            setPracticeStatus(
+                `Move was correct, but ${expectedMove} could not be played on board.`,
+                "error"
+            );
+            console.error("Could not play normal practice move:", expectedMove);
+            console.error("Current FEN:", game.fen());
+            console.error("Legal moves:", game.moves());
+            return;
+        }
+
+        board.position(game.fen());
+
+        document.getElementById("moveExplanation").innerText =
+            moves[currentMove].explanation || "Correct move.";
+
+        currentMove++;
+
+        if (currentMove >= moves.length) {
+            const attempts = practiceCorrect + practiceMistakes;
+            const accuracy = attempts === 0 ? 0 : Math.round((practiceCorrect / attempts) * 100);
+
+            setPracticeStatus(
+                `Excellent. Line complete. Accuracy: ${accuracy}%.`,
+                "complete"
+            );
+
+            savePracticeStats(accuracy);
+            showSessionSummary(accuracy);
+        } else {
+            setPracticeStatus("Correct. Find the next move.", "success");
+        }
+
+        input.value = "";
+        input.focus();
+
+        renderMoveList();
+        updateMoveButtons();
+        updateStudyStatus();
+
+    } else {
+        practiceMistakes++;
+
+        const alreadySaved = missedPositions.some(item =>
+            item.fen === game.fen() && item.move === moves[currentMove].move
+        );
+
+        if (!alreadySaved) {
+            missedPositions.push({
+                fen: game.fen(),
+                move: moves[currentMove].move,
+                explanation: moves[currentMove].explanation || "No explanation available."
+            });
+        }
+
+        updatePracticeScore();
+
+        setPracticeStatus("Not quite. Try again.", "error");
+    }
+}
+
+function checkMistakeReviewMove(userMove) {
+    const item = missedPositions[reviewIndex];
+
+    if (!item) {
+        setPracticeStatus("Mistake review complete. Great work.", "complete");
+        mistakeReviewMode = false;
+        practiceMode = false;
+        return;
+    }
+
+    const normalizedUserMove = normalizeMoveText(userMove);
+    const normalizedExpectedMove = normalizeMoveText(item.move);
+
+    const input = document.getElementById("practiceMoveInput");
+
+    if (normalizedUserMove !== normalizedExpectedMove) {
+        setPracticeStatus(
+            `Not quite. Mistake ${reviewIndex + 1} of ${missedPositions.length}. Try again.`,
+            "error"
+        );
+        return;
+    }
+
+    const result = game.move(item.move, { sloppy: true });
+
+    if (!result) {
+        console.error("Could not play review move:", item.move);
+        console.error("Current FEN:", game.fen());
+        console.error("Legal moves:", game.moves());
+
+        setPracticeStatus(
+            `Correct notation, but ${item.move} could not be played from this position.`,
+            "error"
+        );
+        return;
+    }
+
+    
+    board.position(game.fen());
+
+    document.getElementById("moveExplanation").innerText =
+        item.explanation || `Correct: ${item.move}`;
+
+    setPracticeStatus(
+        `Correct: ${item.move}. Click Next Mistake to continue.`,
+        "success"
+    );
+
+    reviewMoveSolved = true;
+
+    if (input) {
+        input.value = "";
+        input.focus();
+    }
+
+    updateMoveButtons();
+    updateStudyStatus();
+
+    console.log("Review move played:", item.move);
+    console.log("New FEN:", game.fen());
+}
+
+function nextMistakeReview() {
+    if (!mistakeReviewMode) {
+        setPracticeStatus("Start mistake review first.", "info");
+        return;
+    }
+
+    if (!reviewMoveSolved) {
+        setPracticeStatus("Solve or play the current mistake first.", "info");
+        return;
+    }
+
+    reviewIndex++;
+    reviewMoveSolved = false;
+
+    if (reviewIndex >= missedPositions.length) {
+        setPracticeStatus("Mistake review complete. Great work.", "complete");
+        mistakeReviewMode = false;
+        practiceMode = false;
+        reviewMoveSolved = false;
+        return;
+    }
+
+    loadMistakeReviewPosition();
+}
+
+function showPracticeHint() {
+    if (!practiceMode) {
+        alert("Start Practice Mode first.");
+        return;
+    }
+
+    const difficulty = getPracticeDifficulty();
+
+    if (difficulty === "hard") {
+        setPracticeStatus(
+            "Hints are disabled in Hard mode.",
+            "info");
+        return;
+    }
+
+    if (mistakeReviewMode) {
+        const item = missedPositions[reviewIndex];
+
+        if (!item) return;
+
+        setPracticeStatus(
+            `Hint: the move starts with "${item.move[0]}".`,
+            "info"
+        );
+        return;
+    }
+
+    if (!moves || currentMove >= moves.length) {
+        setPracticeStatus(
+            "No hint available. Line complete.",
+            "info");
+        return;
+    }
+
+    const nextMove = moves[currentMove].move;
+
+    setPracticeStatus(
+        `Hint: the move starts with "${nextMove[0]}".`,
+        "info");
+}
+
+function showPracticeAnswer() {
+    if (!practiceMode) {
+        alert("Start Practice Mode first.");
+        return;
+    }
+
+    if (mistakeReviewMode) {
+        const item = missedPositions[reviewIndex];
+
+        if (!item) {
+            setPracticeStatus("Mistake review complete.", "complete");
+            return;
+        }
+
+        setPracticeStatus(
+            `Answer for mistake ${reviewIndex + 1} of ${missedPositions.length}: ${item.move}`,
+            "info"
+        );
+
+        document.getElementById("moveExplanation").innerText =
+            item.explanation || "No explanation available.";
+
+        return;
+    }
+
+    const difficulty = getPracticeDifficulty();
+
+    if (difficulty === "hard") {
+        setPracticeStatus(
+            "Answers are disabled in Hard mode.",
+            "info");
+        return;
+    }
+
+    if (mistakeReviewMode) {
+        const item = missedPositions[reviewIndex];
+
+        if (!item) {
+            setPracticeStatus("No answer to play.", "complete");
+            return;
+        }
+
+        const result = game.move(item.move);
+
+        if (!result) {
+            setPracticeStatus("Could not play the answer from this position.", "error");
+            return;
+        }
+
+        board.position(game.fen());
+        document.getElementById("moveExplanation").innerText = item.explanation;
+
+        reviewIndex++;
+
+        if (reviewIndex >= missedPositions.length) {
+            setPracticeStatus("Mistake review complete. Great work.", "complete");
+            mistakeReviewMode = false;
+            practiceMode = false;
+        } else {
+            setPracticeStatus("Answer played. Loading next mistake.", "info");
+            setTimeout(loadMistakeReviewPosition, 800);
+        }
+
+        renderMoveList();
+        updateMoveButtons();
+        updateStudyStatus();
+        return;
+    }
+
+    if (!moves || currentMove >= moves.length) {
+        setPracticeStatus(
+            "No answer available. Line complete.",
+            "info");
+        return;
+    }
+
+    if (difficulty === "normal") {
+        practiceMistakes++;
+        updatePracticeScore();
+    }
+
+    const answer = moves[currentMove].move;
+    const explanation = moves[currentMove].explanation || "No explanation available.";
+
+    setPracticeStatus(
+        `Answer: ${answer}`,
+        "info");
+
+    setPracticeStatus(
+        explanation,
+        "info");
+}
+
+function playPracticeAnswer() {
+    if (!practiceMode) {
+        alert("Start Practice Mode first.");
+        return;
+    }
+
+    if (mistakeReviewMode) {
+        const item = missedPositions[reviewIndex];
+
+        if (!item) {
+            setPracticeStatus("Mistake review complete.", "complete");
+            return;
+        }
+
+        let result = game.move(item.move, { sloppy: true });
+
+        if (!result) {
+            console.error("Could not play answer:", item.move);
+            console.error("Current FEN:", game.fen());
+            console.error("Legal moves:", game.moves());
+
+            setPracticeStatus(
+                `Could not play answer from this position: ${item.move}`,
+                "error"
+            );
+            return;
+        }
+
+        board.position(game.fen());
+
+        document.getElementById("moveExplanation").innerText =
+            item.explanation || `Answer played: ${item.move}`;
+
+        reviewMoveSolved = true;
+
+        setPracticeStatus(
+            `Answer played: ${item.move}. Click Next Mistake to continue.`,
+            "info"
+        );
+
+        updateMoveButtons();
+        updateStudyStatus();
+        return;
+    }
+
+    const difficulty = getPracticeDifficulty();
+
+    if (difficulty === "hard") {
+        document.getElementById("practiceStatus").innerText =
+            "Play Answer is disabled in Hard mode.";
+        return;
+    }
+
+    if (!moves || currentMove >= moves.length) {
+        document.getElementById("practiceStatus").innerText =
+            "No answer to play. Line complete.";
+        return;
+    }
+
+    const expectedMove = moves[currentMove].move;
+    const result = game.move(expectedMove);
+
+    if (!result) {
+        document.getElementById("practiceStatus").innerText =
+            "Could not play the answer on the board.";
+        return;
+    }
+
+    board.position(game.fen());
+
+    document.getElementById("moveExplanation").innerText =
+        moves[currentMove].explanation || "Answer played.";
+
+    currentMove++;
+
+    if (currentMove >= moves.length) {
+        const attempts = practiceCorrect + practiceMistakes;
+        const accuracy = attempts === 0 ? 0 : Math.round((practiceCorrect / attempts) * 100);
+
+        document.getElementById("practiceStatus").innerText =
+            `Line complete. Accuracy: ${accuracy}%.`;
+            savePracticeStats(accuracy);
+            showSessionSummary(accuracy);
+    } else {
+        document.getElementById("practiceStatus").innerText =
+            "Answer played. Find the next move.";
+    }
+
+    const input = document.getElementById("practiceMoveInput");
+    if (input) {
+        input.value = "";
+        input.focus();
+    }
+
+    renderMoveList();
+    updateMoveButtons();
+    updateStudyStatus();
+}
+
+function getPracticeDifficulty() {
+    const select = document.getElementById("difficultySelect");
+    return select ? select.value : "normal";
+}
+
+function updatePracticeScore() {
+    const correctSpan = document.getElementById("practiceCorrect");
+    const mistakesSpan = document.getElementById("practiceMistakes");
+    const accuracySpan = document.getElementById("practiceAccuracy");
+
+    const attempts = practiceCorrect + practiceMistakes;
+    const accuracy = attempts === 0 ? 0 : Math.round((practiceCorrect / attempts) * 100);
+
+    if (correctSpan) correctSpan.innerText = practiceCorrect;
+    if (mistakesSpan) mistakesSpan.innerText = practiceMistakes;
+    if (accuracySpan) accuracySpan.innerText = `${accuracy}%`;
+}
+
+function resetPracticeScore() {
+    practiceCorrect = 0;
+    practiceMistakes = 0;
+    updatePracticeScore();
+}
+
+function getPracticeStorageKey() {
+    const params = new URLSearchParams(window.location.search);
+    const openingName = params.get("name") || "unknown";
+    return "practice_stats_" + openingName;
+}
+
+function loadPracticeStats() {
+    const key = getPracticeStorageKey();
+    const raw = localStorage.getItem(key);
+
+    const lastAccuracySpan = document.getElementById("lastAccuracy");
+    const bestAccuracySpan = document.getElementById("bestAccuracy");
+    const attemptsSpan = document.getElementById("practiceAttempts");
+
+    if (!raw) {
+        if (lastAccuracySpan) lastAccuracySpan.innerText = "N/A";
+        if (bestAccuracySpan) bestAccuracySpan.innerText = "N/A";
+        if (attemptsSpan) attemptsSpan.innerText = "0";
+        return;
+    }
+
+    const stats = JSON.parse(raw);
+
+    if (lastAccuracySpan) lastAccuracySpan.innerText = `${stats.lastAccuracy}%`;
+    if (bestAccuracySpan) bestAccuracySpan.innerText = `${stats.bestAccuracy}%`;
+    if (attemptsSpan) attemptsSpan.innerText = stats.attempts;
+}
+
+function savePracticeStats(accuracy) {
+    const key = getPracticeStorageKey();
+    const raw = localStorage.getItem(key);
+
+    let stats = raw
+        ? JSON.parse(raw)
+        : {
+            lastAccuracy: 0,
+            bestAccuracy: 0,
+            attempts: 0
+        };
+
+    stats.lastAccuracy = accuracy;
+    stats.bestAccuracy = Math.max(stats.bestAccuracy || 0, accuracy);
+    stats.attempts = (stats.attempts || 0) + 1; 
+    stats.lastPracticed = new Date().toISOString();
+    saveDailyPracticeProgress();
+    
+    localStorage.setItem(key, JSON.stringify(stats));
+    loadPracticeStats();
+}
+
+function setPracticeStatus(message, type = "neutral") {
+    const status = document.getElementById("practiceStatus");
+    if (!status) return;
+
+    status.innerText = message;
+
+    status.classList.remove(
+        "neutral-status",
+        "success-status",
+        "error-status",
+        "info-status",
+        "complete-status"
+    );
+
+    const map = {
+        neutral: "neutral-status",
+        success: "success-status",
+        error: "error-status",
+        info: "info-status",
+        complete: "complete-status"
+    };
+
+    status.classList.add(map[type] || "neutral-status");
+}
+
+function startMistakeReview() {
+    if (!missedPositions || missedPositions.length === 0) {
+        setPracticeStatus("No mistakes to review. Great job.", "success");
+        return;
+    }
+
+    stopAutoplay();
+
+    mistakeReviewMode = true;
+    practiceMode = true;
+    reviewIndex = 0;
+    reviewMoveSolved = false;
+
+    loadMistakeReviewPosition();
+}
+
+function loadMistakeReviewPosition() {
+    const item = missedPositions[reviewIndex];
+
+    if (!item) {
+        setPracticeStatus("Mistake review complete. Great work.", "complete");
+        mistakeReviewMode = false;
+        practiceMode = false;
+        return;
+    }
+
+    reviewMoveSolved = false;
+
+    const loaded = game.load(item.fen);
+
+    if (!loaded) {
+        console.error("Could not load FEN:", item.fen);
+        setPracticeStatus("Could not load mistake position.", "error");
+        return;
+    }
+
+    board.position(game.fen());
+
+    console.log("Loaded mistake position:", item.fen);
+    console.log("Expected move:", item.move);
+    console.log("Legal moves from position:", game.moves());
+
+    document.getElementById("moveExplanation").innerText =
+        `Mistake ${reviewIndex + 1} of ${missedPositions.length}. Correct move: ${item.move}`;
+
+    setPracticeStatus(
+        `Mistake ${reviewIndex + 1} of ${missedPositions.length}. Enter the correct move.`,
+        "info"
+    );
+
+    const input = document.getElementById("practiceMoveInput");
+    if (input) {
+        input.value = "";
+        input.focus();
+    }
+
+    updateMoveButtons();
+    updateStudyStatus();
+}
+
+function showSessionSummary(accuracy) {
+    const summaryDiv = document.getElementById("sessionSummary");
+    if (!summaryDiv) return;
+
+    let message = "Good work.";
+
+    if (accuracy >= 90) {
+        message = "Excellent. You know this line very well.";
+    } else if (accuracy >= 70) {
+        message = "Good job. Review the mistakes and try again.";
+    } else {
+        message = "Keep practicing. This line needs more repetition.";
+    }
+
+    summaryDiv.style.display = "block";
+    summaryDiv.innerHTML = `
+        <h4>✅ Session Complete</h4>
+        <p><strong>Accuracy:</strong> ${accuracy}%</p>
+        <p><strong>Correct:</strong> ${practiceCorrect}</p>
+        <p><strong>Mistakes:</strong> ${practiceMistakes}</p>
+        <p>${message}</p>
+        <button onclick="startPracticeMode()">Practice Again</button>
+        <button onclick="startMistakeReview()">Review Mistakes</button>
+    `;
+}
+
+function saveDailyPracticeProgress() {
+    const today = new Date().toISOString().slice(0, 10);
+    const key = "daily_practice_" + today;
+
+    const raw = localStorage.getItem(key);
+    const data = raw
+        ? JSON.parse(raw)
+        : {
+            date: today,
+            completedSessions: 0
+        };
+
+    data.completedSessions += 1;
+
+    localStorage.setItem(key, JSON.stringify(data));
+}
+
+function normalizeMoveText(move) {
+    if (!move) return "";
+
+    return move
+        .trim()
+        .replace(/\s+/g, "")
+        .replace(/0-0-0/g, "O-O-O")
+        .replace(/0-0/g, "O-O")
+        .replace(/[+#]/g, "")
+        .toLowerCase();
+}
+
+function renderMoveList() {
+    const moveListDiv = document.getElementById("moveList");
+
+    if (!moveListDiv) return;
+
+    moveListDiv.innerHTML = "";
+
+    if (!moves || moves.length === 0) {
+        moveListDiv.innerHTML = "<p>No moves loaded yet.</p>";
+        return;
+    }
+
+    const table = document.createElement("div");
+    table.className = "move-table";
+
+    const header = document.createElement("div");
+    header.className = "move-row move-header";
+    header.innerHTML = `
+        <div>#</div>
+        <div>White</div>
+        <div>Black</div>
+    `;
+    table.appendChild(header);
+
+    for (let i = 0; i < moves.length; i += 2) {
+        const moveNumber = Math.floor(i / 2) + 1;
+
+        const whiteMove = moves[i];
+        const blackMove = moves[i + 1];
+
+        const row = document.createElement("div");
+        row.className = "move-row";
+
+        const numberCell = document.createElement("div");
+        numberCell.className = "move-number";
+        numberCell.innerText = moveNumber;
+
+        const whiteCell = document.createElement("div");
+        whiteCell.className = "move-cell";
+        whiteCell.innerText = whiteMove ? whiteMove.move : "";
+
+        if (whiteMove) {
+            whiteCell.onclick = () => goToMove(i);
+
+            if (currentMove - 1 === i) {
+                whiteCell.classList.add("active-move");
+            }
+        } else {
+            whiteCell.classList.add("empty");
+        }
+
+        const blackCell = document.createElement("div");
+        blackCell.className = "move-cell";
+        blackCell.innerText = blackMove ? blackMove.move : "";
+
+        if (blackMove) {
+            blackCell.onclick = () => goToMove(i + 1);
+
+            if (currentMove - 1 === i + 1) {
+                blackCell.classList.add("active-move");
+            }
+        } else {
+            blackCell.classList.add("empty");
+        }
+
+        row.appendChild(numberCell);
+        row.appendChild(whiteCell);
+        row.appendChild(blackCell);
+
+        table.appendChild(row);
+    }
+
+    moveListDiv.appendChild(table);
+}
+
+function goToMove(targetIndex) {
+    practiceMode = false;
+
+    if (!moves || moves.length === 0) return;
+
+    stopAutoplay();
+    game.reset();
+
+    for (let i = 0; i <= targetIndex; i++) {
+        const result = game.move(moves[i].move);
+
+        if (!result) {
+            console.log("Invalid move while jumping:", moves[i].move);
+            break;
+        }
+    }
+
+    board.position(game.fen());
+    currentMove = targetIndex + 1;
+
+    document.getElementById("moveExplanation").innerText =
+        moves[targetIndex].explanation || "No explanation available.";
+
+    renderMoveList();
+    updateMoveButtons();
+    updateStudyStatus();
+}
+
+async function loadOpeningMetadata(openingName) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/get_library_openings?source=master`);
+        const data = await response.json();
+
+        const opening = data.find(o => o.name === openingName);
+        const metaDiv = document.getElementById("openingMeta");
+        const previewDiv = document.getElementById("openingPreview");
+        const actionsDiv = document.getElementById("openingActions");
+        const infoDiv = document.getElementById("openingInfo");
+
+        if (!opening) {
+            metaDiv.innerHTML = `<p>Metadata not found for this opening.</p>`;
+            previewDiv.innerHTML = "";
+            actionsDiv.innerHTML = `
+                <button onclick="window.location.href='openings.html'">📚 View in Library</button>
+            `;
+            infoDiv.innerHTML = "";
+            return;
+        }
+
+        metaDiv.innerHTML = `
+            <div class="meta-card">
+                <h3>ECO</h3>
+                <p>${opening.eco || "N/A"}</p>
+            </div>
+            <div class="meta-card">
+                <h3>Family</h3>
+                <p>${opening.family || "N/A"}</p>
+            </div>
+            <div class="meta-card">
+                <h3>Variation</h3>
+                <p>${opening.variation || "N/A"}</p>
+            </div>
+            <div class="meta-card">
+                <h3>Style</h3>
+                <p>${opening.style || "N/A"}</p>
+            </div>
+            <div class="meta-card">
+                <h3>Level</h3>
+                <p>${opening.level || "N/A"}</p>
+            </div>
+        `;
+
+        previewDiv.innerHTML = `
+            <div class="preview-card">
+                <h3>📖 Opening Preview</h3>
+                <p><strong>Moves:</strong> ${opening.movesPreview || "N/A"}</p>
+            </div>
+        `;
+
+        actionsDiv.innerHTML = `
+            <button onclick="window.location.href='openings.html'">📚 View in Library</button>
+            <button onclick="goToFamily('${opening.family.replace(/'/g, "\\'")}')">🧩 See same family</button>
+            <button onclick="goToEcoRange('${opening.eco[0]}')">🔎 See same ECO range</button>
+            <button onclick="goToStyle('${opening.style.replace(/'/g, "\\'")}')">🎯 See same style</button>
+            <button onclick="goToLevel('${opening.level.replace(/'/g, "\\'")}')">📈 See same level</button>
+        `;
+
+        infoDiv.innerHTML = `
+            <div class="opening-info-card">
+                <h2> Opening Info</h2>
+                <p><strong>Name:</strong> ${opening.name || "N/A"}</p>
+                <p><strong>ECO:</strong> ${opening.eco || "N/A"}</p>
+                <p><strong>Family:</strong> ${opening.family || "N/A"}</p>
+                <p><strong>Variation:</strong> ${opening.variation || "N/A"}</p>
+                <p><strong>Style:</strong> ${opening.style || "N/A"}</p>
+                <p><strong>Level:</strong> ${opening.level || "N/A"}</p>
+                <p><strong>Moves Preview:</strong> ${opening.movesPreview || "N/A"}</p>
+                <p><strong>Description:</strong> ${opening.description || "No description available."}</p>
+            </div>
+        `;
+    } catch (err) {
+        console.error("Error loading opening metadata:", err);
+    }
+}
+
+async function loadRelatedOpenings(openingName) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/get_library_openings?source=master`);
+        const data = await response.json();
+
+        const current = data.find(o => o.name === openingName);
+
+        const container = document.getElementById("relatedOpenings");
+        container.innerHTML = "";
+
+        if (!current) {
+            container.innerHTML = `<p>Could not find related openings for this opening yet.</p>`;
+            return;
+        }
+
+        const related = data.filter(o =>
+            o.name !== current.name &&
+            (
+                o.family === current.family ||
+                o.style === current.style ||
+                o.level === current.level
+            )
+        ).slice(0, 6);
+
+        if (related.length === 0) {
+            container.innerHTML = `<p>No related openings found.</p>`;
+            return;
+        }
+
+        related.forEach(opening => {
+            const card = document.createElement("div");
+            card.className = "card";
+
+            card.innerHTML = `
+                <h3>${opening.name}</h3>
+                <p><strong>Family:</strong> ${opening.family}</p>
+                <p><strong>Style:</strong> ${opening.style}</p>
+                <p><strong>Level:</strong> ${opening.level}</p>
+                <button class="learn-btn" onclick="goToOpening('${opening.name.replace(/'/g, "\\'")}')">Study</button>
+            `;
+
+            container.appendChild(card);
+        });
+
+    } catch (err) {
+        console.error("Error loading related openings:", err);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const practiceInput = document.getElementById("practiceMoveInput");
+
+    if (practiceInput) {
+        practiceInput.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                checkPracticeMove();
+            }
+        });
+    }
+
+    loadOpening();
+});
+
+</script>
+
+</body>
+</html>

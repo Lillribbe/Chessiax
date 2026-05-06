@@ -1,0 +1,156 @@
+[
+    {
+      "name": "Sicilian Defense Najdorf English Attack",
+      "eco": "B90",
+      "family": "Sicilian Defense",
+      "variation": "English Attack",
+      "level": "Advanced",
+      "color": "White",
+      "style": "Aggressive",
+      "description": "A major attacking setup against the Najdorf where White uses Be3, f3, Qd2 and long castling.",
+      "movesPreview": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Be3"
+    },
+    {
+      "name": "Sicilian Defense Dragon Yugoslav Attack",
+      "eco": "B77",
+      "family": "Sicilian Defense",
+      "variation": "Yugoslav Attack",
+      "level": "Advanced",
+      "color": "White",
+      "style": "Aggressive",
+      "description": "A famous attacking system against the Dragon where White castles queenside and launches a kingside attack.",
+      "movesPreview": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6 6. Be3 Bg7 7. f3"
+    },
+    {
+      "name": "Sicilian Defense Smith-Morra Declined",
+      "eco": "B21",
+      "family": "Sicilian Defense",
+      "variation": "Smith-Morra Declined",
+      "level": "Intermediate",
+      "color": "Black",
+      "style": "Solid",
+      "description": "A practical way for Black to avoid the full Morra Gambit while keeping a solid Sicilian structure.",
+      "movesPreview": "1. e4 c5 2. d4 cxd4 3. c3 Nf6"
+    },
+    {
+      "name": "French Defense Winawer Poisoned Pawn",
+      "eco": "C18",
+      "family": "Semi-Open Game",
+      "variation": "Poisoned Pawn",
+      "level": "Advanced",
+      "color": "Black",
+      "style": "Dynamic",
+      "description": "A sharp Winawer line where Black grabs pawns and enters extremely tactical positions.",
+      "movesPreview": "1. e4 e6 2. d4 d5 3. Nc3 Bb4 4. e5 c5 5. a3 Bxc3+ 6. bxc3"
+    },
+    {
+      "name": "French Defense Tarrasch Open System",
+      "eco": "C05",
+      "family": "Semi-Open Game",
+      "variation": "Open System",
+      "level": "Intermediate",
+      "color": "White",
+      "style": "Classical",
+      "description": "A Tarrasch structure where the center opens and both sides develop actively.",
+      "movesPreview": "1. e4 e6 2. d4 d5 3. Nd2 c5"
+    },
+    {
+      "name": "Caro-Kann Two Knights Variation",
+      "eco": "B11",
+      "family": "Semi-Open Game",
+      "variation": "Two Knights",
+      "level": "Intermediate",
+      "color": "White",
+      "style": "Flexible",
+      "description": "A modern line where White delays central clarification and develops quickly.",
+      "movesPreview": "1. e4 c6 2. Nc3 d5 3. Nf3"
+    },
+    {
+      "name": "Caro-Kann Tartakower Variation",
+      "eco": "B15",
+      "family": "Semi-Open Game",
+      "variation": "Tartakower",
+      "level": "Advanced",
+      "color": "White",
+      "style": "Aggressive",
+      "description": "An ambitious anti-Caro setup where White seeks attacking chances and flexible development.",
+      "movesPreview": "1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. f3"
+    },
+    {
+      "name": "Queen's Gambit Accepted Central Variation",
+      "eco": "D26",
+      "family": "Queen's Gambit",
+      "variation": "Central Variation",
+      "level": "Intermediate",
+      "color": "White",
+      "style": "Dynamic",
+      "description": "A QGA line where White regains the pawn and challenges Black's central structure directly.",
+      "movesPreview": "1. d4 d5 2. c4 dxc4 3. e4"
+    },
+    {
+      "name": "Slav Defense Quiet Variation",
+      "eco": "D11",
+      "family": "Queen's Gambit",
+      "variation": "Quiet Variation",
+      "level": "Beginner",
+      "color": "White",
+      "style": "Solid",
+      "description": "A calmer Slav approach where White develops simply and keeps the position under control.",
+      "movesPreview": "1. d4 d5 2. c4 c6 3. Nf3"
+    },
+    {
+      "name": "Semi-Slav Anti-Meran",
+      "eco": "D45",
+      "family": "Queen's Gambit",
+      "variation": "Anti-Meran",
+      "level": "Advanced",
+      "color": "White",
+      "style": "Positional",
+      "description": "A system against the Semi-Slav where White avoids some of Black's sharpest queenside counterplay.",
+      "movesPreview": "1. d4 d5 2. c4 e6 3. Nc3 c6 4. Nf3 Nf6 5. Bg5"
+    },
+    {
+      "name": "Nimzo-Indian Defense Kasparov Variation",
+      "eco": "E26",
+      "family": "Indian Defense",
+      "variation": "Kasparov",
+      "level": "Advanced",
+      "color": "White",
+      "style": "Dynamic",
+      "description": "A sharp Nimzo-Indian line where White builds central space and prepares active piece play.",
+      "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. Nf3"
+    },
+    {
+      "name": "Queen's Indian Defense Fianchetto Variation",
+      "eco": "E17",
+      "family": "Indian Defense",
+      "variation": "Fianchetto",
+      "level": "Advanced",
+      "color": "White",
+      "style": "Positional",
+      "description": "A restrained setup against the Queen's Indian where White fianchettos and fights for long-term central control.",
+      "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nf3 b6 4. g3"
+    },
+    {
+      "name": "Bird Opening From Gambit",
+      "eco": "A02",
+      "family": "Flank Opening",
+      "variation": "From Gambit",
+      "level": "Advanced",
+      "color": "Black",
+      "style": "Aggressive",
+      "description": "A sharp response to Bird Opening where Black immediately challenges White's f-pawn structure.",
+      "movesPreview": "1. f4 e5"
+    },
+    {
+      "name": "Réti Opening Anglo-Slav",
+      "eco": "A12",
+      "family": "Flank Opening",
+      "variation": "Anglo-Slav",
+      "level": "Intermediate",
+      "color": "Black",
+      "style": "Flexible",
+      "description": "A Réti/English hybrid structure where Black builds a Slav-like setup against flank development.",
+      "movesPreview": "1. Nf3 d5 2. c4 c6"
+    }
+  ]

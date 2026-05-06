@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analyze My Profile</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <button class="back-btn" onclick="window.location.href='home.html'">🏠 Home</button>
+
+        <h1>👤 Analyze My Profile</h1>
+        <p class="subtitle">
+            Enter your Chess.com username and get personalized analysis later.
+        </p>
+
+        <div class="profile-input-section">
+            <input id="usernameInput" type="text" placeholder="Enter Chess.com username">
+            <button onclick="analyzeProfile()">Analyze</button>
+        </div>
+
+        <div id="profileResult" class="profile-result">
+            <div class="card">
+                <h2>Profile Analysis</h2>
+                <p>Your Chess.com profile data will appear here.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="config.js"></script>
+
+    <script>
+
+        async function analyzeProfile() {
+            const username = document.getElementById("usernameInput").value.trim();
+            const resultDiv = document.getElementById("profileResult");
+
+            if (!username) {
+                alert("Please enter a Chess.com username");
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="card">
+                    <h2>Analyzing ${username}...</h2>
+                    <p>Fetching Chess.com profile data...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/get_chess_profile`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ username })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    resultDiv.innerHTML = `
+                        <div class="card">
+                            <h2>Error</h2>
+                            <p>${data.error}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="card">
+                        <h2>${data.title ? data.title + " " : ""}${data.username}</h2>
+                        ${data.avatar ? `<img src="${data.avatar}" alt="Avatar" class="profile-avatar">` : ""}
+                        <p><strong>Status:</strong> ${data.status || "N/A"}</p>
+                        <p><strong>Followers:</strong> ${data.followers ?? "N/A"}</p>
+                        <p><strong>Country:</strong> ${data.country || "N/A"}</p>
+                        <p><strong>Joined:</strong> ${data.joined || "N/A"}</p>
+                        <p><strong>Rapid:</strong> ${data.ratings?.rapid ?? "N/A"}</p>
+                        <p><strong>Blitz:</strong> ${data.ratings?.blitz ?? "N/A"}</p>
+                        <p><strong>Bullet:</strong> ${data.ratings?.bullet ?? "N/A"}</p>
+                        <p><strong>Rapid W/L/D:</strong> 
+                        ${data.records?.rapid?.win ?? 0} / 
+                        ${data.records?.rapid?.loss ?? 0} / 
+                        ${data.records?.rapid?.draw ?? 0}
+                        </p>
+
+                        <p><strong>Blitz W/L/D:</strong> 
+                        ${data.records?.blitz?.win ?? 0} / 
+                        ${data.records?.blitz?.loss ?? 0} / 
+                        ${data.records?.blitz?.draw ?? 0}
+                        </p>
+
+                        <p><strong>Bullet W/L/D:</strong> 
+                        ${data.records?.bullet?.win ?? 0} / 
+                        ${data.records?.bullet?.loss ?? 0} / 
+                        ${data.records?.bullet?.draw ?? 0}
+                        </p>
+                        <p><strong>Profile:</strong> <a href="${data.url}" target="_blank">${data.url}</a></p>
+                    </div>
+
+                    <div class="card">
+                        <h2>🧠 AI Summary</h2>
+                        <p>${data.summary || "No summary available."}</p>
+                    </div>
+
+                    <div class="card">
+                        <h2>🎯 Recommendation</h2>
+                        <p>${data.recommendation || "No recommendation available."}</p>
+                    </div>
+
+                    <div class="card">
+                        <h2>📚 Suggested Openings</h2>
+                        ${
+                            data.openings && data.openings.length > 0
+                                ? data.openings.map(opening => `
+                                    <div class="suggested-opening">
+                                        <h3>${opening.name}</h3>
+                                        <p>${opening.reason}</p>
+                                        <p><strong>ECO:</strong> ${opening.eco || "N/A"}</p>
+                                        <p><strong>Level:</strong> ${opening.level || "N/A"}</p>
+                                        <p><strong>Style:</strong> ${opening.style || "N/A"}</p>
+                                        <p><strong>Family:</strong> ${opening.family || "N/A"}</p>
+                                        <button class="learn-btn" onclick="studySuggestedOpening('${opening.name.replace(/'/g, "\\'")}')">
+                                            Study this opening
+                                        </button>
+                                    </div>
+                                `).join("")
+                                : "<p>No opening suggestions available.</p>"
+                        }
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error(error);
+
+                resultDiv.innerHTML = `
+                    <div class="card">
+                        <h2>Error</h2>
+                        <p>Failed to fetch Chess.com profile data.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function studySuggestedOpening(openingName) {
+            window.location.href = `opening.html?name=${encodeURIComponent(openingName)}`;
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "c25-vienna-game",
+    "name": "Vienna Game",
+    "eco": "C25",
+    "family": "Open Game",
+    "variation": "Main Line",
+    "level": "Beginner",
+    "color": "White",
+    "style": "Aggressive",
+    "description": "An opening where White develops with Nc3 and keeps options for f4 and kingside play.",
+    "movesPreview": "1. e4 e5 2. Nc3"
+  },
+  {
+    "id": "c51-evans-gambit",
+    "name": "Evans Gambit",
+    "eco": "C51",
+    "family": "Open Game",
+    "variation": "Gambit",
+    "level": "Intermediate",
+    "color": "White",
+    "style": "Aggressive",
+    "description": "A sharp gambit in the Italian where White sacrifices the b-pawn for initiative.",
+    "movesPreview": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. b4"
+  },
+  {
+    "id": "a80-dutch-defense",
+    "name": "Dutch Defense",
+    "eco": "A80",
+    "family": "Queen's Pawn",
+    "variation": "Main Line",
+    "level": "Intermediate",
+    "color": "Black",
+    "style": "Aggressive",
+    "description": "A defense based on ...f5, aiming for active kingside and central control.",
+    "movesPreview": "1. d4 f5"
+  }
+]

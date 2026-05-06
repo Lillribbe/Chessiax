@@ -1,0 +1,156 @@
+[
+  {
+    "name": "French Defense MacCutcheon Variation",
+    "eco": "C12",
+    "family": "Semi-Open Game",
+    "variation": "MacCutcheon",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Dynamic",
+    "description": "A sharp French line where Black immediately counterattacks White's bishop and center.",
+    "movesPreview": "1. e4 e6 2. d4 d5 3. Nc3 Nf6 4. Bg5 Bb4"
+  },
+  {
+    "name": "French Defense Steinitz Variation",
+    "eco": "C14",
+    "family": "Semi-Open Game",
+    "variation": "Steinitz",
+    "level": "Intermediate",
+    "color": "White",
+    "style": "Classical",
+    "description": "A classical French structure where White supports the center and prepares kingside development.",
+    "movesPreview": "1. e4 e6 2. d4 d5 3. Nc3 Nf6 4. e5"
+  },
+  {
+    "name": "French Defense Exchange Variation",
+    "eco": "C01",
+    "family": "Semi-Open Game",
+    "variation": "Exchange Variation",
+    "level": "Beginner",
+    "color": "White",
+    "style": "Solid",
+    "description": "A simple French line where White exchanges early and aims for straightforward development.",
+    "movesPreview": "1. e4 e6 2. d4 d5 3. exd5"
+  },
+  {
+    "name": "Sicilian Defense O'Kelly Variation",
+    "eco": "B28",
+    "family": "Sicilian Defense",
+    "variation": "O'Kelly",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Flexible",
+    "description": "A less common Sicilian line where Black plays ...a6 early to sidestep some anti-Sicilian setups.",
+    "movesPreview": "1. e4 c5 2. Nf3 a6"
+  },
+  {
+    "name": "Sicilian Defense Hyper-Accelerated Dragon",
+    "eco": "B27",
+    "family": "Sicilian Defense",
+    "variation": "Hyper-Accelerated Dragon",
+    "level": "Advanced",
+    "color": "Black",
+    "style": "Dynamic",
+    "description": "A very fast Dragon setup where Black fianchettos immediately and pressures the center later.",
+    "movesPreview": "1. e4 c5 2. Nf3 g6"
+  },
+  {
+    "name": "Sicilian Defense Canal Attack",
+    "eco": "B52",
+    "family": "Sicilian Defense",
+    "variation": "Canal Attack",
+    "level": "Intermediate",
+    "color": "White",
+    "style": "Positional",
+    "description": "A strategic anti-Sicilian where White develops with Bb5 and tries to damage Black's structure.",
+    "movesPreview": "1. e4 c5 2. Nf3 d6 3. Bb5+"
+  },
+  {
+    "name": "King's Indian Defense Averbakh Variation",
+    "eco": "E73",
+    "family": "Indian Defense",
+    "variation": "Averbakh",
+    "level": "Advanced",
+    "color": "White",
+    "style": "Positional",
+    "description": "A restrained King's Indian system where White uses Be2 and Bg5 ideas to limit Black's counterplay.",
+    "movesPreview": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Be2"
+  },
+  {
+    "name": "King's Indian Defense Petrosian Variation",
+    "eco": "E92",
+    "family": "Indian Defense",
+    "variation": "Petrosian",
+    "level": "Advanced",
+    "color": "White",
+    "style": "Positional",
+    "description": "A slower anti-King's Indian setup where White aims for control and reduced kingside danger.",
+    "movesPreview": "1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Nf3 O-O 6. Be2 e5 7. d5"
+  },
+  {
+    "name": "Grunfeld Defense Russian System",
+    "eco": "D97",
+    "family": "Indian Defense",
+    "variation": "Russian System",
+    "level": "Advanced",
+    "color": "White",
+    "style": "Positional",
+    "description": "A main anti-Grunfeld system where White develops solidly and fights to maintain the center.",
+    "movesPreview": "1. d4 Nf6 2. c4 g6 3. Nc3 d5 4. Nf3"
+  },
+  {
+    "name": "Benko Gambit Accepted",
+    "eco": "A58",
+    "family": "Indian Defense",
+    "variation": "Accepted",
+    "level": "Advanced",
+    "color": "White",
+    "style": "Dynamic",
+    "description": "A major Benko line where White accepts the gambit and Black gets long-term queenside pressure.",
+    "movesPreview": "1. d4 Nf6 2. c4 c5 3. d5 b5 4. cxb5 a6"
+  },
+  {
+    "name": "English Opening Botvinnik System",
+    "eco": "A17",
+    "family": "English Opening",
+    "variation": "Botvinnik System",
+    "level": "Advanced",
+    "color": "White",
+    "style": "Flexible",
+    "description": "A strategic English setup with g3, Bg2, e4 and Nge2 ideas leading to rich maneuvering play.",
+    "movesPreview": "1. c4 Nf6 2. Nc3 e6 3. g3 d5 4. Bg2"
+  },
+  {
+    "name": "Réti Opening King's Indian Attack",
+    "eco": "A07",
+    "family": "Flank Opening",
+    "variation": "King's Indian Attack",
+    "level": "Beginner",
+    "color": "White",
+    "style": "System",
+    "description": "A flexible system opening where White uses Nf3, g3 and Bg2 against many black setups.",
+    "movesPreview": "1. Nf3 d5 2. g3"
+  },
+  {
+    "name": "Blackmar-Diemer Gambit",
+    "eco": "D00",
+    "family": "Queen's Pawn",
+    "variation": "Gambit",
+    "level": "Intermediate",
+    "color": "White",
+    "style": "Aggressive",
+    "description": "A sharp gambit where White sacrifices a pawn early for open lines and rapid development.",
+    "movesPreview": "1. d4 d5 2. e4"
+  },
+  {
+    "name": "Stonewall Attack",
+    "eco": "D00",
+    "family": "Queen's Pawn",
+    "variation": "System",
+    "level": "Beginner",
+    "color": "White",
+    "style": "System",
+    "description": "A setup opening where White builds a Stonewall structure with pawns on d4, e3, f4 and c3.",
+    "movesPreview": "1. d4 d5 2. e3 Nf6 3. Bd3"
+  }
+]
