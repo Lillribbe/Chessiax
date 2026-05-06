@@ -68,7 +68,7 @@
             // 🔹 Tillfällig text medan AI jobbar
             resultsDiv.innerHTML = `<h2 class="section-title">Analyzing your level...</h2>`;
 
-            const response = await fetch(`${API_BASE_URL}/get_opening_details`, {
+            const response = await fetch(`${API_BASE_URL}/get_openings`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ elo: parseInt(elo) })
