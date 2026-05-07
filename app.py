@@ -15,6 +15,11 @@ CORS(app)
 def serve_home():
     return send_from_directory(".", "home.html")
 
+
+@app.route('/profile')
+def profile():
+    return render_template('profile.html')
+
 @app.route("/home.html")
 def serve_home_file():
     return send_from_directory(".", "home.html")
