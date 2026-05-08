@@ -2209,6 +2209,18 @@
   },
   {
     "id": "a04-reti-opening",
+    "name": "Reti Opening",
+    "eco": "A04",
+    "family": "Flank Opening",
+    "variation": "Main Line",
+    "level": "Beginner",
+    "color": "White",
+    "style": "Flexible",
+    "description": "Imported from TSV source: Reti Opening.",
+    "movesPreview": "1. Nf3"
+  },
+  {
+    "id": "a04-reti-opening",
     "name": "Réti Opening",
     "eco": "A04",
     "family": "Flank Opening",
@@ -3525,18 +3537,6 @@
     "color": "Black",
     "style": "Flexible",
     "description": "A flexible response to the English where Black can aim for reversed Queen's Indian or Slav-like setups.",
-    "movesPreview": "1. c4 e6"
-  },
-  {
-    "id": "a13-english-opening-agincourt-defense",
-    "name": "English Opening: Agincourt Defense",
-    "eco": "A13",
-    "family": "English Opening",
-    "variation": "Agincourt Defense",
-    "level": "Intermediate",
-    "color": "Black",
-    "style": "Flexible",
-    "description": "Imported from Lichess TSV dataset: English Opening: Agincourt Defense.",
     "movesPreview": "1. c4 e6"
   },
   {
@@ -13644,18 +13644,6 @@
     "movesPreview": "1. e4 c5 2. c3"
   },
   {
-    "id": "b22-sicilian-defense-alapin-variation",
-    "name": "Sicilian Defense: Alapin Variation",
-    "eco": "B22",
-    "family": "Sicilian Defense",
-    "variation": "Alapin Variation",
-    "level": "Intermediate",
-    "color": "Black",
-    "style": "Flexible",
-    "description": "Imported from Lichess TSV dataset: Sicilian Defense: Alapin Variation.",
-    "movesPreview": "1. e4 c5 2. c3"
-  },
-  {
     "id": "b22-sicilian-defense-alapin-variation-anti-alapin-gambit",
     "name": "Sicilian Defense: Alapin Variation, Anti-Alapin Gambit",
     "eco": "B22",
@@ -13894,18 +13882,6 @@
     "style": "Flexible",
     "description": "Imported from Lichess TSV dataset: Sicilian Defense: Closed, Traditional.",
     "movesPreview": "1. e4 c5 2. Nc3 Nc6"
-  },
-  {
-    "id": "b23-sicilian-defense-grand-prix-attack",
-    "name": "Sicilian Defense: Grand Prix Attack",
-    "eco": "B23",
-    "family": "Sicilian Defense",
-    "variation": "Grand Prix Attack",
-    "level": "Intermediate",
-    "color": "Black",
-    "style": "System",
-    "description": "Imported from Lichess TSV dataset: Sicilian Defense: Grand Prix Attack.",
-    "movesPreview": "1. e4 c5 2. Nc3 Nc6 3. f4"
   },
   {
     "id": "b23-sicilian-defense-grand-prix-attack-schofman-variation",
@@ -16452,18 +16428,6 @@
     "movesPreview": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6"
   },
   {
-    "id": "b70-sicilian-defense-dragon-variation",
-    "name": "Sicilian Defense: Dragon Variation",
-    "eco": "B70",
-    "family": "Sicilian Defense",
-    "variation": "Dragon Variation",
-    "level": "Advanced",
-    "color": "Black",
-    "style": "Dynamic",
-    "description": "Imported from Lichess TSV dataset: Sicilian Defense: Dragon Variation.",
-    "movesPreview": "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 g6"
-  },
-  {
     "id": "b70-sicilian-defense-dragon-variation-classical-variation",
     "name": "Sicilian Defense: Dragon Variation, Classical Variation",
     "eco": "B70",
@@ -17661,18 +17625,6 @@
     "color": "White",
     "style": "Classical",
     "description": "The broad family of openings beginning with 1.e4 e5.",
-    "movesPreview": "1. e4 e5"
-  },
-  {
-    "id": "c20-kings-pawn-game",
-    "name": "King's Pawn Game",
-    "eco": "C20",
-    "family": "Open Game",
-    "variation": "Main Line",
-    "level": "Beginner",
-    "color": "White",
-    "style": "Flexible",
-    "description": "Imported from TSV source: King's Pawn Game.",
     "movesPreview": "1. e4 e5"
   },
   {
@@ -20820,18 +20772,6 @@
     "movesPreview": "1. d4 d5 2. c4 e6"
   },
   {
-    "id": "d30-queens-gambit-declined",
-    "name": "Queen's Gambit Declined",
-    "eco": "D30",
-    "family": "Queen's Gambit",
-    "variation": "Main Line",
-    "level": "Intermediate",
-    "color": "White",
-    "style": "Aggressive",
-    "description": "Imported from Lichess TSV dataset: Queen's Gambit Declined.",
-    "movesPreview": "1. d4 d5 2. c4 e6"
-  },
-  {
     "id": "d30-queens-gambit-declined-capablanca-variation",
     "name": "Queen's Gambit Declined: Capablanca Variation",
     "eco": "D30",
@@ -21526,18 +21466,6 @@
     "style": "Positional",
     "description": "A strategic QGD line where White exchanges on d5 and often plays for minority attack plans.",
     "movesPreview": "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. cxd5"
-  },
-  {
-    "id": "d35-queens-gambit-declined-exchange-variation",
-    "name": "Queen's Gambit Declined: Exchange Variation",
-    "eco": "D35",
-    "family": "Queen's Gambit",
-    "variation": "Exchange Variation",
-    "level": "Intermediate",
-    "color": "White",
-    "style": "Aggressive",
-    "description": "Imported from Lichess TSV dataset: Queen's Gambit Declined: Exchange Variation.",
-    "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nc3 d5 4. cxd5"
   },
   {
     "id": "d35-queens-gambit-declined-exchange-variation-carlsen-variation",
@@ -25380,18 +25308,6 @@
     "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. a3"
   },
   {
-    "id": "e25-nimzo-indian-defense-samisch-variation",
-    "name": "Nimzo-Indian Defense: Sämisch Variation",
-    "eco": "E25",
-    "family": "Indian Defense",
-    "variation": "Sämisch Variation",
-    "level": "Advanced",
-    "color": "Black",
-    "style": "Flexible",
-    "description": "Imported from Lichess TSV dataset: Nimzo-Indian Defense: Sämisch Variation.",
-    "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. f3 d5 5. a3 Bxc3+ 6. bxc3 c5 7. cxd5"
-  },
-  {
     "id": "e25-nimzo-indian-defense-samisch-variation-keres-variation",
     "name": "Nimzo-Indian Defense: Sämisch Variation, Keres Variation",
     "eco": "E25",
@@ -25545,18 +25461,6 @@
     "color": "Black",
     "style": "Positional",
     "description": "A main Nimzo-Indian line with deep strategic play and long-term structural ideas.",
-    "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. Qc2"
-  },
-  {
-    "id": "e32-nimzo-indian-defense-classical-variation",
-    "name": "Nimzo-Indian Defense: Classical Variation",
-    "eco": "E32",
-    "family": "Indian Defense",
-    "variation": "Classical Variation",
-    "level": "Advanced",
-    "color": "Black",
-    "style": "Classical",
-    "description": "Imported from Lichess TSV dataset: Nimzo-Indian Defense: Classical Variation.",
     "movesPreview": "1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. Qc2"
   },
   {

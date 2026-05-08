@@ -1,2 +1,2 @@
 // config.js
-const API_BASE_URL = "https://ai-chess-solution.onrender.com";
+const API_BASE_URL = window.location.origin;

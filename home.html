@@ -1,5 +1,15 @@
 <!DOCTYPE html>
 <html>
+
+<div class="brand-bar">
+    <div class="brand-logo">♞ Chessiax</div>
+    <div class="brand-links">
+        <button onclick="window.location.href='home.html'">Home</button>
+        <button onclick="window.location.href='openings.html'">Library</button>
+        <button onclick="window.location.href='index.html'">Analyze</button>
+    </div>
+</div>
+
 <head>
     <title>Chess AI Trainer</title>
     <link rel="stylesheet" href="style.css">
@@ -9,14 +19,18 @@
     <div class="container">
 
         <section class="home-hero">
-            <h1>Chess AI Trainer</h1>
+            <div class="hero-badge">AI-powered chess opening training</div>
+        
+            <h1>Master your openings faster.</h1>
+        
             <p>
-                Learn openings, practice lines, review mistakes, and track your progress.
+                Get opening recommendations, study structured lines, practice from memory,
+                review mistakes, and track your progress.
             </p>
         
             <div class="home-hero-actions">
                 <button onclick="window.location.href='openings.html'">Start Learning</button>
-                <button onclick="window.location.href='index.html'">Analyze My Chess</button>
+                <button class="secondary-btn" onclick="window.location.href='index.html'">Analyze My Level</button>
             </div>
         </section>
 
@@ -64,7 +78,7 @@
             <div class="card home-card">
                 <h2>👤 Analyze My Profile</h2>
                 <p>Enter your Chess.com username and start building toward personalized recommendations and game-based insights.</p>
-                <button onclick="window.location.href='/profile'">Open Profile Analysis</button>
+                <button onclick="window.location.href='profile.html'">Open Profile Analysis</button>
             </div>
 
             <div class="card">
@@ -118,6 +132,19 @@
 
         </div>
 
+    </div>
+
+    <div class="brand-bar">
+        <div class="brand-logo" onclick="window.location.href='home.html'">
+            ♞ Chessiax
+        </div>
+    
+        <div class="brand-links">
+            <button onclick="window.location.href='home.html'">Home</button>
+            <button onclick="window.location.href='openings.html'">Library</button>
+            <button onclick="window.location.href='index.html'">Analyze</button>
+            <button onclick="window.location.href='profile.html'">Profile</button>
+        </div>
     </div>
 
 <script src="config.js"></script>
@@ -534,6 +561,27 @@ async function loadSmartStudyRecommendations() {
 function goToOpening(openingName) {
     window.location.href = `opening.html?name=${encodeURIComponent(openingName)}`;
 }
+
+function setActiveNav() {
+    const path = window.location.pathname;
+    const buttons = document.querySelectorAll(".brand-links button");
+
+    buttons.forEach(button => {
+        const text = button.innerText.toLowerCase();
+
+        if (
+            (path.includes("home") && text.includes("home")) ||
+            (path === "/" && text.includes("home")) ||
+            (path.includes("openings") && text.includes("library")) ||
+            (path.includes("index") && text.includes("analyze")) ||
+            (path.includes("profile") && text.includes("profile"))
+        ) {
+            button.classList.add("active-nav");
+        }
+    });
+}
+
+setActiveNav();
 
 </script>
 </body>

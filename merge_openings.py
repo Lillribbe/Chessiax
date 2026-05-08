@@ -1,7 +1,7 @@
 import json
-from pathlib import Path
+import os
+import re
 
-# 🔹 Vilka filer som ska slås ihop
 SOURCE_FILES = [
     "openings-eco-expanded.json",
     "openings-eco-batch1.json",
@@ -17,23 +17,90 @@ SOURCE_FILES = [
     "openings-imported-lichess-full.json"
 ]
 
-# 🔹 Utfil
 OUTPUT_FILE = "openings-eco-master.json"
 
 
-def load_json_file(filename):
-    path = Path(filename)
+def normalize_name(name):
+    if not name:
+        return ""
 
-    if not path.exists():
-        print(f"File not found: {filename}")
+    name = name.lower()
+    name = name.replace("defence", "defense")
+    name = name.replace("'", "")
+    name = name.replace(":", " ")
+    name = name.replace(",", " ")
+    name = name.replace("-", " ")
+    name = name.replace(".", " ")
+    name = re.sub(r"\s+", " ", name).strip()
+
+    return name
+
+
+def opening_key(opening):
+    name = normalize_name(opening.get("name", ""))
+    eco = opening.get("eco", "").strip().upper()
+
+    if not name:
+        return None
+
+    if eco:
+        return f"{eco}_{name}"
+
+    return name
+
+
+def score_opening_quality(opening):
+    score = 0
+
+    important_fields = [
+        "name",
+        "eco",
+        "family",
+        "variation",
+        "style",
+        "level",
+        "color",
+        "movesPreview",
+        "description"
+    ]
+
+    for field in important_fields:
+        value = opening.get(field)
+        if value and value != "N/A" and value != "No description available.":
+            score += 1
+
+    return score
+
+
+def merge_opening(existing, new):
+    existing_score = score_opening_quality(existing)
+    new_score = score_opening_quality(new)
+
+    if new_score > existing_score:
+        merged = new.copy()
+        fallback = existing
+    else:
+        merged = existing.copy()
+        fallback = new
+
+    for key, value in fallback.items():
+        if key not in merged or not merged[key] or merged[key] == "N/A":
+            merged[key] = value
+
+    return merged
+
+
+def load_json_file(filename):
+    if not os.path.exists(filename):
+        print(f"Skipping missing file: {filename}")
         return []
 
     try:
-        with path.open("r", encoding="utf-8") as f:
+        with open(filename, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         if not isinstance(data, list):
-            print(f"Invalid format in {filename}: expected a list")
+            print(f"Skipping invalid file format: {filename}")
             return []
 
         return data
@@ -43,48 +110,43 @@ def load_json_file(filename):
         return []
 
 
-def make_key(opening):
-    """
-    Unique key for deduplication.
-    Try id first, otherwise fallback to name + eco.
-    """
-    opening_id = opening.get("id")
-    if opening_id:
-        return ("id", opening_id.strip().lower())
+def main():
+    merged_by_key = {}
 
-    name = opening.get("name", "").strip().lower()
-    eco = opening.get("eco", "").strip().lower()
-    return ("fallback", name, eco)
-
-
-def merge_openings():
-    merged = []
-    seen = set()
+    total_loaded = 0
 
     for filename in SOURCE_FILES:
         openings = load_json_file(filename)
         print(f"Loaded {len(openings)} openings from {filename}")
+        total_loaded += len(openings)
 
         for opening in openings:
-            key = make_key(opening)
+            key = opening_key(opening)
 
-            if key in seen:
+            if not key:
                 continue
 
-            seen.add(key)
-            merged.append(opening)
+            if key in merged_by_key:
+                merged_by_key[key] = merge_opening(merged_by_key[key], opening)
+            else:
+                merged_by_key[key] = opening
 
-    # Sortera snyggt: först ECO, sen namn
-    merged.sort(key=lambda x: (
-        x.get("eco", ""),
-        x.get("name", "")
+    merged = list(merged_by_key.values())
+
+    merged.sort(key=lambda o: (
+        o.get("eco", ""),
+        o.get("name", "")
     ))
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(merged, f, indent=2, ensure_ascii=False)
 
-    print(f"\nSaved {len(merged)} unique openings to {OUTPUT_FILE}")
+    print("")
+    print(f"Loaded total: {total_loaded}")
+    print(f"Unique openings: {len(merged)}")
+    print(f"Removed duplicates: {total_loaded - len(merged)}")
+    print(f"Created {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":
-    merge_openings()
+    main()

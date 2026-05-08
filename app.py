@@ -15,14 +15,17 @@ CORS(app)
 def serve_home():
     return send_from_directory(".", "home.html")
 
-
-@app.route('/profile')
-def profile():
-    return render_template('profile.html')
-
 @app.route("/home.html")
 def serve_home_file():
     return send_from_directory(".", "home.html")
+
+@app.route("/profile.html")
+def serve_profile():
+    return send_from_directory(".", "profile.html")
+
+@app.route('/profile')
+def profile():
+    return send_from_directory(".", 'profile.html')
 
 @app.route("/index.html")
 def serve_index():
@@ -43,6 +46,30 @@ def serve_css():
 @app.route("/config.js")
 def serve_config():
     return send_from_directory(".", "config.js")
+
+@app.route("/<path:filename>")
+def serve_static_files(filename):
+    allowed_files = [
+        "home.html",
+        "index.html",
+        "profile.html",
+        "openings.html",
+        "opening.html",
+        "style.css",
+        "config.js",
+        "profile.js",
+        "script.js",
+        "favicon.ico"
+    ]
+
+    if filename in allowed_files:
+        return send_from_directory(".", filename)
+
+    return "File not found", 404
+
+@app.route("/favicon.ico")
+def favicon():
+    return "", 204
 
 # 🔹  AI-insight
 def generate_insight(elo):

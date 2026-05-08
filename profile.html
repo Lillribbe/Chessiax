@@ -1,5 +1,15 @@
 <!DOCTYPE html>
 <html>
+
+<div class="brand-bar">
+    <div class="brand-logo">♞ Chessiax</div>
+    <div class="brand-links">
+        <button onclick="window.location.href='home.html'">Home</button>
+        <button onclick="window.location.href='openings.html'">Library</button>
+        <button onclick="window.location.href='index.html'">Analyze</button>
+    </div>
+</div>
+
 <head>
     <title>Analyze My Profile</title>
     <link rel="stylesheet" href="style.css">
@@ -10,10 +20,14 @@
 
         <button class="back-btn" onclick="window.location.href='home.html'">🏠 Home</button>
 
-        <h1>👤 Analyze My Profile</h1>
-        <p class="subtitle">
-            Enter your Chess.com username and get personalized analysis later.
-        </p>
+        <section class="page-hero profile-hero">
+            <div class="hero-badge">Chess.com analysis</div>
+            <h1>Analyze your chess profile.</h1>
+            <p>
+                Connect your Chess.com username, review your strengths and weaknesses,
+                and get opening recommendations based on your player profile.
+            </p>
+        </section>
 
         <div class="profile-input-section">
             <input id="usernameInput" type="text" placeholder="Enter Chess.com username">
@@ -148,6 +162,27 @@
         function studySuggestedOpening(openingName) {
             window.location.href = `opening.html?name=${encodeURIComponent(openingName)}`;
         }
+
+        function setActiveNav() {
+            const path = window.location.pathname;
+            const buttons = document.querySelectorAll(".brand-links button");
+
+            buttons.forEach(button => {
+                const text = button.innerText.toLowerCase();
+
+                if (
+                    (path.includes("home") && text.includes("home")) ||
+                    (path === "/" && text.includes("home")) ||
+                    (path.includes("openings") && text.includes("library")) ||
+                    (path.includes("index") && text.includes("analyze")) ||
+                    (path.includes("profile") && text.includes("profile"))
+                ) {
+                    button.classList.add("active-nav");
+                }
+            });
+        }
+
+        setActiveNav();
 
     </script>
 </body>

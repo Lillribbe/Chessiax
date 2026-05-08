@@ -1,5 +1,15 @@
 <!DOCTYPE html>
 <html>
+
+<div class="brand-bar">
+    <div class="brand-logo">♞ Chessiax</div>
+    <div class="brand-links">
+        <button onclick="window.location.href='home.html'">Home</button>
+        <button onclick="window.location.href='openings.html'">Library</button>
+        <button onclick="window.location.href='index.html'">Analyze</button>
+    </div>
+</div>
+
 <head>
     <title>Opening Details</title>
 
@@ -17,11 +27,19 @@
     <button class="back-btn" onclick="window.history.back()">⬅ Back</button>
     <button class="back-btn" onclick="window.location.href='home.html'">🏠 Home</button>
 
-    <!-- 🔹 Titel -->
-    <h1 id="openingTitle">Loading...</h1>
+    <section class="page-hero study-hero">
+        <div class="hero-badge">Opening Study</div>
+        <h1 id="openingTitle">Loading...</h1>
+        <p>
+            Study the line, understand the ideas, practice from memory,
+            and review your mistakes.
+        </p>
+    
+        <div id="openingActions" class="opening-actions"></div>
+    </section>
+    
     <div id="openingMeta" class="opening-meta"></div>
     <div id="openingPreview" class="opening-preview"></div>
-    <div id="openingActions" class="opening-actions"></div>
     <div id="openingInfo" class="opening-info"></div>
 
     <div class="board-section">
@@ -128,6 +146,18 @@
         
 </div>
 
+<div class="brand-bar">
+    <div class="brand-logo" onclick="window.location.href='home.html'">
+        ♞ Chessiax
+    </div>
+
+    <div class="brand-links">
+        <button onclick="window.location.href='home.html'">Home</button>
+        <button onclick="window.location.href='openings.html'">Library</button>
+        <button onclick="window.location.href='index.html'">Analyze</button>
+        <button onclick="window.location.href='profile.html'">Profile</button>
+    </div>
+</div>
 
 </div>
 
@@ -1308,24 +1338,92 @@ function goToMove(targetIndex) {
     updateStudyStatus();
 }
 
+function normalizeOpeningName(name) {
+    if (!name) return "";
+
+    return name
+        .toLowerCase()
+        .replace(/defence/g, "defense")
+        .replace(/[^a-z0-9\s]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function findBestOpeningMatch(data, openingName) {
+    const target = normalizeOpeningName(openingName);
+
+    // 1. Exakt normaliserad match
+    let match = data.find(o =>
+        normalizeOpeningName(o.name) === target
+    );
+
+    if (match) return match;
+
+    // 2. OpeningName finns i datanamnet
+    match = data.find(o =>
+        normalizeOpeningName(o.name).includes(target)
+    );
+
+    if (match) return match;
+
+    // 3. Datanamn finns i openingName
+    match = data.find(o =>
+        target.includes(normalizeOpeningName(o.name))
+    );
+
+    if (match) return match;
+
+    // 4. Matcha på första delen före kolon
+    const targetBase = target.split(" ")[0];
+
+    match = data.find(o =>
+        normalizeOpeningName(o.name).startsWith(targetBase)
+    );
+
+    if (match) return match;
+
+    return null;
+}
+
 async function loadOpeningMetadata(openingName) {
     try {
         const response = await fetch(`${API_BASE_URL}/get_library_openings?source=master`);
         const data = await response.json();
 
-        const opening = data.find(o => o.name === openingName);
+        const opening = findBestOpeningMatch(data, openingName);
         const metaDiv = document.getElementById("openingMeta");
         const previewDiv = document.getElementById("openingPreview");
         const actionsDiv = document.getElementById("openingActions");
         const infoDiv = document.getElementById("openingInfo");
 
         if (!opening) {
-            metaDiv.innerHTML = `<p>Metadata not found for this opening.</p>`;
-            previewDiv.innerHTML = "";
+            metaDiv.innerHTML = `
+                <div class="meta-card">
+                    <h3>Metadata</h3>
+                    <p>Detailed metadata is not available for this exact opening yet.</p>
+                </div>
+            `;
+
+            previewDiv.innerHTML = `
+                <div class="preview-card">
+                    <h3>📖 Opening Preview</h3>
+                    <p>This opening can still be studied, but ECO and family data are missing.</p>
+                </div>
+            `;
+
             actionsDiv.innerHTML = `
                 <button onclick="window.location.href='openings.html'">📚 View in Library</button>
             `;
-            infoDiv.innerHTML = "";
+
+            infoDiv.innerHTML = `
+                <div class="opening-info-card">
+                    <h2>Opening Info</h2>
+                    <p><strong>Name:</strong> ${openingName}</p>
+                    <p><strong>Status:</strong> Metadata missing</p>
+                    <p>This usually happens when the recommended opening name does not exactly match the library database.</p>
+                </div>
+            `;
+
             return;
         }
 
@@ -1447,6 +1545,27 @@ document.addEventListener("DOMContentLoaded", function() {
 
     loadOpening();
 });
+
+function setActiveNav() {
+    const path = window.location.pathname;
+    const buttons = document.querySelectorAll(".brand-links button");
+
+    buttons.forEach(button => {
+        const text = button.innerText.toLowerCase();
+
+        if (
+            (path.includes("home") && text.includes("home")) ||
+            (path === "/" && text.includes("home")) ||
+            (path.includes("openings") && text.includes("library")) ||
+            (path.includes("index") && text.includes("analyze")) ||
+            (path.includes("profile") && text.includes("profile"))
+        ) {
+            button.classList.add("active-nav");
+        }
+    });
+}
+
+setActiveNav();
 
 </script>
 

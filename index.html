@@ -1,5 +1,15 @@
 <!DOCTYPE html>
 <html>
+
+<div class="brand-bar">
+    <div class="brand-logo">♞ Chessiax</div>
+    <div class="brand-links">
+        <button onclick="window.location.href='home.html'">Home</button>
+        <button onclick="window.location.href='openings.html'">Library</button>
+        <button onclick="window.location.href='index.html'">Analyze</button>
+    </div>
+</div>
+
 <head>
     <link rel="stylesheet" href="style.css">
     <title>Chess Opening Finder</title>
@@ -11,188 +21,308 @@
 
         <button class="back-btn" onclick="window.location.href='home.html'">⬅ Home</button>
 
-        <!-- 🔹 Huvudrubrik -->
-        <h1>♟️ Chess Opening Finder</h1>
-        <p class="subtitle">Discover the best openings for your rating instantly.</p>
-
-        <p class="subtitle">
-            Recommendations are based on your level, opening difficulty and learning value.
-        </p>
-
-        <!-- 🔹 Input + knapp -->
-        <div class="input-group">
-            <input id="eloInput" type="number" placeholder="Enter your ELO">
-            <button onclick="getOpenings()">Analyze</button>
-        </div>
+        <section class="finder-hero">
+            <div class="hero-badge">AI opening guidance</div>
+        
+            <h1>Find openings built for your level.</h1>
+        
+            <p>
+                Enter your rating and get practical recommendations based on difficulty,
+                learning value and long-term improvement potential.
+            </p>
+        
+            <div class="input-group finder-input">
+                <input id="eloInput" type="number" placeholder="Enter your ELO">
+                <button onclick="getOpenings()">Analyze</button>
+            </div>
+        </section>
 
         <!-- 🔹 Resultat -->
-        <h2 class="section-title">Your Recommendations</h2>
+        <div id="results" class="results-container" style="display:none;">
+            <h2 class="section-title">Your Recommendations</h2>
 
-        <div id="results" class="results-container">
-            <!-- 🔹 Rad med två kolumner -->
             <div class="results-row">
-                
                 <!-- Vänsterkolumn -->
-                <div class="results-col left-col" id="leftCol">
-                    <div class="left-top" id="leftTop"></div>       <!-- AI Insight övre halvan -->
-                    <div class="left-bottom" id="leftBottom"></div> <!-- Openings To Avoid nedre halvan -->
-                </div>
-                
-                <!-- Högerkolumn -->
-                <div class="results-col right-col" id="rightCol">
-                    <!-- Best Openings hamnar här -->
+                <div class="results-col left-col">
+                     <div id="insight" class="card ai-insight"></div>
+
+                    <div class="card">
+                        <h3>🎯 Tactical Focus</h3>
+                        <div id="tactics" class="tactics-box"></div>
+                    </div>
+
+                    <div class="card">
+                        <h3>♔ Endgame Focus</h3>
+                        <div id="endgames" class="endgames-box"></div>
+                    </div>
                 </div>
 
+                <!-- Högerkolumn -->
+                <div class="results-col right-col">
+                    <div id="recommendations"></div>
+                </div>
+            </div>
+
+            <div class="avoid-row">
+                <h3>🔴 Openings To Avoid</h3>
+                <div id="avoidOpenings"></div>
             </div>
         </div>
 
+    </div>
+
+    <div class="brand-bar">
+        <div class="brand-logo" onclick="window.location.href='home.html'">
+            ♞ Chessiax
+        </div>
+    
+        <div class="brand-links">
+            <button onclick="window.location.href='home.html'">Home</button>
+            <button onclick="window.location.href='openings.html'">Library</button>
+            <button onclick="window.location.href='index.html'">Analyze</button>
+            <button onclick="window.location.href='profile.html'">Profile</button>
+        </div>
     </div>
 
     <script src="config.js"></script>
 
     <script>
         async function getOpenings() {
-            const elo = document.getElementById("eloInput").value;
+            const eloInput = document.getElementById("eloInput");
+            const resultsDiv = document.getElementById("results");
+            const recommendationsDiv = document.getElementById("recommendations");
+            const avoidDiv = document.getElementById("avoidOpenings");
+            const tacticsDiv = document.getElementById("tactics");
+            const endgamesDiv = document.getElementById("endgames");
+            const insightDiv = document.getElementById("insight");
+
+            if (!eloInput) {
+                console.error("Missing element: eloInput");
+                return;
+            }
+
+            if (!resultsDiv) {
+                console.error("Missing element: results");
+                return;
+            }
+
+            if (!recommendationsDiv) {
+                console.error("Missing element: recommendations");
+                return;
+            }
+
+            if (!avoidDiv) {
+                console.error("Missing element: avoidOpenings");
+                return;
+            }
+
+            if (!tacticsDiv) {
+                console.error("Missing element: tactics");
+                return;
+            }
+
+            if (!endgamesDiv) {
+                console.error("Missing element: endgames");
+                return;
+            }
+
+            if (!insightDiv) {
+                console.error("Missing element: insight");
+                return;
+            }
+
+            const elo = eloInput.value;
 
             if (!elo || elo <= 0) {
                 alert("Please enter a valid ELO");
                 return;
             }
 
-            const resultsDiv = document.getElementById("results");
+            resultsDiv.style.display = "block";
 
-            // 🔹 Rensa tidigare resultat
-            document.getElementById("leftCol").innerHTML = "";
-            document.getElementById("rightCol").innerHTML = "";
-
-            // 🔹 Tillfällig text medan AI jobbar
-            resultsDiv.innerHTML = `<h2 class="section-title">Analyzing your level...</h2>`;
-
-            const response = await fetch(`${API_BASE_URL}/get_openings`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ elo: parseInt(elo) })
-            });
-
-            const data = await response.json();
-            localStorage.setItem("elo", elo);
-            localStorage.setItem("results", JSON.stringify(data));
-
-            // 🔹 Återställ huvudrubrik
-            resultsDiv.innerHTML = `
-                <h2 class="section-title">Your Recommendations</h2>
-                <div class="results-row">
-                    <div class="results-col left-col" id="leftCol">
-                        <div class="left-top" id="leftTop"></div>
-                        <div class="left-bottom" id="leftBottom"></div>
-                    </div>
-                    <div class="results-col right-col" id="rightCol"></div>
+            recommendationsDiv.innerHTML = `
+                <div class="card loading-card">
+                    <div class="loader"></div>
+                    <h3>Analyzing your level...</h3>
+                    <p>Finding openings that fit your rating and learning goals.</p>
                 </div>
             `;
 
-            renderResults(data);
+            avoidDiv.innerHTML = "";
+            tacticsDiv.innerHTML = "";
+            endgamesDiv.innerHTML = "";
+            insightDiv.innerHTML = "Thinking...";
 
+            try {
+                const response = await fetch(`${API_BASE_URL}/get_openings`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json" 
+                    },
+                    body: JSON.stringify({ elo: parseInt(elo) })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Backend returned an error.");
+                }
+
+                const data = await response.json();
+
+                localStorage.setItem("elo", elo);
+                localStorage.setItem("results", JSON.stringify(data));
+
+                renderResults(data);
+
+            } catch (error) {
+                console.error("Error getting openings:", error);
+
+                recommendationsDiv.innerHTML = `
+                    <div class="card">
+                        <h3>Something went wrong</h3>
+                        <p>Could not load recommendations. Make sure the backend is running and try again.</p>
+                    </div>
+                `;
+
+                insightDiv.innerHTML = "";
+            }
         }
 
         function renderResults(data) {
-            const resultsDiv = document.getElementById("results");
+            const recommendationsDiv = document.getElementById("recommendations");
+            const avoidDiv = document.getElementById("avoidOpenings");
+            const tacticsDiv = document.getElementById("tactics");
+            const endgamesDiv = document.getElementById("endgames");
+            const insightDiv = document.getElementById("insight");
 
-            resultsDiv.innerHTML = `
-                <h2 class="section-title">Your Recommendations</h2>
-                <div class="results-row">
-                    <div class="results-col left-col" id="leftCol">
-                        <div class="left-top" id="leftTop"></div>
-                        <div class="left-bottom" id="leftBottom"></div>
-                    </div>
-                    <div class="results-col right-col" id="rightCol"></div>
-                </div>
-            `;
+            if (!recommendationsDiv) {
+                console.error("Missing element: recommendations");
+                return;
+            }
 
-            // 🔹 AI Insight
-            const insightCard = document.createElement("div");
-            insightCard.className = "card ai-insight";
-            insightCard.innerHTML = `<h3>🤖 AI Insight</h3><p>${data.insight}</p>`;
-            document.getElementById("leftTop").appendChild(insightCard);
+            recommendationsDiv.innerHTML = "";
 
-            // 🔹 Tactics
-            const tacticsTitle = document.createElement("h3");
-            tacticsTitle.innerText = "⚔️ Tactics Tips";
-            document.getElementById("leftTop").appendChild(tacticsTitle);
+            const recommendations = data.recommendations || [];
 
-            data.tactics.forEach(tip => {
-                const card = document.createElement("div");
-                card.className = "card";
-                card.innerHTML = `<p>${tip}</p>`;
-                document.getElementById("leftTop").appendChild(card);
-            });
+            if (recommendations.length === 0) {
+                recommendationsDiv.innerHTML = "<p>No opening recommendations available.</p>";
+            } else {
+                recommendations.forEach(opening => {
+                    const card = document.createElement("div");
+                    card.className = "card";
 
-            // 🔹 Endgame
-            const endgameTitle = document.createElement("h3");
-            endgameTitle.innerText = "🏁 Endgame Tips";
-            document.getElementById("leftTop").appendChild(endgameTitle);
+                    card.innerHTML = `
+                        <div class="badge-row">
+                            <span class="badge style">Recommended</span>
+                            <span class="badge level">Fit ${opening.winrate || opening.fit_score || "N/A"}/100</span>
+                        </div>
 
-            data.endgames.forEach(tip => {
-                const card = document.createElement("div");
-                card.className = "card";
-                card.innerHTML = `<p>${tip}</p>`;
-                document.getElementById("leftTop").appendChild(card);
-            });
+                        <h3>${opening.name}</h3>
 
-            // 🔹 Best Openings
-            const bestTitle = document.createElement("h3");
-            bestTitle.innerText = "🟢 Best Openings For You";
-            document.getElementById("rightCol").appendChild(bestTitle);
+                        <p class="card-description">
+                            ${opening.reason || "This opening is a good fit for your current level and learning goals."}
+                        </p>
 
-            const ranks = ["🥇", "🥈", "🥉"];
-            data.recommendations.forEach((opening, index) => {
-                const card = document.createElement("div");
-                card.className = "card best-opening";
-                card.innerHTML = `
-                    <div class="rank">${ranks[index] || ""} ${opening.name}</div>
-                    <p><strong>Recommendation Score:</strong> ${opening.winrate}/100</p>
-                    <p>${opening.reason}</p>
-                    <button class="learn-btn">Learn More</button>
-                `;
+                        <div class="card-footer">
+                            <span class="muted-small">Opening trainer available</span>
+                            <button onclick="goToOpening('${opening.name.replace(/'/g, "\\'")}')">
+                                Study
+                            </button>
+                        </div>
+                    `;
 
-                const button = card.querySelector(".learn-btn");
-
-                button.addEventListener("click", () => {
-                    console.log(opening.name);
-                    goToOpening(opening.name);
+                    recommendationsDiv.appendChild(card);
                 });
-                document.getElementById("rightCol").appendChild(card);
-            });
+            }
 
-            // 🔹 Avoid
-            const avoidTitle = document.createElement("h3");
-            avoidTitle.innerText = "🔴 Openings To Avoid";
-            document.getElementById("leftBottom").appendChild(avoidTitle);
+            if (avoidDiv) {
+                avoidDiv.innerHTML = "";
 
-            data.avoid.forEach(item => {
-                const card = document.createElement("div");
-                card.className = "card avoid-opening";
-                card.innerHTML = `<div class="rank">❌ ${item.name}</div><p>${item.reason}</p>`;
-                document.getElementById("leftBottom").appendChild(card);
-            });
+                const avoid = data.avoid || [];
+
+                if (avoid.length === 0) {
+                    avoidDiv.innerHTML = "<p>No openings to avoid available.</p>";
+                } else {
+                    avoid.forEach(opening => {
+                        const card = document.createElement("div");
+                        card.className = "card";
+
+                        card.innerHTML = `
+                            <div class="badge-row">
+                                <span class="badge color">Caution</span>
+                            </div>
+
+                            <h3>${opening.name}</h3>
+
+                            <p class="card-description">
+                                ${opening.reason || "This opening may be less suitable for your current level."}
+                            </p>
+                        `;
+
+                        avoidDiv.appendChild(card);
+                    });
+                }
+            }
+
+            if (tacticsDiv) {
+                tacticsDiv.innerHTML = "";
+                (data.tactics || []).forEach(item => {
+                    tacticsDiv.innerHTML += `<p>• ${item}</p>`;
+                });
+            }
+
+            if (endgamesDiv) {
+                endgamesDiv.innerHTML = "";
+                (data.endgames || []).forEach(item => {
+                    endgamesDiv.innerHTML += `<p>• ${item}</p>`;
+                });
+            }
+
+            if (insightDiv) {
+                insightDiv.innerText = data.insight || "";
+            }
         }
 
         function goToOpening(openingName) {
             window.location.href = `opening.html?name=${encodeURIComponent(openingName)}`;
         }
 
-        window.onload = function () {
-            const savedElo = localStorage.getItem("elo");
+        window.onload = function() {
             const savedResults = localStorage.getItem("results");
+            const savedElo = localStorage.getItem("elo");
+            const resultsDiv = document.getElementById("results");
+            const eloInput = document.getElementById("eloInput");
 
-            if (savedElo && savedResults) {
-                document.getElementById("eloInput").value = savedElo;
+            if (savedElo && eloInput) {
+                eloInput.value = savedElo;
+            }
 
-                const data = JSON.parse(savedResults);
-
-                renderResults(data);
+            if (savedResults && resultsDiv) {
+                resultsDiv.style.display = "block";
+                renderResults(JSON.parse(savedResults));
             }
         };
 
+        function setActiveNav() {
+            const path = window.location.pathname;
+            const buttons = document.querySelectorAll(".brand-links button");
+
+            buttons.forEach(button => {
+                const text = button.innerText.toLowerCase();
+
+                if (
+                    (path.includes("home") && text.includes("home")) ||
+                    (path === "/" && text.includes("home")) ||
+                    (path.includes("openings") && text.includes("library")) ||
+                    (path.includes("index") && text.includes("analyze")) ||
+                    (path.includes("profile") && text.includes("profile"))
+                ) {
+                    button.classList.add("active-nav");
+                }
+            });
+        }
+
+        setActiveNav();
+    
     </script>
 
 </body>

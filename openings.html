@@ -1,5 +1,15 @@
 <!DOCTYPE html>
 <html>
+
+<div class="brand-bar">
+    <div class="brand-logo">♞ Chessiax</div>
+    <div class="brand-links">
+        <button onclick="window.location.href='home.html'">Home</button>
+        <button onclick="window.location.href='openings.html'">Library</button>
+        <button onclick="window.location.href='index.html'">Analyze</button>
+    </div>
+</div>
+
 <head>
     <title>Openings Library</title>
     <link rel="stylesheet" href="style.css">
@@ -10,132 +20,160 @@
 
         <button class="back-btn" onclick="window.location.href='home.html'">🏠 Home</button>
 
-        <h1>📚 Openings Library</h1>
-        <p class="subtitle">
-            Explore popular chess openings and click any opening to learn it step by step.
-        </p>
+        <section class="page-hero library-hero">
+            <div class="hero-badge">Opening Library</div>
+            <h1>Explore your opening arsenal.</h1>
+            <p>
+                Search by ECO code, family, style, difficulty and practice history.
+                Choose a line, study the ideas, then train it from memory.
+            </p>
+        </section>
 
-        <div class="library-controls">
-            <input id="searchInput" type="text" placeholder="Search openings..." oninput="filterOpenings()">
+        <div class="filter-panel">
+            <div class="filter-header">
+                <div>
+                    <h2>Explore Openings</h2>
+                    <p>Search, filter and choose what to study next.</p>
+                </div>
+            </div>
+        
+            <div class="filter-grid">
+                <div class="library-controls">
+                    <input id="searchInput" type="text" placeholder="Search openings..." oninput="filterOpenings()">
+        
+                    <select id="sortSelect" onchange="filterOpenings()">
+                        <option value="name">Sort by Name</option>
+                        <option value="eco">Sort by ECO</option>
+                        <option value="level">Sort by Level</option>
+                        <option value="bestAccuracy">Sort by Best Accuracy</option>
+                        <option value="attempts">Sort by Attempts</option>
+                        <option value="practiceStatus">Sort by Practice Status</option>
+                    </select>
+        
+                    <select id="sourceSelect" onchange="loadOpenings()">
+                        <option value="master">Master ECO</option>
+                        <option value="batch1">Batch 1 ECO</option>
+                        <option value="expanded">Expanded ECO</option>
+                        <option value="base">Base ECO</option>
+                    </select>
+                </div>
+        
+                <div class="filter-buttons">
+                    <button class="filter-btn active-filter" onclick="setLevelFilter('All')">All</button>
+                    <button class="filter-btn" onclick="setLevelFilter('Beginner')">Beginner</button>
+                    <button class="filter-btn" onclick="setLevelFilter('Intermediate')">Intermediate</button>
+                    <button class="filter-btn" onclick="setLevelFilter('Advanced')">Advanced</button>
+                </div>
+        
+                <div class="filter-buttons">
+                    <button class="color-btn active-color" onclick="setColorFilter('All')">All Colors</button>
+                    <button class="color-btn" onclick="setColorFilter('White')">White</button>
+                    <button class="color-btn" onclick="setColorFilter('Black')">Black</button>
+                </div>
+        
+                <div class="filter-buttons">
+                    <button class="practice-filter-btn active-practice-filter" onclick="setPracticeFilter('All')">All</button>
+                    <button class="practice-filter-btn" onclick="setPracticeFilter('Practiced')">Practiced</button>
+                    <button class="practice-filter-btn" onclick="setPracticeFilter('Not Practiced')">Not Practiced</button>
+                </div>
+        
+                <div class="filter-buttons">
+                    <button class="style-btn active-style" onclick="setStyleFilter('All')">All Styles</button>
+                    <button class="style-btn" onclick="setStyleFilter('Solid')">Solid</button>
+                    <button class="style-btn" onclick="setStyleFilter('Aggressive')">Aggressive</button>
+                    <button class="style-btn" onclick="setStyleFilter('Positional')">Positional</button>
+                    <button class="style-btn" onclick="setStyleFilter('Tactical')">Tactical</button>
+                    <button class="style-btn" onclick="setStyleFilter('Dynamic')">Dynamic</button>
+                    <button class="style-btn" onclick="setStyleFilter('Flexible')">Flexible</button>
+                    <button class="style-btn" onclick="setStyleFilter('Balanced')">Balanced</button>
+                    <button class="style-btn" onclick="setStyleFilter('Classical')">Classical</button>
+                    <button class="style-btn" onclick="setStyleFilter('Hypermodern')">Hypermodern</button>
+                    <button class="style-btn" onclick="setStyleFilter('Direct')">Direct</button>
+                    <button class="style-btn" onclick="setStyleFilter('Unorthodox')">Unorthodox</button>
+                    <button class="style-btn" onclick="setStyleFilter('System')">System</button>
+                    <button class="style-btn" onclick="setStyleFilter('Balanced')">Balanced</button>
+                </div>
+        
+                <div class="filter-buttons">
+                    <button class="family-btn active-family" onclick="setFamilyFilter('All')">All Families</button>
+                    <button class="family-btn" onclick="setFamilyFilter('Open Game')">Open Game</button>
+                    <button class="family-btn" onclick="setFamilyFilter('Sicilian Defense')">Sicilian Defense</button>
+                    <button class="family-btn" onclick="setFamilyFilter('Indian Defense')">Indian Defense</button>
+                    <button class="family-btn" onclick="setFamilyFilter('Queen&apos;s Gambit')">Queen's Gambit</button>
+                    <button class="family-btn" onclick="setFamilyFilter('Queen&apos;s Pawn')">Queen's Pawn</button>
+                    <button class="family-btn" onclick="setFamilyFilter('English Opening')">English Opening</button>
+                    <button class="family-btn" onclick="setFamilyFilter('Flank Opening')">Flank Opening</button>
+                    <button class="family-btn" onclick="setFamilyFilter('Semi-Open Game')">Semi-Open Game</button>
+                </div>
+        
+                <div class="filter-buttons">
+                    <button class="variation-btn active-variation" onclick="setVariationFilter('All')">All Variations</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Main Line')">Main Line</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Advance')">Advance</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Classical')">Classical</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Dragon')">Dragon</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Najdorf')">Najdorf</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Symmetrical')">Symmetrical</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Berlin')">Berlin</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Exchange Variation')">Exchange</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Rubinstein')">Rubinstein</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Fianchetto')">Fianchetto</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Grand Prix Attack')">Grand Prix</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Smith-Morra Gambit')">Smith-Morra</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Accepted')">Accepted</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Rossolimo')">Rossolimo</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Moscow')">Moscow</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Taimanov')">Taimanov</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Accelerated Dragon')">Accelerated Dragon</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Tarrasch Defense')">Tarrasch</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Chigorin Defense')">Chigorin</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Winawer')">Winawer</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Panov Attack')">Panov</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Scheveningen')">Scheveningen</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Tartakower')">Tartakower</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Lasker Defense')">Lasker</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Four Pawns Attack')">Four Pawns</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Winawer')">Winawer</button>
+                    <button class="variation-btn" onclick="setVariationFilter('MacCutcheon')">MacCutcheon</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Steinitz')">Steinitz</button>
+                    <button class="variation-btn" onclick="setVariationFilter('O&apos;Kelly')">O'Kelly</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Averbakh')">Averbakh</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Russian System')">Russian System</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Richter-Rauzer')">Richter-Rauzer</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Kalashnikov')">Kalashnikov</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Chebanenko')">Chebanenko</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Botvinnik')">Botvinnik</button>
+                    <button class="variation-btn" onclick="setVariationFilter('Meran')">Meran</button>
+                </div>
+        
+                <div class="filter-buttons">
+                    <button class="eco-btn active-eco" onclick="setEcoFilter('All')">All ECO</button>
+                    <button class="eco-btn" onclick="setEcoFilter('A')">A00–A99</button>
+                    <button class="eco-btn" onclick="setEcoFilter('B')">B00–B99</button>
+                    <button class="eco-btn" onclick="setEcoFilter('C')">C00–C99</button>
+                    <button class="eco-btn" onclick="setEcoFilter('D')">D00–D99</button>
+                    <button class="eco-btn" onclick="setEcoFilter('E')">E00–E99</button>
+                </div>
+            </div>
 
-            <select id="sortSelect" onchange="filterOpenings()">
-                <option value="name">Sort by Name</option>
-                <option value="eco">Sort by ECO</option>
-                <option value="level">Sort by Level</option>
-                <option value="bestAccuracy">Sort by Best Accuracy</option>
-                <option value="attempts">Sort by Attempts</option>
-                <option value="practiceStatus">Sort by Practice Status</option>
-            </select>
+            <p id="resultsCount" class="subtitle"></p>
+            <div id="libraryOverview" class="library-overview"></div>
+            <div id="openingsContainer" class="library-grid"></div>
 
-            <select id="sourceSelect" onchange="loadOpenings()">
-                <option value="master">Master ECO</option>
-                <option value="batch1">Batch 1 ECO</option>
-                <option value="expanded">Expanded ECO</option>
-                <option value="base">Base ECO</option>
-            </select>
         </div>
-        <p id="resultsCount" class="subtitle"></p>
-        <div id="libraryOverview" class="library-overview"></div>
+    </div>
 
-        <div class="filter-buttons">
-            <button class="filter-btn active-filter" onclick="setLevelFilter('All')">All</button>
-            <button class="filter-btn" onclick="setLevelFilter('Beginner')">Beginner</button>
-            <button class="filter-btn" onclick="setLevelFilter('Intermediate')">Intermediate</button>
-            <button class="filter-btn" onclick="setLevelFilter('Advanced')">Advanced</button>
+    <div class="brand-bar">
+        <div class="brand-logo" onclick="window.location.href='home.html'">
+            ♞ Chessiax
         </div>
-
-        <div class="filter-buttons">
-            <button class="color-btn active-color" onclick="setColorFilter('All')">All Colors</button>
-            <button class="color-btn" onclick="setColorFilter('White')">White</button>
-            <button class="color-btn" onclick="setColorFilter('Black')">Black</button>
+    
+        <div class="brand-links">
+            <button onclick="window.location.href='home.html'">Home</button>
+            <button onclick="window.location.href='openings.html'">Library</button>
+            <button onclick="window.location.href='index.html'">Analyze</button>
+            <button onclick="window.location.href='profile.html'">Profile</button>
         </div>
-
-        <div class="filter-buttons">
-            <button class="practice-filter-btn active-practice-filter" onclick="setPracticeFilter('All')">All</button>
-            <button class="practice-filter-btn" onclick="setPracticeFilter('Practiced')">Practiced</button>
-            <button class="practice-filter-btn" onclick="setPracticeFilter('Not Practiced')">Not Practiced</button>
-        </div>
-
-        <div class="filter-buttons">
-            <button class="style-btn active-style" onclick="setStyleFilter('All')">All Styles</button>
-            <button class="style-btn" onclick="setStyleFilter('Solid')">Solid</button>
-            <button class="style-btn" onclick="setStyleFilter('Aggressive')">Aggressive</button>
-            <button class="style-btn" onclick="setStyleFilter('Positional')">Positional</button>
-            <button class="style-btn" onclick="setStyleFilter('Tactical')">Tactical</button>
-            <button class="style-btn" onclick="setStyleFilter('Dynamic')">Dynamic</button>
-            <button class="style-btn" onclick="setStyleFilter('Flexible')">Flexible</button>
-            <button class="style-btn" onclick="setStyleFilter('Balanced')">Balanced</button>
-            <button class="style-btn" onclick="setStyleFilter('Classical')">Classical</button>
-            <button class="style-btn" onclick="setStyleFilter('Hypermodern')">Hypermodern</button>
-            <button class="style-btn" onclick="setStyleFilter('Direct')">Direct</button>
-            <button class="style-btn" onclick="setStyleFilter('Unorthodox')">Unorthodox</button>
-            <button class="style-btn" onclick="setStyleFilter('System')">System</button>
-            <button class="style-btn" onclick="setStyleFilter('Balanced')">Balanced</button>
-        </div>
-
-        <div class="filter-buttons">
-            <button class="family-btn active-family" onclick="setFamilyFilter('All')">All Families</button>
-            <button class="family-btn" onclick="setFamilyFilter('Open Game')">Open Game</button>
-            <button class="family-btn" onclick="setFamilyFilter('Sicilian Defense')">Sicilian Defense</button>
-            <button class="family-btn" onclick="setFamilyFilter('Indian Defense')">Indian Defense</button>
-            <button class="family-btn" onclick="setFamilyFilter('Queen&apos;s Gambit')">Queen's Gambit</button>
-            <button class="family-btn" onclick="setFamilyFilter('Queen&apos;s Pawn')">Queen's Pawn</button>
-            <button class="family-btn" onclick="setFamilyFilter('English Opening')">English Opening</button>
-            <button class="family-btn" onclick="setFamilyFilter('Flank Opening')">Flank Opening</button>
-            <button class="family-btn" onclick="setFamilyFilter('Semi-Open Game')">Semi-Open Game</button>
-        </div>
-
-        <div class="filter-buttons">
-            <button class="variation-btn active-variation" onclick="setVariationFilter('All')">All Variations</button>
-            <button class="variation-btn" onclick="setVariationFilter('Main Line')">Main Line</button>
-            <button class="variation-btn" onclick="setVariationFilter('Advance')">Advance</button>
-            <button class="variation-btn" onclick="setVariationFilter('Classical')">Classical</button>
-            <button class="variation-btn" onclick="setVariationFilter('Dragon')">Dragon</button>
-            <button class="variation-btn" onclick="setVariationFilter('Najdorf')">Najdorf</button>
-            <button class="variation-btn" onclick="setVariationFilter('Symmetrical')">Symmetrical</button>
-            <button class="variation-btn" onclick="setVariationFilter('Berlin')">Berlin</button>
-            <button class="variation-btn" onclick="setVariationFilter('Exchange Variation')">Exchange</button>
-            <button class="variation-btn" onclick="setVariationFilter('Rubinstein')">Rubinstein</button>
-            <button class="variation-btn" onclick="setVariationFilter('Fianchetto')">Fianchetto</button>
-            <button class="variation-btn" onclick="setVariationFilter('Grand Prix Attack')">Grand Prix</button>
-            <button class="variation-btn" onclick="setVariationFilter('Smith-Morra Gambit')">Smith-Morra</button>
-            <button class="variation-btn" onclick="setVariationFilter('Accepted')">Accepted</button>
-            <button class="variation-btn" onclick="setVariationFilter('Rossolimo')">Rossolimo</button>
-            <button class="variation-btn" onclick="setVariationFilter('Moscow')">Moscow</button>
-            <button class="variation-btn" onclick="setVariationFilter('Taimanov')">Taimanov</button>
-            <button class="variation-btn" onclick="setVariationFilter('Accelerated Dragon')">Accelerated Dragon</button>
-            <button class="variation-btn" onclick="setVariationFilter('Tarrasch Defense')">Tarrasch</button>
-            <button class="variation-btn" onclick="setVariationFilter('Chigorin Defense')">Chigorin</button>
-            <button class="variation-btn" onclick="setVariationFilter('Winawer')">Winawer</button>
-            <button class="variation-btn" onclick="setVariationFilter('Panov Attack')">Panov</button>
-            <button class="variation-btn" onclick="setVariationFilter('Scheveningen')">Scheveningen</button>
-            <button class="variation-btn" onclick="setVariationFilter('Tartakower')">Tartakower</button>
-            <button class="variation-btn" onclick="setVariationFilter('Lasker Defense')">Lasker</button>
-            <button class="variation-btn" onclick="setVariationFilter('Four Pawns Attack')">Four Pawns</button>
-            <button class="variation-btn" onclick="setVariationFilter('Winawer')">Winawer</button>
-            <button class="variation-btn" onclick="setVariationFilter('MacCutcheon')">MacCutcheon</button>
-            <button class="variation-btn" onclick="setVariationFilter('Steinitz')">Steinitz</button>
-            <button class="variation-btn" onclick="setVariationFilter('O&apos;Kelly')">O'Kelly</button>
-            <button class="variation-btn" onclick="setVariationFilter('Averbakh')">Averbakh</button>
-            <button class="variation-btn" onclick="setVariationFilter('Russian System')">Russian System</button>
-            <button class="variation-btn" onclick="setVariationFilter('Richter-Rauzer')">Richter-Rauzer</button>
-            <button class="variation-btn" onclick="setVariationFilter('Kalashnikov')">Kalashnikov</button>
-            <button class="variation-btn" onclick="setVariationFilter('Chebanenko')">Chebanenko</button>
-            <button class="variation-btn" onclick="setVariationFilter('Botvinnik')">Botvinnik</button>
-            <button class="variation-btn" onclick="setVariationFilter('Meran')">Meran</button>
-        </div>
-
-        <div class="filter-buttons">
-            <button class="eco-btn active-eco" onclick="setEcoFilter('All')">All ECO</button>
-            <button class="eco-btn" onclick="setEcoFilter('A')">A00–A99</button>
-            <button class="eco-btn" onclick="setEcoFilter('B')">B00–B99</button>
-            <button class="eco-btn" onclick="setEcoFilter('C')">C00–C99</button>
-            <button class="eco-btn" onclick="setEcoFilter('D')">D00–D99</button>
-            <button class="eco-btn" onclick="setEcoFilter('E')">E00–E99</button>
-        </div>
-
-        <div id="openingsGrid" class="home-grid"></div>
-
     </div>
 
     <script src="config.js"></script>
@@ -150,6 +188,16 @@
         let currentVariationFilter = "All";
         let currentEcoFilter = "All";
         let currentPracticeFilter = "All";
+
+        window.goToOpening = function(openingName, openingId = "") {
+            let url = `opening.html?name=${encodeURIComponent(openingName)}`;
+
+            if (openingId) {
+                url += `&id=${encodeURIComponent(openingId)}`;
+            }
+
+            window.location.href = url;
+        };
 
         async function loadOpenings() {
             try {
@@ -229,61 +277,60 @@
             `;
         }
 
-        function renderOpenings(list) {
-            const grid = document.getElementById("openingsGrid");
-            const resultsCount = document.getElementById("resultsCount");
+        function renderOpenings(openings) {
+            const container = document.getElementById("openingsContainer");
 
-            if (!grid) {
-                console.error("openingsGrid not found");
+            if (!container) {
+                console.error("Missing element: openingsContainer");
                 return;
             }
 
-            grid.innerHTML = "";
+            container.innerHTML = "";
 
-            if (resultsCount) {
-                resultsCount.innerText = `${list.length} openings found`;
+            if (!openings || openings.length === 0) {
+                container.innerHTML = `
+                    <div class="card">
+                        <h3>No openings found</h3>
+                        <p>Try changing your search or filters.</p>
+                    </div>
+                `;
+                return;
             }
 
-            renderOverview(list);
-
-            list.forEach(opening => {
+            openings.forEach(opening => {
                 const card = document.createElement("div");
-                card.className = "card home-card";
+                card.className = "card opening-card";
 
-                const practiceKey = "practice_stats_" + opening.name;
-                const practiceRaw = localStorage.getItem(practiceKey);
-                const practiceStats = practiceRaw ? JSON.parse(practiceRaw) : null;
-
-                const practiceBadge = practiceStats
-                    ? `
-                        <div class="practice-badge">
-                            ✅ Practiced
-                            <br>
-                            <small>Best: ${practiceStats.bestAccuracy || 0}% • Attempts: ${practiceStats.attempts || 0}</small>
-                        </div>
-                    `
-                    : "";
+                const safeName = String(opening.name || "Unknown Opening").replace(/'/g, "\\'");
 
                 card.innerHTML = `
-                    <h2>${opening.name}</h2>
-                    ${practiceBadge}
-                    <p><strong>Level:</strong> ${opening.level}</p>
-                    <p><strong>Color:</strong> ${opening.color}</p>
-                    <p><strong>Style:</strong> ${opening.style}</p>
-                    <p><strong>Family:</strong> ${opening.family}</p>
-                    <p><strong>Variation:</strong> ${opening.variation}</p>
-                    <p><strong>ECO:</strong> ${opening.eco}</p>
-                    <p>${opening.description}</p>
-                    <p><strong>Preview:</strong> ${opening.movesPreview}</p>
-                    <button class="learn-btn">Open</button>
+                    <div class="badge-row">
+                        <span class="badge eco">${opening.eco || "ECO ?"}</span>
+                        <span class="badge level">${opening.level || "Level ?"}</span>
+                        <span class="badge style">${opening.style || "Style ?"}</span>
+                    </div>
+
+                    <h3>${opening.name || "Unknown Opening"}</h3>
+
+                    <p class="card-description">
+                        ${opening.description || "Study this opening line, learn the key ideas, and practice it from memory."}
+                    </p>
+
+                    <div class="pill-row">
+                        <span class="pill">${opening.family || "Unknown family"}</span>
+                        <span class="pill">${opening.variation || "Main line"}</span>
+                        <span class="pill">${opening.color || "Both sides"}</span>
+                    </div>
+
+                    <div class="card-footer">
+                        <span class="muted-small">${opening.movesPreview || "Opening line available"}</span>
+                        <button onclick="goToOpening('${safeName}')">
+                            Study
+                        </button>
+                    </div>
                 `;
 
-                const button = card.querySelector(".learn-btn");
-                button.addEventListener("click", () => {
-                    window.location.href = `opening.html?name=${encodeURIComponent(opening.name)}&id=${encodeURIComponent(opening.id)}`;
-                });
-
-                grid.appendChild(card);
+                container.appendChild(card);
             });
         }
 
@@ -520,6 +567,28 @@
                 }
             });
         };
+
+        function setActiveNav() {
+            const path = window.location.pathname;
+            const buttons = document.querySelectorAll(".brand-links button");
+
+            buttons.forEach(button => {
+                const text = button.innerText.toLowerCase();
+
+                if (
+                    (path.includes("home") && text.includes("home")) ||
+                    (path === "/" && text.includes("home")) ||
+                    (path.includes("openings") && text.includes("library")) ||
+                    (path.includes("index") && text.includes("analyze")) ||
+                    (path.includes("profile") && text.includes("profile"))
+                ) {
+                    button.classList.add("active-nav");
+                }
+            });
+        }
+
+        setActiveNav();
+
     </script>
 </body>
 </html>
