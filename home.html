@@ -2,7 +2,9 @@
 <html>
 
 <div class="brand-bar">
-    <div class="brand-logo">♞ Chessiax</div>
+    <div class="brand-logo" onclick="window.location.href='home.html'">
+        ♞ Chessiax <span class="beta-badge">Beta</span>
+    </div>
     <div class="brand-links">
         <button onclick="window.location.href='home.html'">Home</button>
         <button onclick="window.location.href='openings.html'">Library</button>
@@ -11,6 +13,7 @@
 </div>
 
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chess AI Trainer</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -132,19 +135,19 @@
 
         </div>
 
-    </div>
+        <footer class="app-footer">
+            <div>
+                <strong>Chessiax</strong>
+                <p>AI-powered chess opening training for learning, practice and progress tracking.</p>
+            </div>
+        
+            <div class="footer-links">
+                <button onclick="window.location.href='home.html'">Home</button>
+                <button onclick="window.location.href='openings.html'">Library</button>
+                <button onclick="window.location.href='index.html'">Analyze</button>
+            </div>
+        </footer>
 
-    <div class="brand-bar">
-        <div class="brand-logo" onclick="window.location.href='home.html'">
-            ♞ Chessiax
-        </div>
-    
-        <div class="brand-links">
-            <button onclick="window.location.href='home.html'">Home</button>
-            <button onclick="window.location.href='openings.html'">Library</button>
-            <button onclick="window.location.href='index.html'">Analyze</button>
-            <button onclick="window.location.href='profile.html'">Profile</button>
-        </div>
     </div>
 
 <script src="config.js"></script>

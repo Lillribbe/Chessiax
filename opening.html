@@ -2,7 +2,9 @@
 <html>
 
 <div class="brand-bar">
-    <div class="brand-logo">♞ Chessiax</div>
+    <div class="brand-logo" onclick="window.location.href='home.html'">
+        ♞ Chessiax <span class="beta-badge">Beta</span>
+    </div>
     <div class="brand-links">
         <button onclick="window.location.href='home.html'">Home</button>
         <button onclick="window.location.href='openings.html'">Library</button>
@@ -11,6 +13,7 @@
 </div>
 
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Opening Details</title>
 
     <!-- Din CSS -->
@@ -42,75 +45,100 @@
     <div id="openingPreview" class="opening-preview"></div>
     <div id="openingInfo" class="opening-info"></div>
 
-    <div class="board-section">
-        <div id="board" style="width: 450px"></div>
+    <div class="board-section clean-study-layout">
 
-        <div class="card">
-            <h3>📖 Move Explanation</h3>
-            <p id="moveExplanation">Click next to start learning</p>
-        </div>
-
-        <div class="move-controls">
-            <button id="prevBtn" onclick="prevMove()">⬅ Prev</button>
-            <button id="resetBtn" onclick="resetMoves()">⟲ Reset</button>
-            <button id="playBtn" onclick="startAutoplay()">▶ Play</button>
-            <button id="pauseBtn" onclick="stopAutoplay()">⏸ Pause</button>
-            <button id="nextBtn" onclick="nextMove()">Next ➡</button>
-        </div>
-        <div class="study-status">
-            <p id="moveProgress">Move 0 of 0</p>
-            <p id="studyStatusText">Ready to study this opening.</p>
-        
-            <label for="speedSelect">Autoplay speed:</label>
-            <select id="speedSelect">
-                <option value="1800">Slow</option>
-                <option value="1200" selected>Normal</option>
-                <option value="700">Fast</option>
-            </select>
-        </div>
-        <div class="practice-box">
-            <h3>🎯 Practice Mode</h3>
-            <p id="practiceStatus" class="practice-status neutral-status">
-                Click Start Practice to test yourself.
-            </p>
-            
-            <div class="practice-score">
-                <p><strong>Correct:</strong> <span id="practiceCorrect">0</span></p>
-                <p><strong>Mistakes:</strong> <span id="practiceMistakes">0</span></p>
-                <p><strong>Accuracy:</strong> <span id="practiceAccuracy">0%</span></p>
+        <div class="board-area">
+            <div class="board-area-header">
+                <div>
+                    <h3>Interactive Board</h3>
+                    <p>Study the line move by move.</p>
+                </div>
+                <span class="live-pill">Trainer</span>
             </div>
-
-            <div class="difficulty-box">
-                <label for="difficultySelect">Difficulty:</label>
-                <select id="difficultySelect">
-                    <option value="easy">Easy</option>
-                    <option value="normal" selected>Normal</option>
-                    <option value="hard">Hard</option>
+    
+            <div id="board" style="width: 450px"></div>
+        </div>
+    
+        <div class="trainer-panel">
+    
+            <div class="card">
+                <h3>📖 Move Explanation</h3>
+                <p id="moveExplanation">Click next to start learning</p>
+            </div>
+    
+            <div class="move-controls">
+                <button id="prevBtn" onclick="prevMove()">⬅ Prev</button>
+                <button id="resetBtn" onclick="resetMoves()">⟲ Reset</button>
+                <button id="playBtn" onclick="startAutoplay()">▶ Play</button>
+                <button id="pauseBtn" onclick="stopAutoplay()">⏸ Pause</button>
+                <button id="nextBtn" onclick="nextMove()">Next ➡</button>
+            </div>
+    
+            <div class="study-status">
+                <p id="moveProgress">Move 0 of 0</p>
+                <p id="studyStatusText">Ready to study this opening.</p>
+    
+                <div class="progress-track">
+                    <div id="studyProgressBar" class="progress-fill"></div>
+                </div>
+    
+                <label for="speedSelect">Autoplay speed:</label>
+                <select id="speedSelect">
+                    <option value="1800">Slow</option>
+                    <option value="1200" selected>Normal</option>
+                    <option value="700">Fast</option>
                 </select>
             </div>
-
-            <div class="practice-history">
-                <h4>📊 Practice History</h4>
-                <p><strong>Last Accuracy:</strong> <span id="lastAccuracy">N/A</span></p>
-                <p><strong>Best Accuracy:</strong> <span id="bestAccuracy">N/A</span></p>
-                <p><strong>Attempts:</strong> <span id="practiceAttempts">0</span></p>
+    
+            <div class="practice-box">
+                <h3>🎯 Practice Mode</h3>
+    
+                <p id="practiceStatus" class="practice-status neutral-status">
+                    Click Start Practice to test yourself.
+                </p>
+    
+                <div class="practice-score">
+                    <p><strong>Correct:</strong> <span id="practiceCorrect">0</span></p>
+                    <p><strong>Mistakes:</strong> <span id="practiceMistakes">0</span></p>
+                    <p><strong>Accuracy:</strong> <span id="practiceAccuracy">0%</span></p>
+                </div>
+    
+                <div class="difficulty-box">
+                    <label for="difficultySelect">Difficulty:</label>
+                    <select id="difficultySelect">
+                        <option value="easy">Easy</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+    
+                <div class="practice-history">
+                    <h4>📊 Practice History</h4>
+                    <p><strong>Last Accuracy:</strong> <span id="lastAccuracy">N/A</span></p>
+                    <p><strong>Best Accuracy:</strong> <span id="bestAccuracy">N/A</span></p>
+                    <p><strong>Attempts:</strong> <span id="practiceAttempts">0</span></p>
+                </div>
+    
+                <div id="sessionSummary" class="session-summary" style="display:none;"></div>
+    
+                <div class="practice-input-group">
+                    <input id="practiceMoveInput" type="text" placeholder="Enter next move, e.g. e4">
+                    <button onclick="checkPracticeMove()">Submit</button>
+                </div>
+    
+                <div class="practice-controls">
+                    <button onclick="startPracticeMode()">Start Practice</button>
+                    <button onclick="stopPracticeMode()">Stop Practice</button>
+                    <button onclick="showPracticeHint()">Hint</button>
+                    <button onclick="showPracticeAnswer()">Show Answer</button>
+                    <button onclick="playPracticeAnswer()">Play Answer</button>
+                    <button onclick="nextMistakeReview()">Next Mistake</button>
+                </div>
             </div>
-            <div id="sessionSummary" class="session-summary" style="display:none;"></div>
-            <div class="practice-input-group">
-                <input id="practiceMoveInput" type="text" placeholder="Enter next move, e.g. e4">
-                <button onclick="checkPracticeMove()">Submit</button>
-            </div>
-        
-            <div class="practice-controls">
-                <button onclick="startPracticeMode()">Start Practice</button>
-                <button onclick="stopPracticeMode()">Stop Practice</button>
-                <button onclick="showPracticeHint()">Hint</button>
-                <button onclick="showPracticeAnswer()">Show Answer</button>
-                <button onclick="playPracticeAnswer()">Play Answer</button>
-                <button onclick="nextMistakeReview()">Next Mistake</button>
-            </div>
+    
+            <div id="moveList" class="move-list"></div>
+    
         </div>
-        <div id="moveList" class="move-list"></div>
     </div>
 
     <!-- 🔹 Loading -->
@@ -146,20 +174,18 @@
         
 </div>
 
-<div class="brand-bar">
-    <div class="brand-logo" onclick="window.location.href='home.html'">
-        ♞ Chessiax
+<footer class="app-footer">
+    <div>
+        <strong>Chessiax</strong>
+        <p>AI-powered chess opening training for learning, practice and progress tracking.</p>
     </div>
 
-    <div class="brand-links">
+    <div class="footer-links">
         <button onclick="window.location.href='home.html'">Home</button>
         <button onclick="window.location.href='openings.html'">Library</button>
         <button onclick="window.location.href='index.html'">Analyze</button>
-        <button onclick="window.location.href='profile.html'">Profile</button>
     </div>
-</div>
-
-</div>
+</footer>
 
 <!-- ✅ jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -453,6 +479,13 @@ function updateStudyStatus() {
     const statusText = document.getElementById("studyStatusText");
 
     const totalMoves = moves ? moves.length : 0;
+
+    const progressBar = document.getElementById("studyProgressBar");
+    const percent = totalMoves === 0 ? 0 : Math.round((currentMove / totalMoves) * 100);
+
+    if (progressBar) {
+        progressBar.style.width = `${percent}%`;
+    }
 
     if (progress) {
         progress.innerText = `Move ${currentMove} of ${totalMoves}`;

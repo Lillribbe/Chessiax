@@ -2,7 +2,9 @@
 <html>
 
 <div class="brand-bar">
-    <div class="brand-logo">♞ Chessiax</div>
+    <div class="brand-logo" onclick="window.location.href='home.html'">
+        ♞ Chessiax <span class="beta-badge">Beta</span>
+    </div>
     <div class="brand-links">
         <button onclick="window.location.href='home.html'">Home</button>
         <button onclick="window.location.href='openings.html'">Library</button>
@@ -11,6 +13,7 @@
 </div>
 
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Openings Library</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -39,9 +42,9 @@
         
             <div class="filter-grid">
                 <div class="library-controls">
-                    <input id="searchInput" type="text" placeholder="Search openings..." oninput="filterOpenings()">
+                    <input id="searchInput" class="filter-search" type="text" placeholder="Search openings..." oninput="filterOpenings()">
         
-                    <select id="sortSelect" onchange="filterOpenings()">
+                    <select id="sortSelect" class="sort-select library-select" onchange="filterOpenings()">
                         <option value="name">Sort by Name</option>
                         <option value="eco">Sort by ECO</option>
                         <option value="level">Sort by Level</option>
@@ -50,11 +53,11 @@
                         <option value="practiceStatus">Sort by Practice Status</option>
                     </select>
         
-                    <select id="sourceSelect" onchange="loadOpenings()">
-                        <option value="master">Master ECO</option>
-                        <option value="batch1">Batch 1 ECO</option>
-                        <option value="expanded">Expanded ECO</option>
-                        <option value="base">Base ECO</option>
+                    <select id="sourceSelect" class="source-select library-select" onchange="handleSourceChange()">
+                        <option value="master">Full Library</option>
+                        <option value="batch1">Batch 1</option>
+                        <option value="expanded">Expanded Library</option>
+                        <option value="base">Base Library</option>
                     </select>
                 </div>
         
@@ -91,7 +94,6 @@
                     <button class="style-btn" onclick="setStyleFilter('Direct')">Direct</button>
                     <button class="style-btn" onclick="setStyleFilter('Unorthodox')">Unorthodox</button>
                     <button class="style-btn" onclick="setStyleFilter('System')">System</button>
-                    <button class="style-btn" onclick="setStyleFilter('Balanced')">Balanced</button>
                 </div>
         
                 <div class="filter-buttons">
@@ -133,7 +135,6 @@
                     <button class="variation-btn" onclick="setVariationFilter('Tartakower')">Tartakower</button>
                     <button class="variation-btn" onclick="setVariationFilter('Lasker Defense')">Lasker</button>
                     <button class="variation-btn" onclick="setVariationFilter('Four Pawns Attack')">Four Pawns</button>
-                    <button class="variation-btn" onclick="setVariationFilter('Winawer')">Winawer</button>
                     <button class="variation-btn" onclick="setVariationFilter('MacCutcheon')">MacCutcheon</button>
                     <button class="variation-btn" onclick="setVariationFilter('Steinitz')">Steinitz</button>
                     <button class="variation-btn" onclick="setVariationFilter('O&apos;Kelly')">O'Kelly</button>
@@ -154,6 +155,11 @@
                     <button class="eco-btn" onclick="setEcoFilter('D')">D00–D99</button>
                     <button class="eco-btn" onclick="setEcoFilter('E')">E00–E99</button>
                 </div>
+
+                <button id="clearFiltersBtn" class="secondary-btn clear-filters-btn" onclick="clearFilters()" style="display:none;">
+                    Clear Filters
+                </button>
+
             </div>
 
             <p id="resultsCount" class="subtitle"></p>
@@ -161,33 +167,36 @@
             <div id="openingsContainer" class="library-grid"></div>
 
         </div>
-    </div>
 
-    <div class="brand-bar">
-        <div class="brand-logo" onclick="window.location.href='home.html'">
-            ♞ Chessiax
-        </div>
-    
-        <div class="brand-links">
-            <button onclick="window.location.href='home.html'">Home</button>
-            <button onclick="window.location.href='openings.html'">Library</button>
-            <button onclick="window.location.href='index.html'">Analyze</button>
-            <button onclick="window.location.href='profile.html'">Profile</button>
-        </div>
+        <footer class="app-footer">
+            <div>
+                <strong>Chessiax</strong>
+                <p>AI-powered chess opening training for learning, practice and progress tracking.</p>
+            </div>
+        
+            <div class="footer-links">
+                <button onclick="window.location.href='home.html'">Home</button>
+                <button onclick="window.location.href='openings.html'">Library</button>
+                <button onclick="window.location.href='index.html'">Analyze</button>
+            </div>
+        </footer>
+
     </div>
 
     <script src="config.js"></script>
 
     <script>
 
-        let openings = [];
-        let currentLevelFilter = "All";
-        let currentColorFilter = "All";
-        let currentStyleFilter = "All";
-        let currentFamilyFilter = "All";
-        let currentVariationFilter = "All";
-        let currentEcoFilter = "All";
-        let currentPracticeFilter = "All";
+        let allOpenings = [];
+        let filteredOpenings = [];
+
+        let selectedLevel = "All";
+        let selectedColor = "All";
+        let selectedPractice = "All";
+        let selectedStyle = "All";
+        let selectedFamily = "All";
+        let selectedVariation = "All";
+        let selectedEco = "All";
 
         window.goToOpening = function(openingName, openingId = "") {
             let url = `opening.html?name=${encodeURIComponent(openingName)}`;
@@ -202,6 +211,17 @@
         async function loadOpenings() {
             try {
                 const source = document.getElementById("sourceSelect").value;
+                const container = document.getElementById("openingsContainer");
+
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="loader"></div>
+                            <h3>Loading opening library...</h3>
+                            <p>Preparing openings, filters and practice history.</p>
+                        </div>
+                    `;
+                }
                 const response = await fetch(`${API_BASE_URL}/get_library_openings?source=${encodeURIComponent(source)}`);
                 const data = await response.json();
 
@@ -212,12 +232,29 @@
                     return;
                 }
 
-                openings = data;
-                filterOpenings();
+                allOpenings = Array.isArray(data) ? data : [];
+                filteredOpenings = [...allOpenings];
 
-            } catch (error) {
+                filterOpenings();
+                updateActiveFilterStyles();
+
+            } 
+            
+            catch (error) {
                 console.error("ERROR LOADING LIBRARY:", error);
-                alert("Failed to load openings library.");
+
+                const container = document.getElementById("openingsContainer");
+
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3>Could not load the opening library</h3>
+                            <p>Make sure the backend is running, then refresh the page.</p>
+                            <button onclick="window.location.reload()">Try Again</button>
+                        </div>
+                    `;
+                }
             }
         }
 
@@ -289,9 +326,11 @@
 
             if (!openings || openings.length === 0) {
                 container.innerHTML = `
-                    <div class="card">
+                    <div class="empty-state">
+                        <div class="empty-icon">♟</div>
                         <h3>No openings found</h3>
-                        <p>Try changing your search or filters.</p>
+                        <p>Try adjusting your filters, clearing the search, or exploring another ECO range.</p>
+                        <button onclick="clearFilters()">Clear Filters</button>
                     </div>
                 `;
                 return;
@@ -325,7 +364,7 @@
                     <div class="card-footer">
                         <span class="muted-small">${opening.movesPreview || "Opening line available"}</span>
                         <button onclick="goToOpening('${safeName}')">
-                            Study
+                            Study Line
                         </button>
                     </div>
                 `;
@@ -334,211 +373,313 @@
             });
         }
 
+        function handleSourceChange() {
+            clearFilters();
+            loadOpenings();
+        }
+
+        function clearFilters() {
+            const searchInput = document.getElementById("searchInput");
+
+            if (searchInput) {
+                searchInput.value = "";
+            }
+
+            selectedLevel = "All";
+            selectedColor = "All";
+            selectedPractice = "All";
+            selectedStyle = "All";
+            selectedFamily = "All";
+            selectedVariation = "All";
+            selectedEco = "All";
+
+            updateButtonGroupActive("filter-btn", "active-filter", "All");
+            updateButtonGroupActive("color-btn", "active-color", "All");
+            updateButtonGroupActive("practice-filter-btn", "active-practice-filter", "All");
+            updateButtonGroupActive("style-btn", "active-style", "All");
+            updateButtonGroupActive("family-btn", "active-family", "All");
+            updateButtonGroupActive("variation-btn", "active-variation", "All");
+            updateButtonGroupActive("eco-btn", "active-eco", "All");
+
+            if (!allOpenings || allOpenings.length === 0) {
+                console.warn("No openings available when clearing filters.");
+                return;
+            }
+
+            filteredOpenings = [...allOpenings];
+
+            sortOpenings(document.getElementById("sortSelect")?.value || "name");
+
+            renderOpenings(filteredOpenings);
+
+            if (typeof updateLibraryOverview === "function") {
+                updateLibraryOverview(filteredOpenings);
+            }
+
+            updateActiveFilterStyles();
+        }
+
         function filterOpenings() {
-            const query = document.getElementById("searchInput").value.toLowerCase();
-            const sortBy = document.getElementById("sortSelect").value;
+            const searchInput = document.getElementById("searchInput");
+            const sortSelect = document.getElementById("sortSelect");
 
-            let filtered = openings.filter(opening => {
+            const searchValue = searchInput ? searchInput.value.toLowerCase().trim() : "";
+            const sortValue = sortSelect ? sortSelect.value : "name";
+
+            const levelFilter = selectedLevel || "All";
+            const colorFilter = selectedColor || "All";
+            const practiceFilter = selectedPractice || "All";
+            const styleFilter = selectedStyle || "All";
+            const familyFilter = selectedFamily || "All";
+            const variationFilter = selectedVariation || "All";
+            const ecoFilter = selectedEco || "All";
+
+            if (!allOpenings || allOpenings.length === 0) {
+                console.warn("No openings loaded yet.");
+                renderOpenings([]);
+                updateActiveFilterStyles();
+                return;
+            }
+
+            filteredOpenings = allOpenings.filter(opening => {
+                const name = (opening.name || "").toLowerCase();
+                const family = (opening.family || "").toLowerCase();
+                const variation = (opening.variation || "").toLowerCase();
+                const style = (opening.style || "").toLowerCase();
+                const level = (opening.level || "").toLowerCase();
+                const color = (opening.color || "").toLowerCase();
+                const eco = (opening.eco || "").toUpperCase();
+                const description = (opening.description || "").toLowerCase();
+                const movesPreview = (opening.movesPreview || "").toLowerCase();
+
                 const matchesSearch =
-                    opening.name.toLowerCase().includes(query) ||
-                    opening.level.toLowerCase().includes(query) ||
-                    opening.description.toLowerCase().includes(query) ||
-                    opening.eco.toLowerCase().includes(query) ||
-                    opening.family.toLowerCase().includes(query) ||
-                    opening.variation.toLowerCase().includes(query) ||
-                    opening.style.toLowerCase().includes(query) ||
-                    opening.color.toLowerCase().includes(query) ||
-                    opening.movesPreview.toLowerCase().includes(query);
-
-                const hasPracticeStats = localStorage.getItem("practice_stats_" + opening.name) !== null;
-
-                const matchesPractice =
-                    currentPracticeFilter === "All" ||
-                    (currentPracticeFilter === "Practiced" && hasPracticeStats) ||
-                    (currentPracticeFilter === "Not Practiced" && !hasPracticeStats);
+                    !searchValue ||
+                    name.includes(searchValue) ||
+                    family.includes(searchValue) ||
+                    variation.includes(searchValue) ||
+                    style.includes(searchValue) ||
+                    level.includes(searchValue) ||
+                    color.includes(searchValue) ||
+                    eco.toLowerCase().includes(searchValue) ||
+                    description.includes(searchValue) ||
+                    movesPreview.includes(searchValue);
 
                 const matchesLevel =
-                    currentLevelFilter === "All" || opening.level === currentLevelFilter;
+                    levelFilter === "All" ||
+                    level === levelFilter.toLowerCase();
 
                 const matchesColor =
-                    currentColorFilter === "All" || opening.color === currentColorFilter;
+                    colorFilter === "All" ||
+                    color === colorFilter.toLowerCase();
 
                 const matchesStyle =
-                    currentStyleFilter === "All" || opening.style === currentStyleFilter;
+                    styleFilter === "All" ||
+                    style === styleFilter.toLowerCase();
 
-                    const matchesFamily =
-                        currentFamilyFilter === "All" || opening.family === currentFamilyFilter;
+                const matchesFamily =
+                    familyFilter === "All" ||
+                    family.includes(familyFilter.toLowerCase());
 
-                    const matchesVariation =
-                        currentVariationFilter === "All" || opening.variation === currentVariationFilter;
+                const matchesVariation =
+                    variationFilter === "All" ||
+                    variation.includes(variationFilter.toLowerCase()) ||
+                    name.includes(variationFilter.toLowerCase());
 
-                    const matchesEco =
-                        currentEcoFilter === "All" || opening.eco.startsWith(currentEcoFilter);
+                const matchesEco =
+                    ecoFilter === "All" ||
+                    eco.startsWith(ecoFilter);
 
-                    return matchesSearch && matchesLevel && matchesColor && matchesStyle && matchesFamily && matchesVariation && matchesEco && matchesPractice;
+                let matchesPractice = true;
+
+                if (practiceFilter !== "All") {
+                    const practiceKey = "practice_stats_" + opening.name;
+                    const hasPractice = localStorage.getItem(practiceKey) !== null;
+
+                    if (practiceFilter === "Practiced") {
+                        matchesPractice = hasPractice;
+                    }
+
+                    if (practiceFilter === "Not Practiced") {
+                        matchesPractice = !hasPractice;
+                    }
+                }
+
+                return (
+                    matchesSearch &&
+                    matchesLevel &&
+                    matchesColor &&
+                    matchesStyle &&
+                    matchesFamily &&
+                    matchesVariation &&
+                    matchesEco &&
+                    matchesPractice
+                );
             });
 
-            if (sortBy === "bestAccuracy") {
-                filtered.sort((a, b) => {
+            sortOpenings(sortValue);
+
+            console.log("All openings:", allOpenings.length);
+            console.log("Filtered openings:", filteredOpenings.length);
+            console.log("Filters:", {
+                levelFilter,
+                colorFilter,
+                practiceFilter,
+                styleFilter,
+                familyFilter,
+                variationFilter,
+                ecoFilter,
+                searchValue
+            });
+
+            renderOpenings(filteredOpenings);
+
+            if (typeof updateLibraryOverview === "function") {
+                updateLibraryOverview(filteredOpenings);
+            }
+
+            updateActiveFilterStyles();
+        }
+
+        function sortOpenings(sortValue) {
+            filteredOpenings.sort((a, b) => {
+                if (sortValue === "eco") {
+                    return (a.eco || "").localeCompare(b.eco || "");
+                }
+
+                if (sortValue === "level") {
+                    return (a.level || "").localeCompare(b.level || "");
+                }
+
+                if (sortValue === "bestAccuracy") {
                     const aStats = JSON.parse(localStorage.getItem("practice_stats_" + a.name) || "{}");
                     const bStats = JSON.parse(localStorage.getItem("practice_stats_" + b.name) || "{}");
 
                     return (bStats.bestAccuracy || 0) - (aStats.bestAccuracy || 0);
-                });
-            }
+                }
 
-            if (sortBy === "attempts") {
-                filtered.sort((a, b) => {
+                if (sortValue === "attempts") {
                     const aStats = JSON.parse(localStorage.getItem("practice_stats_" + a.name) || "{}");
                     const bStats = JSON.parse(localStorage.getItem("practice_stats_" + b.name) || "{}");
 
                     return (bStats.attempts || 0) - (aStats.attempts || 0);
-                });
-            }
+                }
 
-            if (sortBy === "practiceStatus") {
-                filtered.sort((a, b) => {
+                if (sortValue === "practiceStatus") {
                     const aPracticed = localStorage.getItem("practice_stats_" + a.name) ? 1 : 0;
                     const bPracticed = localStorage.getItem("practice_stats_" + b.name) ? 1 : 0;
 
                     return bPracticed - aPracticed;
-                });
-            }
-            if (sortBy === "name") {
-                filtered.sort((a, b) => a.name.localeCompare(b.name));
-            } else if (sortBy === "eco") {
-                filtered.sort((a, b) => a.eco.localeCompare(b.eco));
-            } else if (sortBy === "level") {
-                const levelOrder = {
-                    "Beginner": 1,
-                    "Intermediate": 2,
-                    "Advanced": 3
-                };
+                }
 
-                filtered.sort((a, b) => levelOrder[a.level] - levelOrder[b.level]);
+                return (a.name || "").localeCompare(b.name || "");
+            });
+        }
+
+        function updateActiveFilterStyles() {
+            const searchInput = document.getElementById("searchInput");
+            const clearBtn = document.getElementById("clearFiltersBtn");
+
+            let hasAnyActiveFilter = false;
+
+            if (searchInput) {
+                const hasSearch = searchInput.value.trim() !== "";
+
+                if (hasSearch) {
+                    searchInput.classList.add("filter-active");
+                    hasAnyActiveFilter = true;
+                } else {
+                    searchInput.classList.remove("filter-active");
+                }
             }
 
-            renderOpenings(filtered);
+            const activeButtonFilter =
+                selectedLevel !== "All" ||
+                selectedColor !== "All" ||
+                selectedPractice !== "All" ||
+                selectedStyle !== "All" ||
+                selectedFamily !== "All" ||
+                selectedVariation !== "All" ||
+                selectedEco !== "All";
+
+            if (activeButtonFilter) {
+                hasAnyActiveFilter = true;
+            }
+
+            if (clearBtn) {
+                clearBtn.style.display = hasAnyActiveFilter ? "inline-flex" : "none";
+            }
+        }
+
+        function updateButtonGroupActive(buttonClass, activeClass, selectedValue) {
+            const buttons = document.querySelectorAll("." + buttonClass);
+
+            buttons.forEach(button => {
+                const buttonText = button.innerText.trim();
+
+                button.classList.remove(activeClass);
+                button.classList.remove("filter-button-active");
+
+                const normalizedButtonText = buttonText.toLowerCase();
+                const normalizedSelected = selectedValue.toLowerCase();
+
+                const isAllButton =
+                    selectedValue === "All" &&
+                    (
+                        normalizedButtonText.includes("all") ||
+                        normalizedButtonText === "all"
+                    );
+
+                const isMatchingButton =
+                    normalizedButtonText === normalizedSelected ||
+                    normalizedButtonText.includes(normalizedSelected) ||
+                    normalizedSelected.includes(normalizedButtonText);
+
+                if (isAllButton || isMatchingButton) {
+                    button.classList.add(activeClass);
+                    button.classList.add("filter-button-active");
+                }
+            });
         }
 
         function setLevelFilter(level) {
-            currentLevelFilter = level;
-
-            document.querySelectorAll(".filter-btn").forEach(btn => {
-                btn.classList.remove("active-filter");
-            });
-
-            document.querySelectorAll(".filter-btn").forEach(btn => {
-                if (btn.innerText === level) {
-                    btn.classList.add("active-filter");
-                }
-            });
-
+            selectedLevel = level;
+            updateButtonGroupActive("filter-btn", "active-filter", level);
             filterOpenings();
         }
 
         function setColorFilter(color) {
-            currentColorFilter = color;
+            selectedColor = color;
+            updateButtonGroupActive("color-btn", "active-color", color);
+            filterOpenings();
+        }
 
-            document.querySelectorAll(".color-btn").forEach(btn => {
-                btn.classList.remove("active-color");
-            });
-
-            document.querySelectorAll(".color-btn").forEach(btn => {
-                if (btn.innerText === color || (color === "All" && btn.innerText === "All Colors")) {
-                    btn.classList.add("active-color");
-                }
-            });
-
+        function setPracticeFilter(practice) {
+            selectedPractice = practice;
+            updateButtonGroupActive("practice-filter-btn", "active-practice-filter", practice);
             filterOpenings();
         }
 
         function setStyleFilter(style) {
-            currentStyleFilter = style;
-
-            document.querySelectorAll(".style-btn").forEach(btn => {
-                btn.classList.remove("active-style");
-            });
-
-            document.querySelectorAll(".style-btn").forEach(btn => {
-                if (btn.innerText === style || (style === "All" && btn.innerText === "All Styles")) {
-                    btn.classList.add("active-style");
-                }
-            });
-
+            selectedStyle = style;
+            updateButtonGroupActive("style-btn", "active-style", style);
             filterOpenings();
         }
 
         function setFamilyFilter(family) {
-            currentFamilyFilter = family;
-
-            document.querySelectorAll(".family-btn").forEach(btn => {
-                btn.classList.remove("active-family");
-            });
-
-            document.querySelectorAll(".family-btn").forEach(btn => {
-                if (
-                    btn.innerText === family ||
-                    (family === "All" && btn.innerText === "All Families")
-                ) {
-                    btn.classList.add("active-family");
-                }
-            });
-
+            selectedFamily = family;
+            updateButtonGroupActive("family-btn", "active-family", family);
             filterOpenings();
         }
 
         function setVariationFilter(variation) {
-            currentVariationFilter = variation;
-
-            document.querySelectorAll(".variation-btn").forEach(btn => {
-                btn.classList.remove("active-variation");
-            });
-
-            document.querySelectorAll(".variation-btn").forEach(btn => {
-                if (
-                    btn.innerText === variation ||
-                    (variation === "All" && btn.innerText === "All Variations")
-                ) {
-                    btn.classList.add("active-variation");
-                }
-            });
-
+            selectedVariation = variation;
+            updateButtonGroupActive("variation-btn", "active-variation", variation);
             filterOpenings();
         }
 
-        function setEcoFilter(ecoGroup) {
-            currentEcoFilter = ecoGroup;
-
-            document.querySelectorAll(".eco-btn").forEach(btn => {
-                btn.classList.remove("active-eco");
-            });
-
-            document.querySelectorAll(".eco-btn").forEach(btn => {
-                if (
-                    btn.innerText === `${ecoGroup}00–${ecoGroup}99` ||
-                    (ecoGroup === "All" && btn.innerText === "All ECO")
-                ) {
-                    btn.classList.add("active-eco");
-                }
-            });
-
-            filterOpenings();
-        }
-
-        function setPracticeFilter(value) {
-            currentPracticeFilter = value;
-
-            document.querySelectorAll(".practice-filter-btn").forEach(btn => {
-                btn.classList.remove("active-practice-filter");
-            });
-
-            document.querySelectorAll(".practice-filter-btn").forEach(btn => {
-                if (btn.innerText === value) {
-                    btn.classList.add("active-practice-filter");
-                }
-            });
-
+        function setEcoFilter(eco) {
+            selectedEco = eco;
+            updateButtonGroupActive("eco-btn", "active-eco", eco);
             filterOpenings();
         }
 

@@ -2,7 +2,9 @@
 <html>
 
 <div class="brand-bar">
-    <div class="brand-logo">♞ Chessiax</div>
+    <div class="brand-logo" onclick="window.location.href='home.html'">
+        ♞ Chessiax <span class="beta-badge">Beta</span>
+    </div>
     <div class="brand-links">
         <button onclick="window.location.href='home.html'">Home</button>
         <button onclick="window.location.href='openings.html'">Library</button>
@@ -11,6 +13,7 @@
 </div>
 
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Chess Opening Finder</title>
 </head>
@@ -27,10 +30,10 @@
             <h1>Find openings built for your level.</h1>
         
             <p>
-                Enter your rating and get practical recommendations based on difficulty,
-                learning value and long-term improvement potential.
+                Enter your rating to get practical opening recommendations based on difficulty,
+                learning value and improvement potential. Real personal game analysis is coming soon.
             </p>
-        
+            
             <div class="input-group finder-input">
                 <input id="eloInput" type="number" placeholder="Enter your ELO">
                 <button onclick="getOpenings()">Analyze</button>
@@ -69,19 +72,19 @@
             </div>
         </div>
 
-    </div>
+        <footer class="app-footer">
+            <div>
+                <strong>Chessiax</strong>
+                <p>AI-powered chess opening training for learning, practice and progress tracking.</p>
+            </div>
+        
+            <div class="footer-links">
+                <button onclick="window.location.href='home.html'">Home</button>
+                <button onclick="window.location.href='openings.html'">Library</button>
+                <button onclick="window.location.href='index.html'">Analyze</button>
+            </div>
+        </footer>
 
-    <div class="brand-bar">
-        <div class="brand-logo" onclick="window.location.href='home.html'">
-            ♞ Chessiax
-        </div>
-    
-        <div class="brand-links">
-            <button onclick="window.location.href='home.html'">Home</button>
-            <button onclick="window.location.href='openings.html'">Library</button>
-            <button onclick="window.location.href='index.html'">Analyze</button>
-            <button onclick="window.location.href='profile.html'">Profile</button>
-        </div>
     </div>
 
     <script src="config.js"></script>
