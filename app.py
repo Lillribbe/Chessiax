@@ -11,6 +11,38 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 app = Flask(__name__)
 CORS(app)
 
+COUNTRY_NAMES = {
+    "SE": "Sweden",
+    "US": "United States",
+    "GB": "United Kingdom",
+    "NO": "Norway",
+    "DK": "Denmark",
+    "FI": "Finland",
+    "DE": "Germany",
+    "FR": "France",
+    "ES": "Spain",
+    "IT": "Italy",
+    "NL": "Netherlands",
+    "PL": "Poland",
+    "IN": "India",
+    "CN": "China",
+    "JP": "Japan",
+    "KR": "South Korea",
+    "BR": "Brazil",
+    "CA": "Canada",
+    "AU": "Australia",
+    "RU": "Russia",
+    "UA": "Ukraine"
+}
+
+def clean_country(country_url):
+    if not country_url:
+        return "Unknown"
+
+    country_code = country_url.rstrip("/").split("/")[-1].upper()
+
+    return COUNTRY_NAMES.get(country_code, country_code)
+
 @app.route("/")
 def serve_home():
     return send_from_directory(".", "home.html")
@@ -554,7 +586,7 @@ def get_chess_profile():
             "avatar": profile.get("avatar"),
             "url": profile.get("url"),
             "followers": profile.get("followers"),
-            "country": profile.get("country"),
+            "country": clean_country(profile.get("country")),
             "joined": joined_date,
             "status": profile.get("status"),
             "title": profile.get("title"),
