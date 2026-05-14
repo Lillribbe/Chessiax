@@ -37,6 +37,32 @@ COUNTRY_NAMES = {
     "UA": "Ukraine"
 }
 
+OPENING_FAMILIES = [
+    "Queen's Gambit",
+    "King's Indian Defense",
+    "Queen's Indian Defense",
+    "Nimzo-Indian Defense",
+    "Sicilian Defense",
+    "French Defense",
+    "Caro-Kann Defense",
+    "Modern Defense",
+    "Pirc Defense",
+    "Scandinavian Defense",
+    "Alekhine Defense",
+    "Ruy Lopez",
+    "Italian Game",
+    "English Opening",
+    "Queen's Pawn Opening",
+    "King's Pawn Opening",
+    "London System",
+    "Scotch Game",
+    "Four Knights Game",
+    "Catalan Opening",
+    "Dutch Defense",
+    "Grunfeld Defense",
+    "Slav Defense"
+]
+
 def clean_country(country_url):
     if not country_url:
         return "Unknown"
@@ -78,6 +104,25 @@ def extract_opening_name(pgn):
 
     return "Unknown Opening"
 
+def normalize_opening_text(text):
+    return re.sub(r"[^a-z0-9]+", " ", text.lower().replace("'", "")).strip()
+
+def normalize_opening_family(opening_name):
+    if not opening_name or opening_name == "Unknown Opening":
+        return "Unknown Opening"
+
+    normalized_name = normalize_opening_text(opening_name)
+
+    for family in OPENING_FAMILIES:
+        normalized_family = normalize_opening_text(family)
+        if normalized_name.startswith(normalized_family):
+            return family
+
+    opening_without_detail = re.split(r"[:;,]", opening_name, maxsplit=1)[0].strip()
+    opening_without_moves = re.sub(r"\s+\d+\..*$", "", opening_without_detail).strip()
+
+    return opening_without_moves or "Unknown Opening"
+
 def chesscom_result_to_outcome(result):
     if result == "win":
         return "win"
@@ -110,22 +155,73 @@ def calculate_score_percentage(stats):
     score = stats["wins"] + (stats["draws"] * 0.5)
     return round((score / stats["games"]) * 100, 1)
 
-def opening_stats_to_list(opening_stats):
-    openings = []
+def confidence_for_games(games):
+    if games == 1:
+        return "low"
+    if games <= 4:
+        return "medium"
+    return "high"
 
-    for name, stats in opening_stats.items():
-        openings.append({
-            "opening": name,
+def stats_to_list(stats_by_name, name_key):
+    items = []
+
+    for name, stats in stats_by_name.items():
+        items.append({
+            name_key: name,
             "games": stats["games"],
             "wins": stats["wins"],
             "draws": stats["draws"],
             "losses": stats["losses"],
             "score_percentage": calculate_score_percentage(stats),
             "as_white": stats["as_white"],
-            "as_black": stats["as_black"]
+            "as_black": stats["as_black"],
+            "confidence": confidence_for_games(stats["games"])
         })
 
-    return openings
+    return items
+
+def opening_stats_to_list(opening_stats):
+    return stats_to_list(opening_stats, "opening")
+
+def family_stats_to_list(family_stats):
+    return stats_to_list(family_stats, "family")
+
+def select_weak_families(families, limit=5):
+    def sort_weak(items):
+        return sorted(items, key=lambda item: (item["score_percentage"], -item["games"]))
+
+    selected = []
+    repeat_families = [family for family in families if family["games"] >= 2]
+    priority_families = sort_weak([
+        family for family in repeat_families
+        if family["score_percentage"] < 80
+    ])
+
+    selected.extend(priority_families)
+
+    if len(selected) < 3:
+        selected_names = {family["family"] for family in selected}
+        fill_families = sort_weak([
+            family for family in repeat_families
+            if family["family"] not in selected_names
+            and family["score_percentage"] < 100
+        ])
+        selected.extend(fill_families)
+
+    if len(selected) < 3:
+        selected_names = {family["family"] for family in selected}
+        selected.extend(sort_weak([
+            family for family in repeat_families
+            if family["family"] not in selected_names
+        ]))
+
+    if not selected:
+        selected = sort_weak([
+            family for family in families
+            if family["score_percentage"] < 100
+        ]) or sort_weak(families)
+
+    return selected[:limit]
 
 @app.route("/")
 def serve_home():
@@ -543,6 +639,7 @@ def analyze_games():
         white_games = 0
         black_games = 0
         opening_stats = {}
+        family_stats = {}
 
         for game in games:
             white = game.get("white", {})
@@ -566,6 +663,7 @@ def analyze_games():
             overall[outcome_key] += 1
 
             opening_name = extract_opening_name(game.get("pgn", ""))
+            family_name = normalize_opening_family(opening_name)
 
             if opening_name not in opening_stats:
                 opening_stats[opening_name] = {
@@ -577,16 +675,27 @@ def analyze_games():
                     "as_black": 0
                 }
 
-            stats = opening_stats[opening_name]
-            stats["games"] += 1
-            stats[outcome_key] += 1
+            if family_name not in family_stats:
+                family_stats[family_name] = {
+                    "games": 0,
+                    "wins": 0,
+                    "draws": 0,
+                    "losses": 0,
+                    "as_white": 0,
+                    "as_black": 0
+                }
 
-            if color == "white":
-                stats["as_white"] += 1
-            else:
-                stats["as_black"] += 1
+            for stats in (opening_stats[opening_name], family_stats[family_name]):
+                stats["games"] += 1
+                stats[outcome_key] += 1
+
+                if color == "white":
+                    stats["as_white"] += 1
+                else:
+                    stats["as_black"] += 1
 
         openings = opening_stats_to_list(opening_stats)
+        families = family_stats_to_list(family_stats)
         most_played_openings = sorted(
             openings,
             key=lambda item: item["games"],
@@ -601,14 +710,33 @@ def analyze_games():
             openings,
             key=lambda item: (item["score_percentage"], -item["games"])
         )[:5]
+        family_performance = sorted(
+            families,
+            key=lambda item: item["games"],
+            reverse=True
+        )
+        top_opening_families = sorted(
+            families,
+            key=lambda item: (item["score_percentage"], item["games"]),
+            reverse=True
+        )[:5]
+        weak_opening_families = select_weak_families(families)
+
+        study_candidates = [
+            family for family in weak_opening_families
+            if family["score_percentage"] < 100
+        ]
+        if not study_candidates:
+            study_candidates = weak_opening_families
 
         recommended_study = [
             {
-                "opening": opening["opening"],
-                "reason": f"Your score is {opening['score_percentage']}% over {opening['games']} games."
+                "family": family["family"],
+                "confidence": family["confidence"],
+                "reason": f"Your score is {family['score_percentage']}% over {family['games']} games."
             }
-            for opening in weak_openings
-            if opening["games"] > 0
+            for family in study_candidates
+            if family["games"] > 0
         ][:3]
 
         return jsonify({
@@ -620,6 +748,9 @@ def analyze_games():
             "most_played_openings": most_played_openings,
             "top_openings": top_openings,
             "weak_openings": weak_openings,
+            "family_performance": family_performance,
+            "top_opening_families": top_opening_families,
+            "weak_opening_families": weak_opening_families,
             "recommended_study": recommended_study
         })
 
