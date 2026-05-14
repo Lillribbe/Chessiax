@@ -4,7 +4,9 @@ from openai import OpenAI
 import os
 import json
 import requests
+import re
 from datetime import datetime
+from urllib.parse import urlparse, unquote
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -42,6 +44,88 @@ def clean_country(country_url):
     country_code = country_url.rstrip("/").split("/")[-1].upper()
 
     return COUNTRY_NAMES.get(country_code, country_code)
+
+def get_pgn_tag(pgn, tag_name):
+    if not pgn:
+        return None
+
+    match = re.search(rf'\[{tag_name}\s+"([^"]+)"\]', pgn)
+    if match:
+        return match.group(1).strip()
+
+    return None
+
+def eco_url_to_opening_name(eco_url):
+    if not eco_url:
+        return None
+
+    slug = unquote(urlparse(eco_url).path.rstrip("/").split("/")[-1])
+    if not slug:
+        return None
+
+    readable = re.sub(r"[-_]+", " ", slug).strip()
+    return readable.title() if readable else None
+
+def extract_opening_name(pgn):
+    opening = get_pgn_tag(pgn, "Opening")
+    if opening:
+        return opening
+
+    eco_url = get_pgn_tag(pgn, "ECOUrl")
+    opening_from_url = eco_url_to_opening_name(eco_url)
+    if opening_from_url:
+        return opening_from_url
+
+    return "Unknown Opening"
+
+def chesscom_result_to_outcome(result):
+    if result == "win":
+        return "win"
+
+    draw_results = {
+        "agreed",
+        "repetition",
+        "stalemate",
+        "insufficient",
+        "50move",
+        "timevsinsufficient"
+    }
+
+    if result in draw_results:
+        return "draw"
+
+    return "loss"
+
+def outcome_to_stats_key(outcome):
+    return {
+        "win": "wins",
+        "draw": "draws",
+        "loss": "losses"
+    }[outcome]
+
+def calculate_score_percentage(stats):
+    if stats["games"] == 0:
+        return 0
+
+    score = stats["wins"] + (stats["draws"] * 0.5)
+    return round((score / stats["games"]) * 100, 1)
+
+def opening_stats_to_list(opening_stats):
+    openings = []
+
+    for name, stats in opening_stats.items():
+        openings.append({
+            "opening": name,
+            "games": stats["games"],
+            "wins": stats["wins"],
+            "draws": stats["draws"],
+            "losses": stats["losses"],
+            "score_percentage": calculate_score_percentage(stats),
+            "as_white": stats["as_white"],
+            "as_black": stats["as_black"]
+        })
+
+    return openings
 
 @app.route("/")
 def serve_home():
@@ -103,7 +187,7 @@ def serve_static_files(filename):
 def favicon():
     return "", 204
 
-# 🔹  AI-insight
+#  AI-insight
 def generate_insight(elo):
     prompt = f"""
     A chess player has an ELO of {elo}.
@@ -118,7 +202,7 @@ def generate_insight(elo):
         )
     return response.choices[0].message.content
 
-# 🔥 DIN VIKTIGA ROUTE
+# VIKTIG ROUTE
 @app.route("/get_openings", methods=["POST"])
 def get_openings():
     data = request.get_json()
@@ -132,7 +216,7 @@ def get_openings():
     except:
         return jsonify({"error": "Elo must be a number"}), 400
 
-    # 🔹 Fake data (första version)
+    # Fake data (första version) Byter sedan den mot datan som tas från Chess.com datan, alltså när jag samlar in stor mängd matcher och analyserar de.
     openings_data = {
         "beginner": [
             {
@@ -278,7 +362,7 @@ def get_openings():
     ]
     }
 
-    # 🔹 Enkel logik baserat på ELO
+    # Enkel logik baserat på ELO
     if elo < 1300:
         result = openings_data["beginner"]
         avoid = avoid_data["beginner"]
@@ -402,6 +486,142 @@ def get_library_openings():
                 openings.extend(data)
 
         return jsonify(openings)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/analyze_games", methods=["POST"])
+def analyze_games():
+    try:
+        data = request.get_json() or {}
+        username = data.get("username", "").strip().lower()
+        limit = data.get("limit", 20)
+
+        if not username:
+            return jsonify({"error": "Username is required"}), 400
+
+        try:
+            limit = int(limit)
+        except:
+            return jsonify({"error": "Limit must be a number"}), 400
+
+        if limit <= 0:
+            return jsonify({"error": "Limit must be greater than 0"}), 400
+
+        headers = {
+            "User-Agent": "ChessAITrainer/1.0 (contact: your-email@example.com)"
+        }
+
+        archives_url = f"https://api.chess.com/pub/player/{username}/games/archives"
+        archives_response = requests.get(archives_url, headers=headers, timeout=10)
+
+        if archives_response.status_code != 200:
+            return jsonify({"error": f"Could not fetch game archives for '{username}'"}), 404
+
+        archive_urls = archives_response.json().get("archives", [])
+        games = []
+
+        for archive_url in reversed(archive_urls):
+            if len(games) >= limit:
+                break
+
+            archive_response = requests.get(archive_url, headers=headers, timeout=10)
+            if archive_response.status_code != 200:
+                continue
+
+            archive_games = archive_response.json().get("games", [])
+            for game in reversed(archive_games):
+                if len(games) >= limit:
+                    break
+                games.append(game)
+
+        overall = {
+            "wins": 0,
+            "draws": 0,
+            "losses": 0
+        }
+        white_games = 0
+        black_games = 0
+        opening_stats = {}
+
+        for game in games:
+            white = game.get("white", {})
+            black = game.get("black", {})
+            white_username = white.get("username", "").lower()
+            black_username = black.get("username", "").lower()
+
+            if white_username == username:
+                color = "white"
+                result = white.get("result")
+                white_games += 1
+            elif black_username == username:
+                color = "black"
+                result = black.get("result")
+                black_games += 1
+            else:
+                continue
+
+            outcome = chesscom_result_to_outcome(result)
+            outcome_key = outcome_to_stats_key(outcome)
+            overall[outcome_key] += 1
+
+            opening_name = extract_opening_name(game.get("pgn", ""))
+
+            if opening_name not in opening_stats:
+                opening_stats[opening_name] = {
+                    "games": 0,
+                    "wins": 0,
+                    "draws": 0,
+                    "losses": 0,
+                    "as_white": 0,
+                    "as_black": 0
+                }
+
+            stats = opening_stats[opening_name]
+            stats["games"] += 1
+            stats[outcome_key] += 1
+
+            if color == "white":
+                stats["as_white"] += 1
+            else:
+                stats["as_black"] += 1
+
+        openings = opening_stats_to_list(opening_stats)
+        most_played_openings = sorted(
+            openings,
+            key=lambda item: item["games"],
+            reverse=True
+        )[:5]
+        top_openings = sorted(
+            openings,
+            key=lambda item: (item["score_percentage"], item["games"]),
+            reverse=True
+        )[:5]
+        weak_openings = sorted(
+            openings,
+            key=lambda item: (item["score_percentage"], -item["games"])
+        )[:5]
+
+        recommended_study = [
+            {
+                "opening": opening["opening"],
+                "reason": f"Your score is {opening['score_percentage']}% over {opening['games']} games."
+            }
+            for opening in weak_openings
+            if opening["games"] > 0
+        ][:3]
+
+        return jsonify({
+            "username": username,
+            "games_analyzed": overall["wins"] + overall["draws"] + overall["losses"],
+            "overall": overall,
+            "white_games": white_games,
+            "black_games": black_games,
+            "most_played_openings": most_played_openings,
+            "top_openings": top_openings,
+            "weak_openings": weak_openings,
+            "recommended_study": recommended_study
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

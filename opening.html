@@ -16,17 +16,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Opening Details</title>
 
-    <!-- Din CSS -->
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- ✅ Chessboard CSS (FUNKAR) -->
+    <!-- Chessboard CSS -->
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
 </head>
 
 <body>
 <div class="container">
 
-    <!-- 🔙 Back -->
+    <!-- Back -->
     <button class="back-btn" onclick="window.history.back()">⬅ Back</button>
     <button class="back-btn" onclick="window.location.href='home.html'">🏠 Home</button>
 
@@ -141,11 +141,11 @@
         </div>
     </div>
 
-    <!-- 🔹 Loading -->
+    <!-- Loading -->
     <p id="loadingText">Analyzing opening...</p>
     <div id="errorBox" class="error-box" style="display:none;"></div>
 
-    <!-- 🔹 Content -->
+    <!-- Content -->
     <div id="content" class="opening-content" style="display:none;">
 
     <div class="opening-stack">
@@ -187,13 +187,13 @@
     </div>
 </footer>
 
-<!-- ✅ jQuery -->
+<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- ✅ Chess.js -->
+<!-- Chess.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
-<!-- ✅ Chessboard (RÄTT VERSION SOM FUNKAR) -->
+<!-- Chessboard (RÄTT VERSION SOM FUNKAR) -->
 <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
 
 <script src="config.js"></script>
@@ -420,17 +420,17 @@ function renderOpening(data) {
 
 function showTab(tab) {
 
-    // Ta bort active från alla knappar
+    // Tar bort active från alla knappar
     document.querySelectorAll(".tab-btn").forEach(btn => {
         btn.classList.remove("active");
     });
 
-    // Ta bort active från alla panels
+    // Tar bort active från alla panels
     document.querySelectorAll(".tab-panel").forEach(panel => {
         panel.classList.remove("active");
     });
 
-    // Aktivera rätt tab
+    // Aktiverar rätt tab
     document.querySelector(`[onclick="showTab('${tab}')"]`).classList.add("active");
     document.getElementById("tab-" + tab).classList.add("active");
 }
