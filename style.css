@@ -948,6 +948,149 @@ select:focus {
     opacity: 0.055;
 }
 
+.game-analysis-section {
+    margin-top: 22px;
+}
+
+.profile-result {
+    display: grid;
+    gap: 18px;
+}
+
+.suggested-opening {
+    padding: 18px 0 22px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.suggested-opening:first-of-type {
+    padding-top: 6px;
+}
+
+.suggested-opening:last-child {
+    padding-bottom: 2px;
+    border-bottom: 0;
+}
+
+.suggested-opening h3 {
+    margin-bottom: 10px;
+}
+
+.suggested-opening p {
+    margin: 7px 0;
+}
+
+.suggested-opening .learn-btn {
+    margin-top: 14px;
+    margin-bottom: 4px;
+}
+
+.game-analysis-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+}
+
+.game-analysis-action h2,
+.game-analysis-action p {
+    margin: 0;
+}
+
+.game-analysis-action p {
+    margin-top: 6px;
+}
+
+.opening-performance {
+    display: grid;
+    gap: 22px;
+    margin-top: 18px;
+}
+
+.analysis-summary-grid,
+.family-card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.analysis-block h2 {
+    margin: 8px 0 14px;
+}
+
+.family-card {
+    padding: 18px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-soft);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: var(--shadow-soft);
+}
+
+.family-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: start;
+}
+
+.family-card h3 {
+    margin: 0;
+}
+
+.confidence-pill {
+    flex: 0 0 auto;
+    padding: 5px 9px;
+    border-radius: 999px;
+    color: #c4b5fd;
+    background: rgba(167, 139, 250, 0.12);
+    border: 1px solid rgba(167, 139, 250, 0.28);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: capitalize;
+}
+
+.confidence-low {
+    color: #fed7aa;
+    background: rgba(245, 158, 11, 0.14);
+    border-color: rgba(245, 158, 11, 0.38);
+}
+
+.confidence-medium {
+    color: #c4b5fd;
+    background: rgba(167, 139, 250, 0.12);
+    border-color: rgba(167, 139, 250, 0.3);
+}
+
+.confidence-high {
+    color: #bbf7d0;
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.34);
+}
+
+.family-score {
+    margin: 14px 0 10px;
+    color: var(--text-main);
+    font-size: 2rem;
+    font-weight: 900;
+}
+
+.family-meta {
+    display: grid;
+    gap: 7px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.study-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.study-link {
+    align-self: flex-start;
+    margin-top: auto;
+    text-decoration: none;
+}
+
 .opening-actions button {
     background: rgba(15, 23, 42, 0.75);
     color: var(--text-main);
@@ -1417,6 +1560,20 @@ iframe {
     .card-footer button {
         width: 100%;
     }
+
+    .game-analysis-action {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .analysis-summary-grid,
+    .family-card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .family-card-header {
+        flex-direction: column;
+    }
 }
 
 @media (max-width: 760px) {
@@ -1492,6 +1649,11 @@ iframe {
     .trainer-panel {
         width: 100%;
     }
+
+    .analysis-summary-grid,
+    .family-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 520px) {
@@ -1506,6 +1668,13 @@ iframe {
 
     .board-panel-header {
         flex-direction: column;
+    }
+}
+
+@media (max-width: 680px) {
+    .analysis-summary-grid,
+    .family-card-grid {
+        grid-template-columns: 1fr;
     }
 }
 

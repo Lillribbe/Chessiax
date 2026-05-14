@@ -33,7 +33,7 @@
         </section>
 
         <div class="profile-input-section">
-            <input id="usernameInput" type="text" placeholder="Enter Chess.com username">
+            <input id="usernameInput" type="text" placeholder="Enter Chess.com username" oninput="updateAnalyzeGamesButton()">
             <button onclick="analyzeProfile()">Analyze</button>
         </div>
 
@@ -43,6 +43,17 @@
                 <p>Your Chess.com profile data will appear here.</p>
             </div>
         </div>
+
+        <section class="game-analysis-section">
+            <div class="card game-analysis-action">
+                <div>
+                    <h2>Opening Performance</h2>
+                    <p>Analyze your latest Chess.com games to find opening families to trust, sharpen, or study next.</p>
+                </div>
+                <button id="analyzeGamesButton" onclick="analyzeLatestGames()" disabled>Analyze Latest Games</button>
+            </div>
+            <div id="gameAnalysisResult"></div>
+        </section>
 
         <footer class="app-footer">
             <div>
@@ -63,12 +74,40 @@
 
     <script>
 
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function safeNumber(value, fallback = 0) {
+            return Number.isFinite(Number(value)) ? Number(value) : fallback;
+        }
+
+        function getConfidenceClass(confidence) {
+            const normalized = String(confidence || "low").toLowerCase();
+            if (["low", "medium", "high"].includes(normalized)) {
+                return `confidence-${normalized}`;
+            }
+            return "confidence-low";
+        }
+
+        function updateAnalyzeGamesButton() {
+            const username = document.getElementById("usernameInput").value.trim();
+            const button = document.getElementById("analyzeGamesButton");
+            button.disabled = username.length === 0;
+        }
+
         async function analyzeProfile() {
             const username = document.getElementById("usernameInput").value.trim();
             const resultDiv = document.getElementById("profileResult");
 
             if (!username) {
                 alert("Please enter a Chess.com username");
+                updateAnalyzeGamesButton();
                 return;
             }
 
@@ -179,6 +218,178 @@
             window.location.href = `opening.html?name=${encodeURIComponent(openingName)}`;
         }
 
+        async function analyzeLatestGames() {
+            const username = document.getElementById("usernameInput").value.trim();
+            const resultDiv = document.getElementById("gameAnalysisResult");
+            const button = document.getElementById("analyzeGamesButton");
+
+            if (!username) {
+                alert("Please enter a Chess.com username");
+                updateAnalyzeGamesButton();
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Analyzing...";
+            resultDiv.innerHTML = `
+                <div class="card loading-card">
+                    <div class="loader"></div>
+                    <h2>Analyzing latest games...</h2>
+                    <p>Fetching recent Chess.com games and grouping openings by family.</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/analyze_games`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username,
+                        limit: 50
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    resultDiv.innerHTML = `
+                        <div class="card">
+                            <h2>Error</h2>
+                            <p>${escapeHtml(data.error)}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderGameAnalysis(data);
+            } catch (error) {
+                console.error(error);
+                resultDiv.innerHTML = `
+                    <div class="card">
+                        <h2>Error</h2>
+                        <p>Failed to analyze latest Chess.com games.</p>
+                    </div>
+                `;
+            } finally {
+                updateAnalyzeGamesButton();
+                button.textContent = "Analyze Latest Games";
+            }
+        }
+
+        function renderGameAnalysis(data) {
+            const resultDiv = document.getElementById("gameAnalysisResult");
+            const topFamilies = Array.isArray(data.top_opening_families) ? data.top_opening_families : [];
+            const weakFamiliesRaw = Array.isArray(data.weak_opening_families) ? data.weak_opening_families : [];
+            const weakFamilies = weakFamiliesRaw.filter(family => safeNumber(family.score_percentage) < 90);
+            const studyItems = getRecommendedStudyItems(data);
+
+            resultDiv.innerHTML = `
+                <div class="opening-performance">
+                    <div class="analysis-summary-grid">
+                        <div class="overview-card">
+                            <h3>Games analyzed</h3>
+                            <p>${safeNumber(data.games_analyzed)}</p>
+                        </div>
+                        <div class="overview-card">
+                            <h3>Overall record</h3>
+                            <p>${safeNumber(data.overall?.wins)} / ${safeNumber(data.overall?.draws)} / ${safeNumber(data.overall?.losses)}</p>
+                        </div>
+                        <div class="overview-card">
+                            <h3>White games</h3>
+                            <p>${safeNumber(data.white_games)}</p>
+                        </div>
+                        <div class="overview-card">
+                            <h3>Black games</h3>
+                            <p>${safeNumber(data.black_games)}</p>
+                        </div>
+                    </div>
+
+                    <div class="analysis-block">
+                        <h2>Top Opening Families</h2>
+                        <div class="family-card-grid">
+                            ${renderFamilyCards(topFamilies, "No top opening families found yet.")}
+                        </div>
+                    </div>
+
+                    <div class="analysis-block">
+                        <h2>Weak Opening Families</h2>
+                        <div class="family-card-grid">
+                            ${
+                                weakFamilies.length > 0
+                                    ? renderFamilyCards(weakFamilies, "No clear weak opening families found yet.")
+                                    : `<div class="empty-state"><h3>No clear weak opening families found yet.</h3><p>Analyze more games to build a stronger pattern.</p></div>`
+                            }
+                        </div>
+                    </div>
+
+                    <div class="analysis-block">
+                        <h2>Recommended Study</h2>
+                        <div class="family-card-grid">
+                            ${renderStudyCards(studyItems)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFamilyCards(families, emptyMessage) {
+            if (!Array.isArray(families) || families.length === 0) {
+                return `<div class="empty-state"><h3>${escapeHtml(emptyMessage)}</h3></div>`;
+            }
+
+            return families.map(family => `
+                <div class="family-card">
+                    <div class="family-card-header">
+                        <h3>${escapeHtml(family.family || "Unknown Opening")}</h3>
+                        <span class="confidence-pill ${getConfidenceClass(family.confidence)}">${escapeHtml(family.confidence || "low")} confidence</span>
+                    </div>
+                    <div class="family-score">${safeNumber(family.score_percentage).toFixed(1)}%</div>
+                    <div class="family-meta">
+                        <span>${safeNumber(family.games)} games</span>
+                        <span>${safeNumber(family.wins)}W / ${safeNumber(family.draws)}D / ${safeNumber(family.losses)}L</span>
+                        <span>${safeNumber(family.as_white)} as White / ${safeNumber(family.as_black)} as Black</span>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function getRecommendedStudyItems(data) {
+            const studyItems = Array.isArray(data.recommended_study) ? data.recommended_study : [];
+            const familyPerformance = Array.isArray(data.family_performance) ? data.family_performance : [];
+            const familyScores = new Map(
+                familyPerformance.map(family => [family.family, safeNumber(family.score_percentage)])
+            );
+
+            const filteredItems = studyItems.filter(item => {
+                const score = familyScores.get(item.family);
+                return score === undefined || score < 100;
+            });
+
+            return filteredItems;
+        }
+
+        function renderStudyCards(studyItems) {
+            if (!Array.isArray(studyItems) || studyItems.length === 0) {
+                return `<div class="empty-state"><h3>No recommended study targets yet.</h3><p>Analyze more games to uncover useful opening patterns.</p></div>`;
+            }
+
+            return studyItems.map(item => {
+                const familyName = item.family || "Unknown Opening";
+                return `
+                    <div class="family-card study-card">
+                        <div class="family-card-header">
+                            <h3>${escapeHtml(familyName)}</h3>
+                            <span class="confidence-pill ${getConfidenceClass(item.confidence)}">${escapeHtml(item.confidence || "low")} confidence</span>
+                        </div>
+                        <p>${escapeHtml(item.reason || "This opening family is worth reviewing.")}</p>
+                        <a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(familyName)}">Study</a>
+                    </div>
+                `;
+            }).join("");
+        }
+
         function setActiveNav() {
             const path = window.location.pathname;
             const buttons = document.querySelectorAll(".brand-links button");
@@ -199,6 +410,7 @@
         }
 
         setActiveNav();
+        updateAnalyzeGamesButton();
 
     </script>
 </body>
