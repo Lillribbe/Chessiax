@@ -509,7 +509,10 @@
                             <span class="confidence-pill ${getConfidenceClass(item.confidence)}">${escapeHtml(item.confidence || "low")} confidence</span>
                         </div>
                         <p>${escapeHtml(item.reason || "This opening family is worth reviewing.")}</p>
-                        <a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(familyName)}">Study</a>
+                        <div class="study-card-actions">
+                            <a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(familyName)}">Study</a>
+                            <a class="learn-btn secondary-btn study-link" href="opening.html?name=${encodeURIComponent(familyName)}&mode=practice">Practice</a>
+                        </div>
                     </div>
                 `;
             }).join("");
@@ -594,6 +597,7 @@
                                 <p>${escapeHtml(day.purpose)}</p>
                                 <div class="study-plan-actions">
                                     <a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(day.focus)}">Study</a>
+                                    <a class="learn-btn secondary-btn study-link" href="opening.html?name=${encodeURIComponent(day.focus)}&mode=practice">Practice</a>
                                     <button class="secondary-btn complete-day-btn" onclick="toggleStudyPlanDay(${day.day})">${completed ? "✓ Completed" : "Mark Complete"}</button>
                                 </div>
                             </div>

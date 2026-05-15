@@ -1109,6 +1109,13 @@ select:focus {
     flex-direction: column;
 }
 
+.study-card-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+
 .study-link {
     align-self: flex-start;
     margin-top: auto;
@@ -1186,6 +1193,10 @@ select:focus {
     margin-top: 0;
 }
 
+.study-card-actions .study-link {
+    margin-top: 0;
+}
+
 .complete-day-btn {
     background: rgba(15, 23, 42, 0.75);
     color: var(--text-main);
@@ -1208,6 +1219,13 @@ select:focus {
     border: 1px solid rgba(56, 189, 248, 0.28);
     font-size: 0.72rem;
     font-weight: 900;
+}
+
+.practice-deep-link-highlight {
+    border-color: rgba(34, 197, 94, 0.75);
+    box-shadow:
+        0 0 0 4px rgba(34, 197, 94, 0.14),
+        0 22px 55px rgba(34, 197, 94, 0.16);
 }
 
 .opening-actions button {
@@ -1704,12 +1722,14 @@ iframe {
         width: 100%;
     }
 
-    .study-plan-actions {
+    .study-plan-actions,
+    .study-card-actions {
         flex-direction: column;
     }
 
     .study-plan-actions .learn-btn,
-    .study-plan-actions button {
+    .study-plan-actions button,
+    .study-card-actions .learn-btn {
         width: 100%;
         text-align: center;
     }

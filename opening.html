@@ -339,6 +339,7 @@ async function loadOpening() {
 
             renderOpening(data);
             loadRelatedOpenings(openingName);
+            handlePracticeDeepLink();
             return;
         } else {
             localStorage.removeItem(cacheKey);
@@ -400,6 +401,7 @@ async function loadOpening() {
     renderOpening(data);
 
     loadRelatedOpenings(openingName);
+    handlePracticeDeepLink();
 }
 
 function renderOpening(data) {
@@ -416,6 +418,32 @@ function renderOpening(data) {
 
     document.getElementById("loadingText").style.display = "none";
     document.getElementById("content").style.display = "block";
+}
+
+function handlePracticeDeepLink() {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("mode") !== "practice") {
+        return;
+    }
+
+    const practiceBox = document.querySelector(".practice-box");
+    if (!practiceBox) {
+        return;
+    }
+
+    setTimeout(() => {
+        practiceBox.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+        practiceBox.classList.add("practice-deep-link-highlight");
+
+        setTimeout(() => {
+            practiceBox.classList.remove("practice-deep-link-highlight");
+        }, 1800);
+    }, 150);
 }
 
 function showTab(tab) {
