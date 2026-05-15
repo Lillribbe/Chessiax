@@ -75,6 +75,7 @@
     <script>
 
         const GAME_ANALYSIS_STORAGE_KEY = "chessiax_game_analysis";
+        let currentStudyPlanUsername = "";
 
         function escapeHtml(value) {
             return String(value ?? "")
@@ -125,6 +126,46 @@
             }
         }
 
+        function getStudyPlanProgressKey(username) {
+            return `chessiax_study_plan_progress_${String(username || "unknown").trim().toLowerCase()}`;
+        }
+
+        function getCompletedStudyDays(username) {
+            try {
+                const saved = localStorage.getItem(getStudyPlanProgressKey(username));
+                const parsed = JSON.parse(saved || "[]");
+                return Array.isArray(parsed)
+                    ? parsed.filter(day => Number.isInteger(day) && day >= 1 && day <= 7)
+                    : [];
+            } catch (error) {
+                console.warn("Could not read study plan progress", error);
+                return [];
+            }
+        }
+
+        function saveCompletedStudyDays(username, completedDays) {
+            try {
+                localStorage.setItem(
+                    getStudyPlanProgressKey(username),
+                    JSON.stringify([...new Set(completedDays)].sort((a, b) => a - b))
+                );
+            } catch (error) {
+                console.warn("Could not save study plan progress", error);
+            }
+        }
+
+        function removeStudyPlanProgress(username) {
+            if (!username) {
+                return;
+            }
+
+            try {
+                localStorage.removeItem(getStudyPlanProgressKey(username));
+            } catch (error) {
+                console.warn("Could not remove study plan progress", error);
+            }
+        }
+
         function getSavedGameAnalysis() {
             try {
                 const saved = localStorage.getItem(GAME_ANALYSIS_STORAGE_KEY);
@@ -162,8 +203,11 @@
         }
 
         function clearSavedGameAnalysis() {
+            const saved = getSavedGameAnalysis();
+            removeStudyPlanProgress(saved?.username || currentStudyPlanUsername);
             removeSavedGameAnalysis();
             document.getElementById("gameAnalysisResult").innerHTML = "";
+            currentStudyPlanUsername = "";
         }
 
         async function analyzeProfile() {
@@ -350,6 +394,7 @@
             const weakFamiliesRaw = Array.isArray(data.weak_opening_families) ? data.weak_opening_families : [];
             const weakFamilies = weakFamiliesRaw.filter(family => safeNumber(family.score_percentage) < 90);
             const studyItems = getRecommendedStudyItems(data);
+            currentStudyPlanUsername = savedUsername || data.username || "";
             const savedNote = savedUsername
                 ? `
                     <div class="saved-analysis-note">
@@ -408,9 +453,7 @@
 
                     <div class="analysis-block">
                         <h2>7-Day Study Plan</h2>
-                        <div class="study-plan-grid">
-                            ${renderSevenDayStudyPlan(studyItems)}
-                        </div>
+                        ${renderSevenDayStudyPlan(studyItems, currentStudyPlanUsername)}
                     </div>
                 </div>
             `;
@@ -519,22 +562,88 @@
             });
         }
 
-        function renderSevenDayStudyPlan(studyItems) {
+        function renderSevenDayStudyPlan(studyItems, username = "") {
             const plan = generateSevenDayPlan(studyItems);
 
             if (plan.length === 0) {
                 return `<div class="empty-state"><h3>Analyze your latest games to generate a personalized study plan.</h3></div>`;
             }
 
-            return plan.map(day => `
-                <div class="study-plan-card">
-                    <div class="day-pill">Day ${day.day}</div>
-                    <h3>${escapeHtml(day.focus)}</h3>
-                    <p><strong>${escapeHtml(day.task)}</strong></p>
-                    <p>${escapeHtml(day.purpose)}</p>
-                    <a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(day.focus)}">Study</a>
+            const completedDays = getCompletedStudyDays(username);
+            const completedCount = completedDays.length;
+            const progressPercent = Math.round((completedCount / plan.length) * 100);
+
+            return `
+                <div class="study-plan-progress">
+                    <div class="study-plan-progress-header">
+                        <strong>Study Plan Progress: ${completedCount}/${plan.length} days completed</strong>
+                    </div>
+                    <div class="study-progress-bar">
+                        <div class="study-progress-fill" style="width: ${progressPercent}%"></div>
+                    </div>
                 </div>
-            `).join("");
+
+                <div class="study-plan-grid">
+                    ${plan.map(day => {
+                        const completed = completedDays.includes(day.day);
+                        return `
+                            <div class="study-plan-card ${completed ? "study-day-completed" : ""}" data-study-day="${day.day}">
+                                <div class="day-pill">Day ${day.day}</div>
+                                <h3>${escapeHtml(day.focus)}</h3>
+                                <p><strong>${escapeHtml(day.task)}</strong></p>
+                                <p>${escapeHtml(day.purpose)}</p>
+                                <div class="study-plan-actions">
+                                    <a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(day.focus)}">Study</a>
+                                    <button class="secondary-btn complete-day-btn" onclick="toggleStudyPlanDay(${day.day})">${completed ? "✓ Completed" : "Mark Complete"}</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join("")}
+                </div>
+            `;
+        }
+
+        function updateStudyPlanProgressUI(completedDays) {
+            const completedCount = completedDays.length;
+            const progressPercent = Math.round((completedCount / 7) * 100);
+            const progressText = document.querySelector(".study-plan-progress-header strong");
+            const progressFill = document.querySelector(".study-progress-fill");
+
+            if (progressText) {
+                progressText.textContent = `Study Plan Progress: ${completedCount}/7 days completed`;
+            }
+
+            if (progressFill) {
+                progressFill.style.width = `${progressPercent}%`;
+            }
+        }
+
+        function toggleStudyPlanDay(day) {
+            if (!currentStudyPlanUsername) {
+                return;
+            }
+
+            const completedDays = new Set(getCompletedStudyDays(currentStudyPlanUsername));
+            const card = document.querySelector(`[data-study-day="${day}"]`);
+            const button = card?.querySelector(".complete-day-btn");
+
+            if (completedDays.has(day)) {
+                completedDays.delete(day);
+                card?.classList.remove("study-day-completed");
+                if (button) {
+                    button.textContent = "Mark Complete";
+                }
+            } else {
+                completedDays.add(day);
+                card?.classList.add("study-day-completed");
+                if (button) {
+                    button.textContent = "✓ Completed";
+                }
+            }
+
+            const updatedDays = [...completedDays].sort((a, b) => a - b);
+            saveCompletedStudyDays(currentStudyPlanUsername, updatedDays);
+            updateStudyPlanProgressUI(updatedDays);
         }
 
         function setActiveNav() {
