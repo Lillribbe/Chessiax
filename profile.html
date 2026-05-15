@@ -74,6 +74,8 @@
 
     <script>
 
+        const GAME_ANALYSIS_STORAGE_KEY = "chessiax_game_analysis";
+
         function escapeHtml(value) {
             return String(value ?? "")
                 .replace(/&/g, "&amp;")
@@ -99,6 +101,69 @@
             const username = document.getElementById("usernameInput").value.trim();
             const button = document.getElementById("analyzeGamesButton");
             button.disabled = username.length === 0;
+        }
+
+        function saveGameAnalysis(username, analysis) {
+            try {
+                localStorage.setItem(
+                    GAME_ANALYSIS_STORAGE_KEY,
+                    JSON.stringify({
+                        username,
+                        analysis
+                    })
+                );
+            } catch (error) {
+                console.warn("Could not save game analysis", error);
+            }
+        }
+
+        function removeSavedGameAnalysis() {
+            try {
+                localStorage.removeItem(GAME_ANALYSIS_STORAGE_KEY);
+            } catch (error) {
+                console.warn("Could not remove saved game analysis", error);
+            }
+        }
+
+        function getSavedGameAnalysis() {
+            try {
+                const saved = localStorage.getItem(GAME_ANALYSIS_STORAGE_KEY);
+                if (!saved) {
+                    return null;
+                }
+
+                const parsed = JSON.parse(saved);
+                if (!parsed || typeof parsed !== "object" || !parsed.analysis) {
+                    removeSavedGameAnalysis();
+                    return null;
+                }
+
+                return parsed;
+            } catch (error) {
+                console.warn("Could not read saved game analysis", error);
+                removeSavedGameAnalysis();
+                return null;
+            }
+        }
+
+        function loadSavedGameAnalysis() {
+            const saved = getSavedGameAnalysis();
+            if (!saved) {
+                return;
+            }
+
+            const usernameInput = document.getElementById("usernameInput");
+            if (!usernameInput.value.trim() && saved.username) {
+                usernameInput.value = saved.username;
+                updateAnalyzeGamesButton();
+            }
+
+            renderGameAnalysis(saved.analysis, saved.username);
+        }
+
+        function clearSavedGameAnalysis() {
+            removeSavedGameAnalysis();
+            document.getElementById("gameAnalysisResult").innerHTML = "";
         }
 
         async function analyzeProfile() {
@@ -263,7 +328,8 @@
                     return;
                 }
 
-                renderGameAnalysis(data);
+                saveGameAnalysis(username, data);
+                renderGameAnalysis(data, username);
             } catch (error) {
                 console.error(error);
                 resultDiv.innerHTML = `
@@ -278,14 +344,23 @@
             }
         }
 
-        function renderGameAnalysis(data) {
+        function renderGameAnalysis(data, savedUsername = "") {
             const resultDiv = document.getElementById("gameAnalysisResult");
             const topFamilies = Array.isArray(data.top_opening_families) ? data.top_opening_families : [];
             const weakFamiliesRaw = Array.isArray(data.weak_opening_families) ? data.weak_opening_families : [];
             const weakFamilies = weakFamiliesRaw.filter(family => safeNumber(family.score_percentage) < 90);
             const studyItems = getRecommendedStudyItems(data);
+            const savedNote = savedUsername
+                ? `
+                    <div class="saved-analysis-note">
+                        <span>Showing saved analysis for <strong>${escapeHtml(savedUsername)}</strong></span>
+                        <button class="secondary-btn clear-analysis-btn" onclick="clearSavedGameAnalysis()">Clear saved analysis</button>
+                    </div>
+                `
+                : "";
 
             resultDiv.innerHTML = `
+                ${savedNote}
                 <div class="opening-performance">
                     <div class="analysis-summary-grid">
                         <div class="overview-card">
@@ -411,6 +486,7 @@
 
         setActiveNav();
         updateAnalyzeGamesButton();
+        loadSavedGameAnalysis();
 
     </script>
 </body>
