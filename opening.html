@@ -96,6 +96,7 @@
                 <p id="practiceStatus" class="practice-status neutral-status">
                     Click Start Practice to test yourself.
                 </p>
+                <p class="practice-input-hint">You can type the move or drag the piece on the board.</p>
     
                 <div class="practice-score">
                     <p><strong>Correct:</strong> <span id="practiceCorrect">0</span></p>
@@ -304,6 +305,8 @@ async function loadOpening() {
     if (!board) {
         board = window.Chessboard('board', {
             position: 'start',
+            draggable: true,
+            onDrop: handleBoardDrop,
             pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
         });
     }
@@ -676,7 +679,7 @@ function checkPracticeMove() {
     }
 
     const input = document.getElementById("practiceMoveInput");
-    const userMove = input.value.trim();
+    const userMove = input ? input.value.trim() : "";
 
     if (!userMove) return;
 
@@ -684,10 +687,36 @@ function checkPracticeMove() {
         checkMistakeReviewMove(userMove);
         return;
     }
-  
+
+    if (processPracticeMove(userMove)) {
+        input.value = "";
+        input.focus();
+    }
+}
+
+function recordPracticeMistake() {
+    practiceMistakes++;
+
+    const alreadySaved = missedPositions.some(item =>
+        item.fen === game.fen() && item.move === moves[currentMove].move
+    );
+
+    if (!alreadySaved) {
+        missedPositions.push({
+            fen: game.fen(),
+            move: moves[currentMove].move,
+            explanation: moves[currentMove].explanation || "No explanation available."
+        });
+    }
+
+    updatePracticeScore();
+    setPracticeStatus("Not quite. Try again.", "error");
+}
+
+function processPracticeMove(userMove) {
     if (!moves || currentMove >= moves.length) {
         setPracticeStatus("Practice complete.", "complete");
-        return;
+        return false;
     }
 
     const expectedMove = moves[currentMove].move;
@@ -709,7 +738,7 @@ function checkPracticeMove() {
             console.error("Could not play normal practice move:", expectedMove);
             console.error("Current FEN:", game.fen());
             console.error("Legal moves:", game.moves());
-            return;
+            return false;
         }
 
         board.position(game.fen());
@@ -734,32 +763,61 @@ function checkPracticeMove() {
             setPracticeStatus("Correct. Find the next move.", "success");
         }
 
-        input.value = "";
-        input.focus();
-
         renderMoveList();
         updateMoveButtons();
         updateStudyStatus();
+        return true;
 
     } else {
-        practiceMistakes++;
-
-        const alreadySaved = missedPositions.some(item =>
-            item.fen === game.fen() && item.move === moves[currentMove].move
-        );
-
-        if (!alreadySaved) {
-            missedPositions.push({
-                fen: game.fen(),
-                move: moves[currentMove].move,
-                explanation: moves[currentMove].explanation || "No explanation available."
-            });
-        }
-
-        updatePracticeScore();
-
-        setPracticeStatus("Not quite. Try again.", "error");
+        recordPracticeMistake();
+        return false;
     }
+}
+
+function getDraggedMoveSan(source, target) {
+    if (!game || !source || !target || source === target) {
+        return null;
+    }
+
+    const result = game.move({
+        from: source,
+        to: target,
+        promotion: "q"
+    });
+
+    if (!result) {
+        return null;
+    }
+
+    const san = result.san;
+    game.undo();
+    return san;
+}
+
+function handleBoardDrop(source, target) {
+    if (!practiceMode) {
+        return "snapback";
+    }
+
+    const draggedMove = getDraggedMoveSan(source, target);
+    if (!draggedMove) {
+        if (!mistakeReviewMode && moves && currentMove < moves.length) {
+            recordPracticeMistake();
+        } else {
+            setPracticeStatus("Illegal move. Try again.", "error");
+        }
+        return "snapback";
+    }
+
+    if (mistakeReviewMode) {
+        const item = missedPositions[reviewIndex];
+        const isCorrect = item && normalizeMoveText(draggedMove) === normalizeMoveText(item.move);
+
+        checkMistakeReviewMove(draggedMove);
+        return isCorrect ? undefined : "snapback";
+    }
+
+    return processPracticeMove(draggedMove) ? undefined : "snapback";
 }
 
 function checkMistakeReviewMove(userMove) {
