@@ -405,6 +405,13 @@
                             ${renderStudyCards(studyItems)}
                         </div>
                     </div>
+
+                    <div class="analysis-block">
+                        <h2>7-Day Study Plan</h2>
+                        <div class="study-plan-grid">
+                            ${renderSevenDayStudyPlan(studyItems)}
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -463,6 +470,71 @@
                     </div>
                 `;
             }).join("");
+        }
+
+        function generateSevenDayPlan(studyItems) {
+            if (!Array.isArray(studyItems) || studyItems.length === 0) {
+                return [];
+            }
+
+            const taskTypes = [
+                {
+                    task: "Learn the main ideas",
+                    purpose: "Understand the plans before memorizing moves."
+                },
+                {
+                    task: "Practice the opening line",
+                    purpose: "Build comfort with the first critical moves."
+                },
+                {
+                    task: "Review common mistakes",
+                    purpose: "Spot the patterns that usually cost you points."
+                },
+                {
+                    task: "Repeat from memory",
+                    purpose: "Strengthen recall without relying on notes."
+                },
+                {
+                    task: "Compare your results",
+                    purpose: "Connect the study plan to your actual games."
+                },
+                {
+                    task: "Drill weak positions",
+                    purpose: "Focus on the middlegames that come from this opening."
+                },
+                {
+                    task: "Final review",
+                    purpose: "Lock in the ideas and choose what to keep practicing."
+                }
+            ];
+
+            return taskTypes.map((taskType, index) => {
+                const studyItem = studyItems[index % studyItems.length];
+                return {
+                    day: index + 1,
+                    focus: studyItem.family || studyItem.opening || "Unknown Opening",
+                    task: taskType.task,
+                    purpose: taskType.purpose
+                };
+            });
+        }
+
+        function renderSevenDayStudyPlan(studyItems) {
+            const plan = generateSevenDayPlan(studyItems);
+
+            if (plan.length === 0) {
+                return `<div class="empty-state"><h3>Analyze your latest games to generate a personalized study plan.</h3></div>`;
+            }
+
+            return plan.map(day => `
+                <div class="study-plan-card">
+                    <div class="day-pill">Day ${day.day}</div>
+                    <h3>${escapeHtml(day.focus)}</h3>
+                    <p><strong>${escapeHtml(day.task)}</strong></p>
+                    <p>${escapeHtml(day.purpose)}</p>
+                    <a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(day.focus)}">Study</a>
+                </div>
+            `).join("");
         }
 
         function setActiveNav() {
