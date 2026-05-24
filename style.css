@@ -1046,6 +1046,108 @@ select:focus {
     margin: 8px 0 14px;
 }
 
+.game-phase-block {
+    display: grid;
+    gap: 14px;
+}
+
+.phase-summary-grid,
+.phase-card-grid {
+    display: grid;
+    gap: 14px;
+}
+
+.phase-summary-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.phase-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.phase-summary-card,
+.phase-card {
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-soft);
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: var(--shadow-soft);
+}
+
+.phase-summary-card h3,
+.phase-card h3,
+.phase-card p {
+    margin: 0;
+}
+
+.phase-summary-card h3 {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0;
+}
+
+.phase-summary-card p {
+    margin-top: 10px;
+    color: var(--text-main);
+    font-size: 1.45rem;
+    font-weight: 900;
+}
+
+.phase-card {
+    display: grid;
+    gap: 12px;
+}
+
+.phase-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 12px;
+}
+
+.phase-card-header span {
+    flex: 0 0 auto;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.phase-card p {
+    color: var(--text-muted);
+}
+
+.phase-status-warning {
+    border-color: rgba(239, 68, 68, 0.36);
+}
+
+.phase-status-warning .phase-card-header span {
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.13);
+    border: 1px solid rgba(239, 68, 68, 0.32);
+}
+
+.phase-status-success {
+    border-color: rgba(34, 197, 94, 0.34);
+}
+
+.phase-status-success .phase-card-header span {
+    color: #bbf7d0;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.phase-status-info {
+    border-color: rgba(59, 130, 246, 0.34);
+}
+
+.phase-status-info .phase-card-header span {
+    color: #bfdbfe;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
 .family-card {
     padding: 18px;
     border-radius: var(--radius-lg);
@@ -1710,6 +1812,8 @@ iframe {
 
     .analysis-summary-grid,
     .family-card-grid,
+    .phase-summary-grid,
+    .phase-card-grid,
     .study-plan-grid {
         grid-template-columns: 1fr;
     }
@@ -1816,6 +1920,8 @@ iframe {
 
     .analysis-summary-grid,
     .family-card-grid,
+    .phase-summary-grid,
+    .phase-card-grid,
     .study-plan-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1839,6 +1945,8 @@ iframe {
 @media (max-width: 680px) {
     .analysis-summary-grid,
     .family-card-grid,
+    .phase-summary-grid,
+    .phase-card-grid,
     .study-plan-grid {
         grid-template-columns: 1fr;
     }

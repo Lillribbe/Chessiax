@@ -426,6 +426,8 @@
                         </div>
                     </div>
 
+                    ${renderGamePhaseBreakdown(data)}
+
                     <div class="analysis-block">
                         <h2>Top Opening Families</h2>
                         <div class="family-card-grid">
@@ -455,6 +457,89 @@
                         <h2>7-Day Study Plan</h2>
                         ${renderSevenDayStudyPlan(studyItems, currentStudyPlanUsername)}
                     </div>
+                </div>
+            `;
+        }
+
+        function formatLossPhase(phase) {
+            const normalized = String(phase || "none").toLowerCase();
+            if (normalized === "opening") return "Opening";
+            if (normalized === "middlegame") return "Middlegame";
+            if (normalized === "endgame") return "Endgame";
+            return "None";
+        }
+
+        function getPhaseStatusClass(status) {
+            const normalized = String(status || "").toLowerCase();
+            if (normalized === "needs work") {
+                return "phase-status-warning";
+            }
+            if (normalized === "stable") {
+                return "phase-status-success";
+            }
+            return "phase-status-info";
+        }
+
+        function renderGamePhaseBreakdown(data) {
+            const phaseSummary = data && typeof data.phase_summary === "object" ? data.phase_summary : null;
+            const weaknessBreakdown = Array.isArray(data?.weakness_breakdown) ? data.weakness_breakdown : [];
+
+            if (!phaseSummary && weaknessBreakdown.length === 0) {
+                return "";
+            }
+
+            const openingLosses = safeNumber(phaseSummary?.opening_losses);
+            const middlegameLosses = safeNumber(phaseSummary?.middlegame_losses);
+            const endgameLosses = safeNumber(phaseSummary?.endgame_losses);
+            const totalLosses = safeNumber(phaseSummary?.total_losses);
+            const mostCommonLossPhase = formatLossPhase(phaseSummary?.most_common_loss_phase);
+
+            return `
+                <div class="analysis-block game-phase-block">
+                    <h2>Game Phase Breakdown</h2>
+                    <div class="phase-summary-grid">
+                        <div class="phase-summary-card">
+                            <h3>Most common loss phase</h3>
+                            <p>${escapeHtml(mostCommonLossPhase)}</p>
+                        </div>
+                        <div class="phase-summary-card">
+                            <h3>Opening losses</h3>
+                            <p>${openingLosses}</p>
+                        </div>
+                        <div class="phase-summary-card">
+                            <h3>Middlegame losses</h3>
+                            <p>${middlegameLosses}</p>
+                        </div>
+                        <div class="phase-summary-card">
+                            <h3>Endgame losses</h3>
+                            <p>${endgameLosses}</p>
+                        </div>
+                        <div class="phase-summary-card">
+                            <h3>Total losses</h3>
+                            <p>${totalLosses}</p>
+                        </div>
+                    </div>
+
+                    ${
+                        weaknessBreakdown.length > 0
+                            ? `
+                                <div class="phase-card-grid">
+                                    ${weaknessBreakdown.map(item => {
+                                        const status = item?.status || "Unknown";
+                                        return `
+                                            <div class="phase-card ${getPhaseStatusClass(status)}">
+                                                <div class="phase-card-header">
+                                                    <h3>${escapeHtml(item?.area || "Unknown")}</h3>
+                                                    <span>${escapeHtml(status)}</span>
+                                                </div>
+                                                <p>${escapeHtml(item?.reason || "No phase detail available yet.")}</p>
+                                            </div>
+                                        `;
+                                    }).join("")}
+                                </div>
+                            `
+                            : ""
+                    }
                 </div>
             `;
         }
