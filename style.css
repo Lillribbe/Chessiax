@@ -1359,6 +1359,108 @@ select:focus {
         0 22px 55px rgba(34, 197, 94, 0.16);
 }
 
+.tactics-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 520px) minmax(280px, 1fr);
+    gap: 22px;
+    align-items: start;
+    margin-top: 22px;
+}
+
+.tactics-board-area {
+    min-width: 0;
+}
+
+.tactics-board {
+    width: min(100%, 480px);
+    margin: 0 auto;
+}
+
+.tactics-panel {
+    display: grid;
+    gap: 14px;
+}
+
+.tactics-status-card {
+    display: grid;
+    gap: 10px;
+}
+
+.tactics-status-card h3,
+.tactics-status-card p {
+    margin: 0;
+}
+
+.tactics-session-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.tactics-session-stats .overview-card {
+    padding: 14px;
+}
+
+.tactics-session-stats .overview-card p {
+    font-size: 1.35rem;
+}
+
+.tactics-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.tactics-controls button {
+    width: 100%;
+}
+
+.tactics-completion {
+    margin-top: 22px;
+}
+
+.tactics-completion-card {
+    display: grid;
+    gap: 14px;
+    text-align: center;
+}
+
+.tactics-completion-card h2,
+.tactics-completion-card p {
+    margin: 0;
+}
+
+.tactics-completion-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tactics-progress-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 18px;
+}
+
+.tactics-progress-card h2,
+.tactics-progress-card p {
+    margin: 0;
+}
+
+.tactics-progress-card p {
+    margin-top: 6px;
+}
+
+.tactics-progress-meta {
+    display: grid;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
 .opening-actions button {
     background: rgba(15, 23, 42, 0.75);
     color: var(--text-main);
@@ -1929,6 +2031,15 @@ iframe {
         grid-template-columns: 1fr;
     }
 
+    .tactics-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .tactics-progress-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
     .board-panel {
         position: relative;
         top: 0;
@@ -1958,6 +2069,10 @@ iframe {
         width: min(100%, 340px) !important;
     }
 
+    .tactics-board {
+        width: min(100%, 340px);
+    }
+
     .board-panel {
         padding: 12px;
         border-radius: 22px;
@@ -1965,6 +2080,23 @@ iframe {
 
     .board-panel-header {
         flex-direction: column;
+    }
+
+    .tactics-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .tactics-session-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .tactics-completion-actions {
+        flex-direction: column;
+    }
+
+    .tactics-completion-actions button,
+    .tactics-progress-card button {
+        width: 100%;
     }
 }
 

@@ -9,6 +9,7 @@
         <button onclick="window.location.href='home.html'">Home</button>
         <button onclick="window.location.href='openings.html'">Library</button>
         <button onclick="window.location.href='index.html'">Analyze</button>
+        <button onclick="window.location.href='tactics.html'">Tactics</button>
     </div>
 </div>
 
@@ -44,6 +45,8 @@
             </div>
         </div>
 
+        <div id="tacticsProgressResult"></div>
+
         <section class="game-analysis-section">
             <div class="card game-analysis-action">
                 <div>
@@ -65,6 +68,7 @@
                 <button onclick="window.location.href='home.html'">Home</button>
                 <button onclick="window.location.href='openings.html'">Library</button>
                 <button onclick="window.location.href='index.html'">Analyze</button>
+                <button onclick="window.location.href='tactics.html'">Tactics</button>
             </div>
         </footer>
 
@@ -75,6 +79,7 @@
     <script>
 
         const GAME_ANALYSIS_STORAGE_KEY = "chessiax_game_analysis";
+        const TACTICS_PROGRESS_STORAGE_KEY = "chessiax_tactics_progress";
         let currentStudyPlanUsername = "";
 
         function escapeHtml(value) {
@@ -88,6 +93,23 @@
 
         function safeNumber(value, fallback = 0) {
             return Number.isFinite(Number(value)) ? Number(value) : fallback;
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return "N/A";
+            }
+
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return "N/A";
+            }
+
+            return date.toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            });
         }
 
         function getConfidenceClass(confidence) {
@@ -164,6 +186,43 @@
             } catch (error) {
                 console.warn("Could not remove study plan progress", error);
             }
+        }
+
+        function getSavedTacticsProgress() {
+            try {
+                const saved = localStorage.getItem(TACTICS_PROGRESS_STORAGE_KEY);
+                const parsed = JSON.parse(saved || '{"sessions":[]}');
+                return parsed && Array.isArray(parsed.sessions) ? parsed : null;
+            } catch (error) {
+                console.warn("Could not read tactics progress", error);
+                return null;
+            }
+        }
+
+        function renderTacticsProgress() {
+            const container = document.getElementById("tacticsProgressResult");
+            const progress = getSavedTacticsProgress();
+            const sessions = progress?.sessions || [];
+            const lastSession = progress?.lastSession || sessions[sessions.length - 1];
+
+            if (!lastSession) {
+                container.innerHTML = "";
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="card tactics-progress-card">
+                    <div>
+                        <h2>Tactics Progress</h2>
+                        <p>Last accuracy: <strong>${safeNumber(lastSession.accuracy)}%</strong></p>
+                    </div>
+                    <div class="tactics-progress-meta">
+                        <span>Last completed session: ${escapeHtml(formatDate(lastSession.completedAt))}</span>
+                        <span>Total completed sessions: ${safeNumber(sessions.length)}</span>
+                    </div>
+                    <button class="secondary-btn" onclick="window.location.href='tactics.html'">Continue Tactics</button>
+                </div>
+            `;
         }
 
         function getSavedGameAnalysis() {
@@ -836,6 +895,7 @@
 
         setActiveNav();
         updateAnalyzeGamesButton();
+        renderTacticsProgress();
         loadSavedGameAnalysis();
 
     </script>

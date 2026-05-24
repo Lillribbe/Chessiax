@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+
+<div class="brand-bar">
+    <div class="brand-logo" onclick="window.location.href='home.html'">
+        ♞ Chessiax <span class="beta-badge">Beta</span>
+    </div>
+    <div class="brand-links">
+        <button onclick="window.location.href='home.html'">Home</button>
+        <button onclick="window.location.href='openings.html'">Library</button>
+        <button onclick="window.location.href='index.html'">Analyze</button>
+        <button onclick="window.location.href='tactics.html'">Tactics</button>
+    </div>
+</div>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tactics Trainer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <button class="back-btn" onclick="window.location.href='home.html'">🏠 Home</button>
+
+        <section class="page-hero tactics-hero">
+            <div class="hero-badge">Middlegame practice</div>
+            <h1>Tactics Trainer</h1>
+            <p>Practice tactical patterns from the middlegame.</p>
+        </section>
+
+        <section class="tactics-layout">
+            <div class="board-area tactics-board-area">
+                <div class="board-area-header">
+                    <div>
+                        <h3 id="puzzleTitle">Loading puzzle...</h3>
+                        <p id="puzzleTheme">Theme</p>
+                    </div>
+                    <span id="puzzleProgress" class="live-pill">Puzzle 1 of 5</span>
+                </div>
+
+                <div id="tacticsBoard" class="tactics-board"></div>
+            </div>
+
+            <aside class="trainer-panel tactics-panel">
+                <div class="card tactics-status-card">
+                    <h3>Trainer</h3>
+                    <p id="tacticsStatus" class="practice-status neutral-status">Find the best move.</p>
+                    <p id="tacticsExplanation">Drag a move on the board to solve the puzzle.</p>
+                </div>
+
+                <div class="tactics-session-stats">
+                    <div class="overview-card">
+                        <h3>Correct</h3>
+                        <p id="tacticsCorrect">0</p>
+                    </div>
+                    <div class="overview-card">
+                        <h3>Attempts</h3>
+                        <p id="tacticsAttempts">0</p>
+                    </div>
+                    <div class="overview-card">
+                        <h3>Accuracy</h3>
+                        <p id="tacticsAccuracy">0%</p>
+                    </div>
+                </div>
+
+                <div class="tactics-controls">
+                    <button onclick="nextPuzzle()">Next Puzzle</button>
+                    <button class="secondary-btn" onclick="showHint()">Show Hint</button>
+                    <button class="secondary-btn" onclick="showAnswer()">Show Answer</button>
+                    <button class="secondary-btn" onclick="resetPuzzle()">Reset Puzzle</button>
+                </div>
+            </aside>
+        </section>
+
+        <section id="tacticsCompletion" class="tactics-completion" style="display:none;">
+            <div class="card tactics-completion-card">
+                <h2>Tactics session complete</h2>
+                <p id="completionSummary">You solved 0 out of 0 puzzles.</p>
+                <div class="tactics-completion-actions">
+                    <button onclick="restartSession()">Restart Session</button>
+                    <button class="secondary-btn" onclick="window.location.href='profile.html'">Back to Profile</button>
+                    <button class="secondary-btn" onclick="window.location.href='home.html'">Home</button>
+                </div>
+            </div>
+        </section>
+
+        <footer class="app-footer">
+            <div>
+                <strong>Chessiax</strong>
+                <p>AI-powered chess opening training for learning, practice and progress tracking.</p>
+            </div>
+
+            <div class="footer-links">
+                <button onclick="window.location.href='home.html'">Home</button>
+                <button onclick="window.location.href='openings.html'">Library</button>
+                <button onclick="window.location.href='index.html'">Analyze</button>
+                <button onclick="window.location.href='tactics.html'">Tactics</button>
+            </div>
+        </footer>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+
+    <script>
+        const TACTICS_PROGRESS_STORAGE_KEY = "chessiax_tactics_progress";
+        const puzzles = [
+            {
+                title: "Knight fork on the back rank",
+                theme: "Fork",
+                fen: "3q3k/8/8/4N3/8/8/8/4K3 w - - 0 1",
+                solution: "e5f7",
+                hint: "Look for a knight check that also attacks the queen.",
+                explanation: "Correct. Nf7+ forks the king on h8 and the queen on d8."
+            },
+            {
+                title: "Win the pinned rook",
+                theme: "Pin",
+                fen: "4r1k1/5ppp/8/8/8/8/5PPP/4R1K1 w - - 0 1",
+                solution: "e1e8",
+                hint: "Use the open file and capture the defender with check.",
+                explanation: "Correct. Rxe8+ wins the rook and keeps the attack simple."
+            },
+            {
+                title: "Bishop takes the loose queen",
+                theme: "Skewer",
+                fen: "4k3/3q4/8/1B6/8/8/8/4K3 w - - 0 1",
+                solution: "b5d7",
+                hint: "The bishop can take the high-value piece on the diagonal.",
+                explanation: "Correct. Bxd7+ removes the queen and keeps pressure on the king."
+            },
+            {
+                title: "Queen back-rank mate",
+                theme: "Mate in one",
+                fen: "7k/6pp/5Q2/8/8/8/6PP/6K1 w - - 0 1",
+                solution: "f6f8",
+                hint: "The king is boxed in by its own pawns. Use the back rank.",
+                explanation: "Correct. Qf8# attacks the king along the back rank while the pawns on g7 and h7 leave no escape squares."
+            },
+            {
+                title: "Queen check on the open file",
+                theme: "Deflection",
+                fen: "6k1/5ppp/8/8/8/8/5PPP/3Q2K1 w - - 0 1",
+                solution: "d1d8",
+                hint: "Use the open file to force the king to respond.",
+                explanation: "Correct. Qd8+ uses the open file and wins time for the attack."
+            }
+        ];
+
+        let board;
+        let game;
+        let currentPuzzleIndex = 0;
+        let solved = false;
+        let solvedPuzzleIndexes = new Set();
+        let activePuzzles = [];
+        let attempts = 0;
+
+        function currentPuzzle() {
+            return activePuzzles[currentPuzzleIndex];
+        }
+
+        function calculateAccuracy(correct = solvedPuzzleIndexes.size, totalAttempts = attempts) {
+            if (totalAttempts <= 0) {
+                return 0;
+            }
+
+            return Math.round((correct / totalAttempts) * 100);
+        }
+
+        function updateSessionStats() {
+            document.getElementById("tacticsCorrect").textContent = solvedPuzzleIndexes.size;
+            document.getElementById("tacticsAttempts").textContent = attempts;
+            document.getElementById("tacticsAccuracy").textContent = `${calculateAccuracy()}%`;
+        }
+
+        function getSavedTacticsProgress() {
+            try {
+                const saved = localStorage.getItem(TACTICS_PROGRESS_STORAGE_KEY);
+                const parsed = JSON.parse(saved || '{"sessions":[]}');
+                return parsed && Array.isArray(parsed.sessions) ? parsed : { sessions: [] };
+            } catch (error) {
+                console.warn("Could not read tactics progress", error);
+                return { sessions: [] };
+            }
+        }
+
+        function saveCompletedTacticsSession() {
+            try {
+                const correct = solvedPuzzleIndexes.size;
+                const session = {
+                    completedAt: new Date().toISOString(),
+                    correct,
+                    attempts,
+                    accuracy: calculateAccuracy(correct, attempts),
+                    solvedPuzzles: [...solvedPuzzleIndexes],
+                    totalPuzzles: activePuzzles.length
+                };
+                const progress = getSavedTacticsProgress();
+                progress.sessions.push(session);
+                progress.lastSession = session;
+                localStorage.setItem(TACTICS_PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+            } catch (error) {
+                console.warn("Could not save tactics progress", error);
+            }
+        }
+
+        function uciToMove(solution) {
+            return {
+                from: solution.slice(0, 2),
+                to: solution.slice(2, 4),
+                promotion: solution[4] || "q"
+            };
+        }
+
+        function isPuzzleSolutionValid(puzzle, originalIndex = -1) {
+            try {
+                const validationGame = new Chess(puzzle.fen);
+                const move = validationGame.move(uciToMove(puzzle.solution));
+
+                if (!move) {
+                    console.warn(`Tactics puzzle unavailable: invalid solution "${puzzle.solution}"`, {
+                        index: originalIndex + 1,
+                        title: puzzle.title,
+                        fen: puzzle.fen
+                    });
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                console.warn("Tactics puzzle unavailable: invalid FEN or solution", {
+                    index: originalIndex + 1,
+                    title: puzzle.title,
+                    fen: puzzle.fen,
+                    solution: puzzle.solution,
+                    error
+                });
+                return false;
+            }
+        }
+
+        function getValidatedPuzzles() {
+            return puzzles
+                .map((puzzle, index) => ({ ...puzzle, originalIndex: index }))
+                .filter((puzzle, index) => isPuzzleSolutionValid(puzzle, index));
+        }
+
+        function setStatus(message, statusClass = "neutral-status") {
+            const status = document.getElementById("tacticsStatus");
+            status.className = `practice-status ${statusClass}`;
+            status.textContent = message;
+        }
+
+        function updatePuzzleUI() {
+            const puzzle = currentPuzzle();
+            document.getElementById("puzzleTitle").textContent = puzzle.title;
+            document.getElementById("puzzleTheme").textContent = `Theme: ${puzzle.theme}`;
+            document.getElementById("puzzleProgress").textContent = `Puzzle ${currentPuzzleIndex + 1} of ${activePuzzles.length}`;
+            document.getElementById("tacticsExplanation").textContent = "Drag a move on the board to solve the puzzle.";
+            setStatus("Find the best move.");
+        }
+
+        function loadPuzzle(index = currentPuzzleIndex) {
+            if (activePuzzles.length === 0) {
+                showUnavailableState();
+                return;
+            }
+
+            currentPuzzleIndex = Math.max(0, Math.min(index, activePuzzles.length - 1));
+            const puzzle = currentPuzzle();
+            solved = false;
+            game = new Chess(puzzle.fen);
+            board.position(puzzle.fen, false);
+            document.querySelector(".tactics-layout").style.display = "";
+            document.getElementById("tacticsCompletion").style.display = "none";
+            updatePuzzleUI();
+            updateSessionStats();
+        }
+
+        function moveToUci(source, target) {
+            const promotion = target[1] === "8" || target[1] === "1" ? "q" : "";
+            const uci = `${source}${target}`;
+            return promotion && currentPuzzle().solution.length === 5 ? `${uci}${promotion}` : uci;
+        }
+
+        function onDragStart(source, piece) {
+            if (solved || game.game_over()) {
+                return false;
+            }
+
+            if (game.turn() === "w" && piece.search(/^b/) !== -1) {
+                return false;
+            }
+
+            if (game.turn() === "b" && piece.search(/^w/) !== -1) {
+                return false;
+            }
+        }
+
+        function onDrop(source, target) {
+            const puzzle = currentPuzzle();
+            const attemptedMove = moveToUci(source, target);
+            attempts += 1;
+
+            if (attemptedMove !== puzzle.solution) {
+                setStatus("Try again", "error-status");
+                document.getElementById("tacticsExplanation").textContent = "That move is not the puzzle solution.";
+                updateSessionStats();
+                return "snapback";
+            }
+
+            const move = game.move({
+                from: source,
+                to: target,
+                promotion: puzzle.solution[4] || "q"
+            });
+
+            if (!move) {
+                setStatus("Try again", "error-status");
+                document.getElementById("tacticsExplanation").textContent = "That move is not legal in this position.";
+                updateSessionStats();
+                return "snapback";
+            }
+
+            solved = true;
+            solvedPuzzleIndexes.add(currentPuzzleIndex);
+            setStatus("Correct", "success-status");
+            document.getElementById("tacticsExplanation").textContent = puzzle.explanation;
+            board.position(game.fen(), false);
+            updateSessionStats();
+        }
+
+        function onSnapEnd() {
+            board.position(game.fen());
+        }
+
+        function nextPuzzle() {
+            if (currentPuzzleIndex < activePuzzles.length - 1) {
+                loadPuzzle(currentPuzzleIndex + 1);
+                return;
+            }
+
+            showCompletionState();
+        }
+
+        function showHint() {
+            setStatus("Hint", "info-status");
+            document.getElementById("tacticsExplanation").textContent = currentPuzzle().hint;
+        }
+
+        function showAnswer() {
+            const puzzle = currentPuzzle();
+            const move = game.move(uciToMove(puzzle.solution));
+
+            if (move) {
+                solved = true;
+                board.position(game.fen(), false);
+            }
+
+            setStatus("Answer shown", "info-status");
+            document.getElementById("tacticsExplanation").textContent = `${puzzle.solution}: ${puzzle.explanation}`;
+            updateSessionStats();
+        }
+
+        function resetPuzzle() {
+            solvedPuzzleIndexes.delete(currentPuzzleIndex);
+            loadPuzzle(currentPuzzleIndex);
+        }
+
+        function showCompletionState() {
+            document.querySelector(".tactics-layout").style.display = "none";
+            document.getElementById("tacticsCompletion").style.display = "block";
+            saveCompletedTacticsSession();
+            document.getElementById("completionSummary").textContent =
+                `You solved ${solvedPuzzleIndexes.size} out of ${activePuzzles.length} puzzles with ${calculateAccuracy()}% accuracy.`;
+        }
+
+        function showUnavailableState() {
+            document.querySelector(".tactics-layout").style.display = "none";
+            document.getElementById("tacticsCompletion").style.display = "block";
+            document.querySelector(".tactics-completion-card h2").textContent = "No tactics available";
+            document.getElementById("completionSummary").textContent = "The current puzzle set could not be loaded.";
+        }
+
+        function restartSession() {
+            solvedPuzzleIndexes = new Set();
+            attempts = 0;
+            document.querySelector(".tactics-completion-card h2").textContent = "Tactics session complete";
+            updateSessionStats();
+            loadPuzzle(0);
+        }
+
+        function setActiveNav() {
+            const buttons = document.querySelectorAll(".brand-links button");
+            buttons.forEach(button => {
+                if (button.textContent.trim().toLowerCase() === "tactics") {
+                    button.classList.add("active-nav");
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            activePuzzles = getValidatedPuzzles();
+            board = window.Chessboard("tacticsBoard", {
+                draggable: true,
+                position: activePuzzles[0]?.fen || "start",
+                onDragStart,
+                onDrop,
+                onSnapEnd,
+                pieceTheme: "https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png"
+            });
+
+            loadPuzzle(0);
+            setActiveNav();
+        });
+    </script>
+</body>
+
+</html>
