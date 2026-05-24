@@ -145,6 +145,7 @@ button:disabled {
 }
 
 input,
+textarea,
 select {
     background: rgba(15, 23, 42, 0.92);
     color: var(--text-main);
@@ -156,9 +157,17 @@ select {
 }
 
 input:focus,
+textarea:focus,
 select:focus {
     border-color: rgba(56, 189, 248, 0.75);
     box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.12);
+}
+
+textarea {
+    min-height: 260px;
+    resize: vertical;
+    font: inherit;
+    line-height: 1.5;
 }
 
 .section-title {
@@ -1461,6 +1470,62 @@ select:focus {
     font-size: 0.9rem;
 }
 
+.review-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+    margin-top: 22px;
+}
+
+.review-input-card,
+.review-stack,
+.review-detail-card {
+    display: grid;
+    gap: 14px;
+}
+
+.review-input-card h2,
+.review-detail-card h2,
+.review-detail-card p {
+    margin: 0;
+}
+
+.review-input-card label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.review-result {
+    min-width: 0;
+}
+
+.review-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.review-summary-grid .overview-card p {
+    font-size: 1.2rem;
+    overflow-wrap: anywhere;
+}
+
+.review-training-list {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--text-muted);
+}
+
+.review-training-list li {
+    margin: 6px 0;
+}
+
+.review-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .opening-actions button {
     background: rgba(15, 23, 42, 0.75);
     color: var(--text-main);
@@ -1940,6 +2005,7 @@ iframe {
     .family-card-grid,
     .phase-summary-grid,
     .phase-card-grid,
+    .review-summary-grid,
     .study-plan-grid {
         grid-template-columns: 1fr;
     }
@@ -2035,6 +2101,10 @@ iframe {
         grid-template-columns: 1fr;
     }
 
+    .review-layout {
+        grid-template-columns: 1fr;
+    }
+
     .tactics-progress-card {
         flex-direction: column;
         align-items: stretch;
@@ -2059,6 +2129,7 @@ iframe {
     .family-card-grid,
     .phase-summary-grid,
     .phase-card-grid,
+    .review-summary-grid,
     .study-plan-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -2095,7 +2166,8 @@ iframe {
     }
 
     .tactics-completion-actions button,
-    .tactics-progress-card button {
+    .tactics-progress-card button,
+    .review-actions .learn-btn {
         width: 100%;
     }
 }
@@ -2105,6 +2177,7 @@ iframe {
     .family-card-grid,
     .phase-summary-grid,
     .phase-card-grid,
+    .review-summary-grid,
     .study-plan-grid {
         grid-template-columns: 1fr;
     }

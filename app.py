@@ -7,6 +7,8 @@ import requests
 import re
 from datetime import datetime
 from urllib.parse import urlparse, unquote
+from dotenv import load_dotenv
+load_dotenv()  
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -103,6 +105,103 @@ def extract_opening_name(pgn):
         return opening_from_url
 
     return "Unknown Opening"
+
+def estimate_total_moves_from_pgn(pgn):
+    if not isinstance(pgn, str) or not pgn.strip():
+        return 0
+
+    try:
+        movetext = re.sub(r'^\s*\[.*?\]\s*$', ' ', pgn, flags=re.MULTILINE)
+        movetext = re.sub(r'\{[^}]*\}', ' ', movetext, flags=re.DOTALL)
+        movetext = re.sub(r';[^\n]*', ' ', movetext)
+
+        previous = None
+        while previous != movetext:
+            previous = movetext
+            movetext = re.sub(r'\([^()]*\)', ' ', movetext)
+
+        move_numbers = [
+            int(move_number)
+            for move_number in re.findall(r'(?<!\d)(\d+)\s*\.(?:\.\.)?', movetext)
+        ]
+        if move_numbers:
+            return max(move_numbers)
+
+        tokens = re.split(r'\s+', movetext.strip())
+        move_tokens = [
+            token for token in tokens
+            if token
+            and token not in {"1-0", "0-1", "1/2-1/2", "*"}
+            and not token.startswith("$")
+        ]
+        return (len(move_tokens) + 1) // 2
+    except Exception:
+        return 0
+
+def estimate_phase_from_move_count(move_count):
+    if move_count < 15:
+        return "opening"
+    if move_count <= 35:
+        return "middlegame"
+    return "endgame"
+
+def pgn_result_for_player(result, player_color):
+    if player_color not in {"white", "black"}:
+        return None
+
+    if result == "1/2-1/2":
+        return "draw"
+    if result == "1-0":
+        return "win" if player_color == "white" else "loss"
+    if result == "0-1":
+        return "win" if player_color == "black" else "loss"
+
+    return "unknown"
+
+def build_pgn_recommended_training(estimated_phase, player_result, opening):
+    recommendations = []
+
+    if estimated_phase == "opening":
+        recommendations.append("Study this opening")
+    elif estimated_phase == "middlegame":
+        recommendations.append("Practice tactics")
+    elif estimated_phase == "endgame":
+        recommendations.append("Review endgame technique")
+
+    if player_result == "loss":
+        if estimated_phase != "opening" and opening != "Unknown Opening":
+            recommendations.append("Review how this opening led into the critical position")
+        recommendations.append("Replay the game and find the first major turning point")
+    elif player_result == "draw":
+        recommendations.append("Review missed winning chances and conversion plans")
+    elif player_result == "win":
+        recommendations.append("Save the key idea that worked well")
+
+    return list(dict.fromkeys(recommendations))
+
+def build_pgn_coach_summary(move_count, estimated_phase, player_result, opening):
+    opening_text = opening if opening and opening != "Unknown Opening" else "an unknown opening"
+
+    if player_result == "loss":
+        return (
+            f"This game reached the {estimated_phase} after about {move_count} moves. "
+            f"Since it was a loss, start by reviewing {opening_text} and the first moment your position became difficult."
+        )
+    if player_result == "win":
+        return (
+            f"This game reached the {estimated_phase} after about {move_count} moves. "
+            "Review the key move that gave you control so you can repeat the pattern."
+        )
+    if player_result == "draw":
+        return (
+            f"This game reached the {estimated_phase} after about {move_count} moves. "
+            "Look for missed chances to convert or simplify more clearly."
+        )
+
+    return (
+        f"This game reached the {estimated_phase} after about {move_count} moves. "
+        f"A useful first review target is {opening_text}, then the transition into the critical phase."
+    )
 
 def normalize_opening_text(text):
     return re.sub(r"[^a-z0-9]+", " ", text.lower().replace("'", "")).strip()
@@ -250,6 +349,14 @@ def serve_openings():
 @app.route("/opening.html")
 def serve_opening():
     return send_from_directory(".", "opening.html")
+
+@app.route("/tactics.html")
+def serve_tactics():
+    return send_from_directory(".", "tactics.html")
+
+@app.route("/review.html")
+def serve_review():
+    return send_from_directory(".", "review.html")
 
 @app.route("/style.css")
 def serve_css():
@@ -638,6 +745,11 @@ def analyze_games():
         }
         white_games = 0
         black_games = 0
+        phase_losses = {
+            "opening": 0,
+            "middlegame": 0,
+            "endgame": 0
+        }
         opening_stats = {}
         family_stats = {}
 
@@ -662,7 +774,17 @@ def analyze_games():
             outcome_key = outcome_to_stats_key(outcome)
             overall[outcome_key] += 1
 
-            opening_name = extract_opening_name(game.get("pgn", ""))
+            pgn = game.get("pgn", "")
+            if outcome == "loss":
+                total_moves = estimate_total_moves_from_pgn(pgn)
+                if total_moves < 15:
+                    phase_losses["opening"] += 1
+                elif total_moves <= 35:
+                    phase_losses["middlegame"] += 1
+                else:
+                    phase_losses["endgame"] += 1
+
+            opening_name = extract_opening_name(pgn)
             family_name = normalize_opening_family(opening_name)
 
             if opening_name not in opening_stats:
@@ -739,6 +861,52 @@ def analyze_games():
             if family["games"] > 0
         ][:3]
 
+        total_losses = overall["losses"]
+        most_common_loss_phase = "none"
+        if total_losses > 0:
+            most_common_loss_phase = max(
+                phase_losses,
+                key=lambda phase: phase_losses[phase]
+            )
+
+        phase_summary = {
+            "opening_losses": phase_losses["opening"],
+            "middlegame_losses": phase_losses["middlegame"],
+            "endgame_losses": phase_losses["endgame"],
+            "total_losses": total_losses,
+            "most_common_loss_phase": most_common_loss_phase
+        }
+
+        weakness_breakdown = [
+            {
+                "area": "Opening",
+                "status": "Needs work" if phase_losses["opening"] > 0 else "Stable",
+                "reason": (
+                    f"{phase_losses['opening']} of your {total_losses} losses ended before move 15."
+                    if phase_losses["opening"] > 0
+                    else "No analyzed losses ended before move 15."
+                )
+            },
+            {
+                "area": "Middlegame",
+                "status": "Needs work" if phase_losses["middlegame"] > 0 else "Stable",
+                "reason": (
+                    f"{phase_losses['middlegame']} of your {total_losses} losses ended between moves 15 and 35."
+                    if phase_losses["middlegame"] > 0
+                    else "No analyzed losses ended between moves 15 and 35."
+                )
+            },
+            {
+                "area": "Endgame",
+                "status": "Needs work" if phase_losses["endgame"] > 0 else "Stable",
+                "reason": (
+                    f"{phase_losses['endgame']} of your {total_losses} losses ended after move 35."
+                    if phase_losses["endgame"] > 0
+                    else "No analyzed losses ended after move 35."
+                )
+            }
+        ]
+
         return jsonify({
             "username": username,
             "games_analyzed": overall["wins"] + overall["draws"] + overall["losses"],
@@ -751,7 +919,67 @@ def analyze_games():
             "family_performance": family_performance,
             "top_opening_families": top_opening_families,
             "weak_opening_families": weak_opening_families,
-            "recommended_study": recommended_study
+            "recommended_study": recommended_study,
+            "phase_summary": phase_summary,
+            "weakness_breakdown": weakness_breakdown
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/analyze_pgn", methods=["POST"])
+def analyze_pgn():
+    try:
+        data = request.get_json() or {}
+        pgn = data.get("pgn", "")
+        username = data.get("username", "")
+
+        if not isinstance(pgn, str) or not pgn.strip():
+            return jsonify({"error": "PGN is required"}), 400
+
+        username_normalized = str(username or "").strip().lower()
+        white = get_pgn_tag(pgn, "White") or "Unknown"
+        black = get_pgn_tag(pgn, "Black") or "Unknown"
+        result = get_pgn_tag(pgn, "Result") or "*"
+        opening = extract_opening_name(pgn)
+        eco = get_pgn_tag(pgn, "ECO") or ""
+        date = get_pgn_tag(pgn, "Date") or ""
+        move_count = estimate_total_moves_from_pgn(pgn)
+        estimated_phase = estimate_phase_from_move_count(move_count)
+
+        player_color = None
+        if username_normalized:
+            if white.lower() == username_normalized:
+                player_color = "white"
+            elif black.lower() == username_normalized:
+                player_color = "black"
+
+        player_result = pgn_result_for_player(result, player_color)
+        coach_summary = build_pgn_coach_summary(
+            move_count,
+            estimated_phase,
+            player_result,
+            opening
+        )
+        recommended_training = build_pgn_recommended_training(
+            estimated_phase,
+            player_result,
+            opening
+        )
+
+        return jsonify({
+            "white": white,
+            "black": black,
+            "result": result,
+            "opening": opening,
+            "eco": eco,
+            "date": date,
+            "move_count": move_count,
+            "estimated_phase": estimated_phase,
+            "player_color": player_color,
+            "player_result": player_result,
+            "coach_summary": coach_summary,
+            "recommended_training": recommended_training
         })
 
     except Exception as e:
