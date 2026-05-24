@@ -1304,6 +1304,19 @@ select:focus {
     margin-top: 0;
 }
 
+.module-soon-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    color: #bfdbfe;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.28);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
 .complete-day-btn {
     background: rgba(15, 23, 42, 0.75);
     color: var(--text-main);
@@ -1324,6 +1337,17 @@ select:focus {
     color: #bae6fd;
     background: rgba(56, 189, 248, 0.12);
     border: 1px solid rgba(56, 189, 248, 0.28);
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.category-pill {
+    align-self: flex-start;
+    padding: 5px 9px;
+    border-radius: 999px;
+    color: #ddd6fe;
+    background: rgba(167, 139, 250, 0.12);
+    border: 1px solid rgba(167, 139, 250, 0.3);
     font-size: 0.72rem;
     font-weight: 900;
 }
@@ -1838,8 +1862,10 @@ iframe {
 
     .study-plan-actions .learn-btn,
     .study-plan-actions button,
+    .study-plan-actions .module-soon-pill,
     .study-card-actions .learn-btn {
         width: 100%;
+        justify-content: center;
         text-align: center;
     }
 }

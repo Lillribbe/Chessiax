@@ -455,7 +455,7 @@
 
                     <div class="analysis-block">
                         <h2>7-Day Study Plan</h2>
-                        ${renderSevenDayStudyPlan(studyItems, currentStudyPlanUsername)}
+                        ${renderSevenDayStudyPlan(data, studyItems, currentStudyPlanUsername)}
                     </div>
                 </div>
             `;
@@ -603,12 +603,39 @@
             }).join("");
         }
 
-        function generateSevenDayPlan(studyItems) {
-            if (!Array.isArray(studyItems) || studyItems.length === 0) {
-                return [];
+        function phaseNeedsWork(weaknessBreakdown, area) {
+            if (!Array.isArray(weaknessBreakdown)) {
+                return false;
             }
 
-            const taskTypes = [
+            return weaknessBreakdown.some(item =>
+                String(item?.area || "").toLowerCase() === area
+                && String(item?.status || "").toLowerCase() === "needs work"
+            );
+        }
+
+        function createOpeningPlanDay(studyItem, task, purpose) {
+            const focus = studyItem?.family || studyItem?.opening || "Opening Review";
+            return {
+                focus,
+                category: "Opening",
+                task,
+                purpose,
+                openingName: studyItem ? focus : ""
+            };
+        }
+
+        function generateSevenDayPlan(data, studyItems) {
+            const recommendations = Array.isArray(studyItems) ? studyItems : [];
+            const phaseSummary = data && typeof data.phase_summary === "object" ? data.phase_summary : {};
+            const weaknessBreakdown = Array.isArray(data?.weakness_breakdown) ? data.weakness_breakdown : [];
+            const mostCommonLossPhase = String(phaseSummary?.most_common_loss_phase || "none").toLowerCase();
+            const needsMiddlegame = phaseNeedsWork(weaknessBreakdown, "middlegame") || mostCommonLossPhase === "middlegame";
+            const needsEndgame = phaseNeedsWork(weaknessBreakdown, "endgame") || mostCommonLossPhase === "endgame";
+            const needsExtraOpening = mostCommonLossPhase === "opening";
+            const plan = [];
+
+            const openingTasks = [
                 {
                     task: "Learn the main ideas",
                     purpose: "Understand the plans before memorizing moves."
@@ -624,38 +651,84 @@
                 {
                     task: "Repeat from memory",
                     purpose: "Strengthen recall without relying on notes."
-                },
-                {
-                    task: "Compare your results",
-                    purpose: "Connect the study plan to your actual games."
-                },
-                {
-                    task: "Drill weak positions",
-                    purpose: "Focus on the middlegames that come from this opening."
-                },
-                {
-                    task: "Final review",
-                    purpose: "Lock in the ideas and choose what to keep practicing."
                 }
             ];
 
-            return taskTypes.map((taskType, index) => {
-                const studyItem = studyItems[index % studyItems.length];
-                return {
-                    day: index + 1,
-                    focus: studyItem.family || studyItem.opening || "Unknown Opening",
-                    task: taskType.task,
-                    purpose: taskType.purpose
-                };
-            });
+            if (recommendations.length > 0) {
+                openingTasks.forEach((taskType, index) => {
+                    plan.push(createOpeningPlanDay(
+                        recommendations[index % recommendations.length],
+                        taskType.task,
+                        taskType.purpose
+                    ));
+                });
+            }
+
+            if (needsMiddlegame) {
+                plan.push({
+                    focus: "Middlegame Tactics",
+                    category: "Middlegame",
+                    task: "Review tactical misses and forcing moves",
+                    purpose: "Your recent loss pattern points to the phase where calculation and candidate moves matter most."
+                });
+            }
+
+            if (needsEndgame) {
+                plan.push({
+                    focus: "Endgame Technique",
+                    category: "Endgame",
+                    task: "Practice conversion and defensive endgame basics",
+                    purpose: "Your phase results suggest extra work on simplifying, converting, and holding late positions."
+                });
+            }
+
+            if (needsExtraOpening) {
+                plan.push(createOpeningPlanDay(
+                    recommendations[0],
+                    "Extra opening review",
+                    "Your most common loss phase is the opening, so spend another day checking move-order traps and early plans."
+                ));
+            }
+
+            const fillDays = [
+                createOpeningPlanDay(
+                    recommendations[0],
+                    "Compare your results",
+                    "Connect the study plan to your actual games and note which positions keep repeating."
+                ),
+                {
+                    focus: "Critical Positions",
+                    category: "Review",
+                    task: "Review two recent turning points",
+                    purpose: "Look for the first moment where your plan became unclear, then write down a better candidate move."
+                },
+                createOpeningPlanDay(
+                    recommendations[1] || recommendations[0],
+                    "Final opening review",
+                    "Lock in the ideas you want to keep practicing next."
+                ),
+                {
+                    focus: "Full Game Review",
+                    category: "Review",
+                    task: "Replay one loss without engine help first",
+                    purpose: "Build your own diagnosis before checking tactics or opening details."
+                }
+            ];
+
+            let fillIndex = 0;
+            while (plan.length < 7) {
+                plan.push(fillDays[fillIndex % fillDays.length]);
+                fillIndex += 1;
+            }
+
+            return plan.slice(0, 7).map((day, index) => ({
+                ...day,
+                day: index + 1
+            }));
         }
 
-        function renderSevenDayStudyPlan(studyItems, username = "") {
-            const plan = generateSevenDayPlan(studyItems);
-
-            if (plan.length === 0) {
-                return `<div class="empty-state"><h3>Analyze your latest games to generate a personalized study plan.</h3></div>`;
-            }
+        function renderSevenDayStudyPlan(data, studyItems, username = "") {
+            const plan = generateSevenDayPlan(data, studyItems);
 
             const completedDays = getCompletedStudyDays(username);
             const completedCount = completedDays.length;
@@ -677,12 +750,19 @@
                         return `
                             <div class="study-plan-card ${completed ? "study-day-completed" : ""}" data-study-day="${day.day}">
                                 <div class="day-pill">Day ${day.day}</div>
+                                <div class="category-pill">${escapeHtml(day.category || "Review")}</div>
                                 <h3>${escapeHtml(day.focus)}</h3>
                                 <p><strong>${escapeHtml(day.task)}</strong></p>
                                 <p>${escapeHtml(day.purpose)}</p>
                                 <div class="study-plan-actions">
-                                    <a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(day.focus)}">Study</a>
-                                    <a class="learn-btn secondary-btn study-link" href="opening.html?name=${encodeURIComponent(day.focus)}&mode=practice">Practice</a>
+                                    ${
+                                        day.openingName
+                                            ? `
+                                                <a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(day.openingName)}">Study</a>
+                                                <a class="learn-btn secondary-btn study-link" href="opening.html?name=${encodeURIComponent(day.openingName)}&mode=practice">Practice</a>
+                                            `
+                                            : `<span class="module-soon-pill">Training module coming soon</span>`
+                                    }
                                     <button class="secondary-btn complete-day-btn" onclick="toggleStudyPlanDay(${day.day})">${completed ? "✓ Completed" : "Mark Complete"}</button>
                                 </div>
                             </div>
