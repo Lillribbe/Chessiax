@@ -155,15 +155,28 @@
             }
         }
 
-        function addReviewToHistory(pgn, username, data) {
+        function getReviewHistoryKey(pgn, data) {
+            return [
+                String(pgn || "").trim(),
+                data?.white || "",
+                data?.black || "",
+                data?.result || "",
+                data?.opening || "",
+                data?.move_count || ""
+            ].join("|");
+        }
+
+        function upsertReviewHistory(pgn, username, data, timestamp = new Date().toISOString()) {
             const history = getReviewHistory();
+            const reviewKey = getReviewHistoryKey(pgn, data);
+            const filteredHistory = history.filter(item => getReviewHistoryKey(item.pgn, item.data) !== reviewKey);
             const entry = {
                 pgn,
                 username,
                 data,
-                timestamp: new Date().toISOString()
+                timestamp
             };
-            saveReviewHistory([entry, ...history].slice(0, 10));
+            saveReviewHistory([entry, ...filteredHistory].slice(0, 10));
             renderReviewHistory();
         }
 
@@ -267,24 +280,53 @@
 
             document.getElementById("pgnInput").value = saved.pgn || "";
             document.getElementById("reviewUsername").value = saved.username || "";
+            upsertReviewHistory(saved.pgn || "", saved.username || "", saved.data, saved.savedAt || new Date().toISOString());
             renderReview(saved.data, saved.username || "", true);
         }
 
-        function renderTrainingActions(data) {
+        function reviewAnotherGame() {
+            const pgnInput = document.getElementById("pgnInput");
+            pgnInput.value = "";
+            document.getElementById("reviewResult").innerHTML = `
+                <div class="card">
+                    <h2>Review Result</h2>
+                    <p>Your game breakdown will appear here.</p>
+                </div>
+            `;
+            pgnInput.focus();
+            pgnInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function renderTrainingActions(data, includeReviewAnother = false) {
             const training = Array.isArray(data.recommended_training) ? data.recommended_training : [];
             const opening = safeText(data.opening, "");
+            const phase = String(data.estimated_phase || "").toLowerCase();
             const actions = [];
 
             if (
                 opening &&
                 opening !== "Unknown Opening" &&
-                training.some(item => String(item).toLowerCase().includes("opening"))
+                (
+                    phase === "opening" ||
+                    training.some(item => String(item).toLowerCase().includes("opening"))
+                )
             ) {
                 actions.push(`<a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(opening)}">Study Opening</a>`);
             }
 
-            if (training.some(item => String(item).toLowerCase().includes("tactics"))) {
+            if (
+                phase === "middlegame" ||
+                training.some(item => String(item).toLowerCase().includes("tactics"))
+            ) {
                 actions.push(`<a class="learn-btn secondary-btn study-link" href="tactics.html">Train Tactics</a>`);
+            }
+
+            if (phase === "endgame") {
+                actions.push(`<span class="module-soon-pill review-action-disabled">Endgame Training Coming Soon</span>`);
+            }
+
+            if (includeReviewAnother) {
+                actions.push(`<button class="secondary-btn" onclick="reviewAnotherGame()">Review Another Game</button>`);
             }
 
             return actions.length > 0
@@ -390,6 +432,10 @@
                     <div class="card review-detail-card">
                         <h2>Coach Summary</h2>
                         <p>${escapeHtml(safeText(data.coach_summary, "No coach summary available."))}</p>
+                        <div class="review-next-actions">
+                            <h3>Next Actions</h3>
+                            ${renderTrainingActions(data, true)}
+                        </div>
                     </div>
 
                     <div class="card review-detail-card">
@@ -454,7 +500,7 @@
                 }
 
                 saveReview(pgn, username, data);
-                addReviewToHistory(pgn, username, data);
+                upsertReviewHistory(pgn, username, data);
                 renderReview(data, username);
             } catch (error) {
                 console.error(error);

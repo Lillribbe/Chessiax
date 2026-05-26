@@ -1534,6 +1534,21 @@ textarea {
     flex-wrap: wrap;
 }
 
+.review-next-actions {
+    display: grid;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+.review-next-actions h3 {
+    margin: 0;
+    color: var(--text-main);
+}
+
+.review-action-disabled {
+    min-height: 42px;
+}
+
 .review-future-card {
     border-color: rgba(59, 130, 246, 0.28);
     background:
@@ -2344,8 +2359,11 @@ iframe {
     .dashboard-next-card button,
     .review-history-header button,
     .review-history-actions button,
+    .review-actions button,
+    .review-actions .module-soon-pill,
     .review-actions .learn-btn {
         width: 100%;
+        justify-content: center;
     }
 }
 
