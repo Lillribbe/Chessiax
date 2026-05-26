@@ -80,6 +80,7 @@
 
         const GAME_ANALYSIS_STORAGE_KEY = "chessiax_game_analysis";
         const TACTICS_PROGRESS_STORAGE_KEY = "chessiax_tactics_progress";
+        const TRAINING_GOAL_STORAGE_KEY = "chessiax_training_goal";
         let currentStudyPlanUsername = "";
 
         function escapeHtml(value) {
@@ -118,6 +119,18 @@
                 return `confidence-${normalized}`;
             }
             return "confidence-low";
+        }
+
+        function getSavedTrainingGoal() {
+            try {
+                const goal = JSON.parse(localStorage.getItem(TRAINING_GOAL_STORAGE_KEY) || '"balanced"');
+                return ["balanced", "openings", "tactics", "reviews", "consistency"].includes(goal)
+                    ? goal
+                    : "balanced";
+            } catch (error) {
+                console.warn("Could not read training goal", error);
+                return "balanced";
+            }
         }
 
         function updateAnalyzeGamesButton() {
@@ -684,6 +697,38 @@
             };
         }
 
+        function createTacticsPlanDay(task, purpose) {
+            return {
+                focus: "Middlegame Tactics",
+                category: "Middlegame",
+                task,
+                purpose,
+                actionLabel: "Train Tactics",
+                actionHref: "tactics.html"
+            };
+        }
+
+        function createReviewPlanDay(task, purpose) {
+            return {
+                focus: "Game Review",
+                category: "Review",
+                task,
+                purpose,
+                actionLabel: "Review Game",
+                actionHref: "review.html"
+            };
+        }
+
+        function createEndgamePlanDay(task, purpose) {
+            return {
+                focus: "Endgame Technique",
+                category: "Endgame",
+                task,
+                purpose,
+                actionLabel: "Endgame Training Coming Soon"
+            };
+        }
+
         function generateSevenDayPlan(data, studyItems) {
             const recommendations = Array.isArray(studyItems) ? studyItems : [];
             const phaseSummary = data && typeof data.phase_summary === "object" ? data.phase_summary : {};
@@ -692,6 +737,7 @@
             const needsMiddlegame = phaseNeedsWork(weaknessBreakdown, "middlegame") || mostCommonLossPhase === "middlegame";
             const needsEndgame = phaseNeedsWork(weaknessBreakdown, "endgame") || mostCommonLossPhase === "endgame";
             const needsExtraOpening = mostCommonLossPhase === "opening";
+            const trainingGoal = getSavedTrainingGoal();
             const plan = [];
 
             const openingTasks = [
@@ -713,40 +759,130 @@
                 }
             ];
 
-            if (recommendations.length > 0) {
-                openingTasks.forEach((taskType, index) => {
+            const addOpeningTasks = (count, customTasks = openingTasks) => {
+                if (recommendations.length === 0) {
+                    return;
+                }
+
+                customTasks.slice(0, count).forEach((taskType, index) => {
                     plan.push(createOpeningPlanDay(
                         recommendations[index % recommendations.length],
                         taskType.task,
                         taskType.purpose
                     ));
                 });
-            }
+            };
 
-            if (needsMiddlegame) {
-                plan.push({
-                    focus: "Middlegame Tactics",
-                    category: "Middlegame",
-                    task: "Review tactical misses and forcing moves",
-                    purpose: "Your recent loss pattern points to the phase where calculation and candidate moves matter most."
-                });
-            }
-
-            if (needsEndgame) {
-                plan.push({
-                    focus: "Endgame Technique",
-                    category: "Endgame",
-                    task: "Practice conversion and defensive endgame basics",
-                    purpose: "Your phase results suggest extra work on simplifying, converting, and holding late positions."
-                });
-            }
-
-            if (needsExtraOpening) {
+            if (trainingGoal === "openings") {
+                addOpeningTasks(4);
                 plan.push(createOpeningPlanDay(
                     recommendations[0],
-                    "Extra opening review",
-                    "Your most common loss phase is the opening, so spend another day checking move-order traps and early plans."
+                    "Practice weakest opening",
+                    "Use your recommendation list to target the opening family that needs the most repetition."
                 ));
+                plan.push(createOpeningPlanDay(
+                    recommendations[1] || recommendations[0],
+                    "Compare plans from memory",
+                    "Recall the main pawn breaks and piece placements before opening the trainer."
+                ));
+                plan.push(createReviewPlanDay(
+                    "Review one game from this opening",
+                    "Connect opening study to a real game so the ideas are easier to keep."
+                ));
+            } else if (trainingGoal === "tactics") {
+                addOpeningTasks(1);
+                plan.push(createTacticsPlanDay(
+                    "Solve forcing-move patterns",
+                    "Prioritize checks, captures, and threats in positions where calculation matters."
+                ));
+                plan.push(createTacticsPlanDay(
+                    "Practice tactical misses",
+                    "Turn middlegame weaknesses into repeatable pattern recognition."
+                ));
+                plan.push(createTacticsPlanDay(
+                    "Review candidate moves",
+                    "Slow down before committing and compare at least two forcing options."
+                ));
+                plan.push(createReviewPlanDay(
+                    "Identify the critical phase",
+                    "Use one PGN review to find where tactics first changed the game."
+                ));
+                plan.push(createTacticsPlanDay(
+                    "Repeat the hardest puzzles",
+                    "Build accuracy by revisiting positions you did not solve cleanly."
+                ));
+            } else if (trainingGoal === "reviews") {
+                addOpeningTasks(1);
+                plan.push(createReviewPlanDay(
+                    "Review one recent game",
+                    "Start with the phase estimate and write down one practical lesson."
+                ));
+                plan.push(createReviewPlanDay(
+                    "Identify the critical phase",
+                    "Decide whether the opening, middlegame, or endgame caused the result."
+                ));
+                plan.push(createReviewPlanDay(
+                    "Compare with previous reviews",
+                    "Look for repeating themes instead of treating each game as isolated."
+                ));
+                plan.push(createReviewPlanDay(
+                    "Save a lesson from the game",
+                    "Turn the review into one concrete training task for tomorrow."
+                ));
+                plan.push(createTacticsPlanDay(
+                    "Practice one review theme",
+                    "If the game turned tactical, reinforce it with a short tactics session."
+                ));
+            } else if (trainingGoal === "consistency") {
+                addOpeningTasks(1, [{
+                    task: "Practice one short opening line",
+                    purpose: "Keep the task small enough to complete even on a busy day."
+                }]);
+                plan.push(createTacticsPlanDay(
+                    "Solve a short tactics set",
+                    "A compact session keeps calculation warm without needing a long block."
+                ));
+                plan.push(createReviewPlanDay(
+                    "Review one turning point",
+                    "One useful lesson is enough to keep momentum."
+                ));
+                addOpeningTasks(1, [{
+                    task: "Repeat from memory",
+                    purpose: "A quick recall pass is better than skipping training completely."
+                }]);
+                plan.push(createTacticsPlanDay(
+                    "Practice checks and captures",
+                    "Stay sharp with a low-friction tactical habit."
+                ));
+                plan.push(createReviewPlanDay(
+                    "Save one lesson",
+                    "Write down the smallest next improvement from a game."
+                ));
+            } else {
+                addOpeningTasks(4);
+
+                if (needsMiddlegame) {
+                    plan.push(createTacticsPlanDay(
+                        "Review tactical misses and forcing moves",
+                        "Your recent loss pattern points to the phase where calculation and candidate moves matter most."
+                    ));
+                }
+
+                if (needsEndgame) {
+                    plan.push(createEndgamePlanDay(
+                        "Practice conversion and defensive endgame basics",
+                        "Your phase results suggest extra work on simplifying, converting, and holding late positions."
+                    ));
+                }
+
+                if (needsExtraOpening) {
+                    plan.push(createOpeningPlanDay(
+                        recommendations[0],
+                        "Extra opening review",
+                        "Your most common loss phase is the opening, so spend another day checking move-order traps and early plans."
+                    ));
+                }
+
             }
 
             const fillDays = [
@@ -755,23 +891,23 @@
                     "Compare your results",
                     "Connect the study plan to your actual games and note which positions keep repeating."
                 ),
-                {
-                    focus: "Critical Positions",
-                    category: "Review",
-                    task: "Review two recent turning points",
-                    purpose: "Look for the first moment where your plan became unclear, then write down a better candidate move."
-                },
+                createReviewPlanDay(
+                    "Review two recent turning points",
+                    "Look for the first moment where your plan became unclear, then write down a better candidate move."
+                ),
                 createOpeningPlanDay(
                     recommendations[1] || recommendations[0],
                     "Final opening review",
                     "Lock in the ideas you want to keep practicing next."
                 ),
-                {
-                    focus: "Full Game Review",
-                    category: "Review",
-                    task: "Replay one loss without engine help first",
-                    purpose: "Build your own diagnosis before checking tactics or opening details."
-                }
+                createReviewPlanDay(
+                    "Replay one loss without engine help first",
+                    "Build your own diagnosis before checking tactics or opening details."
+                ),
+                createTacticsPlanDay(
+                    "Practice a short tactics set",
+                    "Keep calculation active alongside opening study."
+                )
             ];
 
             let fillIndex = 0;
@@ -784,6 +920,18 @@
                 ...day,
                 day: index + 1
             }));
+        }
+
+        function renderStudyPlanAction(day) {
+            if (day.openingName) {
+                return `<a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(day.openingName)}&mode=practice">Practice Opening</a>`;
+            }
+
+            if (day.actionHref) {
+                return `<a class="learn-btn study-link" href="${escapeHtml(day.actionHref)}">${escapeHtml(day.actionLabel || "Open")}</a>`;
+            }
+
+            return `<span class="module-soon-pill">${escapeHtml(day.actionLabel || "Training module coming soon")}</span>`;
         }
 
         function renderSevenDayStudyPlan(data, studyItems, username = "") {
@@ -814,14 +962,7 @@
                                 <p><strong>${escapeHtml(day.task)}</strong></p>
                                 <p>${escapeHtml(day.purpose)}</p>
                                 <div class="study-plan-actions">
-                                    ${
-                                        day.openingName
-                                            ? `
-                                                <a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(day.openingName)}">Study</a>
-                                                <a class="learn-btn secondary-btn study-link" href="opening.html?name=${encodeURIComponent(day.openingName)}&mode=practice">Practice</a>
-                                            `
-                                            : `<span class="module-soon-pill">Training module coming soon</span>`
-                                    }
+                                    ${renderStudyPlanAction(day)}
                                     <button class="secondary-btn complete-day-btn" onclick="toggleStudyPlanDay(${day.day})">${completed ? "✓ Completed" : "Mark Complete"}</button>
                                 </div>
                             </div>
