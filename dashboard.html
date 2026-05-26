@@ -167,6 +167,86 @@
             return saved && saved.data ? saved : null;
         }
 
+        function getReviewHistory() {
+            const history = safeReadJson("chessiax_review_history", []);
+            return Array.isArray(history) ? history.filter(item => item && item.data) : [];
+        }
+
+        function getAllStudyDaysCompleted() {
+            const completedDays = new Set();
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key || !key.startsWith(STUDY_PLAN_PROGRESS_PREFIX)) {
+                    continue;
+                }
+
+                const days = safeReadJson(key, []);
+                if (!Array.isArray(days)) {
+                    continue;
+                }
+
+                days.forEach(day => {
+                    if (Number.isInteger(day) && day >= 1 && day <= 7) {
+                        completedDays.add(`${key}:${day}`);
+                    }
+                });
+            }
+
+            return completedDays.size;
+        }
+
+        function getOpeningPracticeAttempts() {
+            let attempts = 0;
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key || !key.startsWith("practice_stats_")) {
+                    continue;
+                }
+
+                const stats = safeReadJson(key, {});
+                attempts += safeNumber(stats?.attempts);
+            }
+
+            return attempts;
+        }
+
+        function getActivityMessage(score) {
+            if (score === 0) {
+                return "Start your first training session.";
+            }
+            if (score <= 3) {
+                return "Good start — keep building momentum.";
+            }
+            if (score <= 8) {
+                return "Strong progress this week.";
+            }
+            return "Excellent consistency.";
+        }
+
+        function getTrainingProgress(tacticsProgress) {
+            const studyDaysCompleted = getAllStudyDaysCompleted();
+            const tacticsSessionsCompleted = tacticsProgress?.sessions?.length || 0;
+            const gameReviewsSaved = getReviewHistory().length;
+            const openingPracticeAttempts = getOpeningPracticeAttempts();
+            const totalActivityScore = (
+                studyDaysCompleted +
+                tacticsSessionsCompleted +
+                gameReviewsSaved +
+                openingPracticeAttempts
+            );
+
+            return {
+                studyDaysCompleted,
+                tacticsSessionsCompleted,
+                gameReviewsSaved,
+                openingPracticeAttempts,
+                totalActivityScore,
+                message: getActivityMessage(totalActivityScore)
+            };
+        }
+
         function getRecommendedStudyItems(data) {
             return Array.isArray(data?.recommended_study) ? data.recommended_study : [];
         }
@@ -326,6 +406,49 @@
             `;
         }
 
+        function renderTrainingProgress(progress) {
+            return `
+                <section class="dashboard-progress-section">
+                    <div class="dashboard-progress-header">
+                        <div>
+                            <h2>Training Progress</h2>
+                            <p>${escapeHtml(progress.message)}</p>
+                        </div>
+                        <div class="dashboard-score-pill">
+                            <span>Total activity</span>
+                            <strong>${safeNumber(progress.totalActivityScore)}</strong>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-progress-grid">
+                        <div class="overview-card">
+                            <h3>Study days</h3>
+                            <p>${safeNumber(progress.studyDaysCompleted)}</p>
+                        </div>
+                        <div class="overview-card">
+                            <h3>Tactics sessions</h3>
+                            <p>${safeNumber(progress.tacticsSessionsCompleted)}</p>
+                        </div>
+                        <div class="overview-card">
+                            <h3>Game reviews</h3>
+                            <p>${safeNumber(progress.gameReviewsSaved)}</p>
+                        </div>
+                        <div class="overview-card">
+                            <h3>Opening attempts</h3>
+                            <p>${safeNumber(progress.openingPracticeAttempts)}</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-actions">
+                        <button onclick="window.location.href='profile.html'">Continue Study Plan</button>
+                        <button class="secondary-btn" onclick="window.location.href='tactics.html'">Train Tactics</button>
+                        <button class="secondary-btn" onclick="window.location.href='review.html'">Review a Game</button>
+                        <button class="secondary-btn" onclick="window.location.href='openings.html'">Practice Openings</button>
+                    </div>
+                </section>
+            `;
+        }
+
         function buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress, savedReview) {
             const lastTactics = tacticsProgress?.lastSession;
             const tacticsLowAccuracy = lastTactics && safeNumber(lastTactics.accuracy) < 70;
@@ -466,6 +589,7 @@
             const studyProgress = getStudyPlanProgress(savedAnalysis);
             const tacticsProgress = getTacticsProgress();
             const savedReview = getSavedReview();
+            const trainingProgress = getTrainingProgress(tacticsProgress);
             const hasAnyData = Boolean(savedAnalysis || studyProgress || tacticsProgress || savedReview);
             const nextAction = buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress, savedReview);
             const cards = [];
@@ -526,6 +650,8 @@
                 ${renderRecommendedAction(nextAction)}
 
                 ${renderQuickActions()}
+
+                ${renderTrainingProgress(trainingProgress)}
 
                 ${
                     hasAnyData

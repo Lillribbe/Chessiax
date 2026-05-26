@@ -1695,6 +1695,62 @@ textarea {
     flex-wrap: wrap;
 }
 
+.dashboard-progress-section {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-soft);
+    background: rgba(15, 23, 42, 0.68);
+    box-shadow: var(--shadow-soft);
+}
+
+.dashboard-progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dashboard-progress-header h2,
+.dashboard-progress-header p {
+    margin: 0;
+}
+
+.dashboard-progress-header p {
+    margin-top: 6px;
+    color: var(--text-muted);
+}
+
+.dashboard-score-pill {
+    display: grid;
+    gap: 4px;
+    min-width: 120px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    text-align: center;
+}
+
+.dashboard-score-pill span {
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.dashboard-score-pill strong {
+    font-size: 1.6rem;
+}
+
+.dashboard-progress-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2314,6 +2370,11 @@ iframe {
         justify-content: flex-start;
     }
 
+    .dashboard-progress-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
     .review-history-header {
         flex-direction: column;
         align-items: stretch;
@@ -2339,6 +2400,7 @@ iframe {
     .phase-summary-grid,
     .phase-card-grid,
     .dashboard-grid,
+    .dashboard-progress-grid,
     .engine-review-grid,
     .review-history-grid,
     .review-summary-grid,
@@ -2382,6 +2444,7 @@ iframe {
     .dashboard-actions button,
     .dashboard-next-card button,
     .dashboard-next-actions .module-soon-pill,
+    .dashboard-score-pill,
     .review-history-header button,
     .review-history-actions button,
     .review-actions button,
@@ -2398,6 +2461,7 @@ iframe {
     .phase-summary-grid,
     .phase-card-grid,
     .dashboard-grid,
+    .dashboard-progress-grid,
     .engine-review-grid,
     .review-history-grid,
     .review-summary-grid,
