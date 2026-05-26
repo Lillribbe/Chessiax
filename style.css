@@ -1540,8 +1540,79 @@ textarea {
         linear-gradient(180deg, rgba(59, 130, 246, 0.08), rgba(15, 23, 42, 0.72));
 }
 
+.review-engine-card {
+    border-color: rgba(34, 197, 94, 0.3);
+    background:
+        linear-gradient(180deg, rgba(34, 197, 94, 0.08), rgba(15, 23, 42, 0.72));
+}
+
+.engine-review-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.engine-review-grid h3,
+.engine-review-grid p {
+    margin: 0;
+}
+
+.engine-review-grid h3 {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0;
+}
+
 .review-saved-note {
     margin-top: 0;
+}
+
+.review-history-section {
+    display: grid;
+    gap: 14px;
+    margin-top: 22px;
+}
+
+.review-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.review-history-header h2,
+.review-history-header p,
+.review-history-card h3,
+.review-history-card p,
+.review-history-empty h3,
+.review-history-empty p {
+    margin: 0;
+}
+
+.review-history-header p,
+.review-history-card p,
+.review-history-empty p {
+    color: var(--text-muted);
+}
+
+.review-history-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.review-history-card,
+.review-history-empty {
+    display: grid;
+    gap: 10px;
+}
+
+.review-history-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
 }
 
 .dashboard-stack {
@@ -2204,6 +2275,11 @@ iframe {
         align-items: stretch;
     }
 
+    .review-history-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
     .board-panel {
         position: relative;
         top: 0;
@@ -2224,6 +2300,8 @@ iframe {
     .phase-summary-grid,
     .phase-card-grid,
     .dashboard-grid,
+    .engine-review-grid,
+    .review-history-grid,
     .review-summary-grid,
     .study-plan-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2264,6 +2342,8 @@ iframe {
     .tactics-progress-card button,
     .dashboard-actions button,
     .dashboard-next-card button,
+    .review-history-header button,
+    .review-history-actions button,
     .review-actions .learn-btn {
         width: 100%;
     }
@@ -2275,6 +2355,8 @@ iframe {
     .phase-summary-grid,
     .phase-card-grid,
     .dashboard-grid,
+    .engine-review-grid,
+    .review-history-grid,
     .review-summary-grid,
     .study-plan-grid {
         grid-template-columns: 1fr;

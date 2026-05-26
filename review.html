@@ -51,6 +51,17 @@
             </div>
         </section>
 
+        <section class="review-history-section">
+            <div class="review-history-header">
+                <div>
+                    <h2>Recent Reviews</h2>
+                    <p>Your last 10 saved game reviews stay on this device.</p>
+                </div>
+                <button class="secondary-btn" onclick="clearReviewHistory()">Clear Review History</button>
+            </div>
+            <div id="reviewHistoryList" class="review-history-grid"></div>
+        </section>
+
         <footer class="app-footer">
             <div>
                 <strong>Chessiax</strong>
@@ -72,6 +83,7 @@
 
     <script>
         const SAVED_REVIEW_STORAGE_KEY = "chessiax_saved_game_review";
+        const REVIEW_HISTORY_STORAGE_KEY = "chessiax_review_history";
 
         function escapeHtml(value) {
             return String(value ?? "")
@@ -85,6 +97,25 @@
         function safeText(value, fallback = "Unknown") {
             const text = String(value ?? "").trim();
             return text || fallback;
+        }
+
+        function formatDateTime(value) {
+            if (!value) {
+                return "N/A";
+            }
+
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return "N/A";
+            }
+
+            return date.toLocaleString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
         }
 
         function saveReview(pgn, username, data) {
@@ -101,6 +132,39 @@
             } catch (error) {
                 console.warn("Could not save game review", error);
             }
+        }
+
+        function getReviewHistory() {
+            try {
+                const saved = localStorage.getItem(REVIEW_HISTORY_STORAGE_KEY);
+                const parsed = JSON.parse(saved || "[]");
+                return Array.isArray(parsed)
+                    ? parsed.filter(item => item && item.pgn && item.data && item.timestamp)
+                    : [];
+            } catch (error) {
+                console.warn("Could not read review history", error);
+                return [];
+            }
+        }
+
+        function saveReviewHistory(history) {
+            try {
+                localStorage.setItem(REVIEW_HISTORY_STORAGE_KEY, JSON.stringify(history.slice(0, 10)));
+            } catch (error) {
+                console.warn("Could not save review history", error);
+            }
+        }
+
+        function addReviewToHistory(pgn, username, data) {
+            const history = getReviewHistory();
+            const entry = {
+                pgn,
+                username,
+                data,
+                timestamp: new Date().toISOString()
+            };
+            saveReviewHistory([entry, ...history].slice(0, 10));
+            renderReviewHistory();
         }
 
         function getSavedReview() {
@@ -131,6 +195,68 @@
                     <p>Your game breakdown will appear here.</p>
                 </div>
             `;
+        }
+
+        function openHistoryReview(index) {
+            const entry = getReviewHistory()[index];
+            if (!entry) {
+                renderReviewHistory();
+                return;
+            }
+
+            document.getElementById("pgnInput").value = entry.pgn || "";
+            document.getElementById("reviewUsername").value = entry.username || "";
+            saveReview(entry.pgn || "", entry.username || "", entry.data);
+            renderReview(entry.data, entry.username || "", true);
+        }
+
+        function deleteHistoryReview(index) {
+            const history = getReviewHistory();
+            history.splice(index, 1);
+            saveReviewHistory(history);
+            renderReviewHistory();
+        }
+
+        function clearReviewHistory() {
+            try {
+                localStorage.removeItem(REVIEW_HISTORY_STORAGE_KEY);
+            } catch (error) {
+                console.warn("Could not clear review history", error);
+            }
+
+            renderReviewHistory();
+        }
+
+        function renderReviewHistory() {
+            const history = getReviewHistory();
+            const container = document.getElementById("reviewHistoryList");
+
+            if (!history.length) {
+                container.innerHTML = `
+                    <div class="card review-history-empty">
+                        <h3>No recent reviews yet.</h3>
+                        <p>Analyze a PGN to save it here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = history.map((entry, index) => {
+                const data = entry.data || {};
+                return `
+                    <div class="card review-history-card">
+                        <h3>${escapeHtml(safeText(data.white, "White"))} vs ${escapeHtml(safeText(data.black, "Black"))}</h3>
+                        <p>Result: ${escapeHtml(safeText(data.result, "*"))}</p>
+                        <p>Opening: ${escapeHtml(safeText(data.opening, "Unknown Opening"))}</p>
+                        <p>Phase: ${escapeHtml(safeText(data.estimated_phase, "unknown"))}</p>
+                        <p>Analyzed: ${escapeHtml(formatDateTime(entry.timestamp))}</p>
+                        <div class="review-history-actions">
+                            <button onclick="openHistoryReview(${index})">Open Review</button>
+                            <button class="secondary-btn" onclick="deleteHistoryReview(${index})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join("");
         }
 
         function loadSavedReview() {
@@ -164,6 +290,56 @@
             return actions.length > 0
                 ? `<div class="review-actions">${actions.join("")}</div>`
                 : "";
+        }
+
+        function renderEngineReview(data) {
+            const engineReview = data && typeof data.engine_review === "object" ? data.engine_review : null;
+
+            if (!engineReview) {
+                return `
+                    <div class="card review-detail-card review-future-card">
+                        <h2>Engine Review</h2>
+                        <p><strong>Coming soon</strong></p>
+                        <ul class="review-training-list">
+                            <li>Critical move detection</li>
+                            <li>Evaluation swings</li>
+                            <li>Blunder detection</li>
+                            <li>More precise phase analysis</li>
+                        </ul>
+                        <p class="review-phase-note">Current phase estimate is based on game length, not engine evaluation.</p>
+                    </div>
+                `;
+            }
+
+            const criticalMove = engineReview.critical_move || engineReview.criticalMove;
+            const evaluationSwing = engineReview.evaluation_swing || engineReview.evaluationSwing;
+            const blunderSummary = engineReview.blunder_summary || engineReview.blunderSummary || engineReview.mistake_summary || engineReview.mistakeSummary;
+            const engineRecommendation = engineReview.engine_recommendation || engineReview.engineRecommendation || engineReview.recommendation;
+
+            return `
+                <div class="card review-detail-card review-engine-card">
+                    <h2>Engine Review</h2>
+                    <div class="engine-review-grid">
+                        <div>
+                            <h3>Critical move</h3>
+                            <p>${escapeHtml(safeText(criticalMove, "Not available"))}</p>
+                        </div>
+                        <div>
+                            <h3>Evaluation swing</h3>
+                            <p>${escapeHtml(safeText(evaluationSwing, "Not available"))}</p>
+                        </div>
+                        <div>
+                            <h3>Blunder / mistake summary</h3>
+                            <p>${escapeHtml(safeText(blunderSummary, "Not available"))}</p>
+                        </div>
+                        <div>
+                            <h3>Engine recommendation</h3>
+                            <p>${escapeHtml(safeText(engineRecommendation, "Not available"))}</p>
+                        </div>
+                    </div>
+                    <p class="review-phase-note">Phase estimate may still be based on game length unless the backend provides engine-based phase data.</p>
+                </div>
+            `;
         }
 
         function renderReview(data, username, isSaved = false) {
@@ -226,10 +402,7 @@
                         ${renderTrainingActions(data)}
                     </div>
 
-                    <div class="card review-detail-card review-future-card">
-                        <h2>Future engine review</h2>
-                        <p>Coming soon: critical move detection, evaluation swings, and blunder detection.</p>
-                    </div>
+                    ${renderEngineReview(data)}
                 </div>
             `;
         }
@@ -281,6 +454,7 @@
                 }
 
                 saveReview(pgn, username, data);
+                addReviewToHistory(pgn, username, data);
                 renderReview(data, username);
             } catch (error) {
                 console.error(error);
@@ -307,6 +481,7 @@
 
         setActiveNav();
         loadSavedReview();
+        renderReviewHistory();
     </script>
 </body>
 
