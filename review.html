@@ -71,6 +71,8 @@
     <script src="config.js"></script>
 
     <script>
+        const SAVED_REVIEW_STORAGE_KEY = "chessiax_saved_game_review";
+
         function escapeHtml(value) {
             return String(value ?? "")
                 .replace(/&/g, "&amp;")
@@ -83,6 +85,63 @@
         function safeText(value, fallback = "Unknown") {
             const text = String(value ?? "").trim();
             return text || fallback;
+        }
+
+        function saveReview(pgn, username, data) {
+            try {
+                localStorage.setItem(
+                    SAVED_REVIEW_STORAGE_KEY,
+                    JSON.stringify({
+                        pgn,
+                        username,
+                        data,
+                        savedAt: new Date().toISOString()
+                    })
+                );
+            } catch (error) {
+                console.warn("Could not save game review", error);
+            }
+        }
+
+        function getSavedReview() {
+            try {
+                const saved = localStorage.getItem(SAVED_REVIEW_STORAGE_KEY);
+                if (!saved) {
+                    return null;
+                }
+
+                const parsed = JSON.parse(saved);
+                return parsed && parsed.data ? parsed : null;
+            } catch (error) {
+                console.warn("Could not read saved game review", error);
+                return null;
+            }
+        }
+
+        function clearSavedReview() {
+            try {
+                localStorage.removeItem(SAVED_REVIEW_STORAGE_KEY);
+            } catch (error) {
+                console.warn("Could not clear saved game review", error);
+            }
+
+            document.getElementById("reviewResult").innerHTML = `
+                <div class="card">
+                    <h2>Review Result</h2>
+                    <p>Your game breakdown will appear here.</p>
+                </div>
+            `;
+        }
+
+        function loadSavedReview() {
+            const saved = getSavedReview();
+            if (!saved) {
+                return;
+            }
+
+            document.getElementById("pgnInput").value = saved.pgn || "";
+            document.getElementById("reviewUsername").value = saved.username || "";
+            renderReview(saved.data, saved.username || "", true);
         }
 
         function renderTrainingActions(data) {
@@ -107,14 +166,23 @@
                 : "";
         }
 
-        function renderReview(data, username) {
+        function renderReview(data, username, isSaved = false) {
             const training = Array.isArray(data.recommended_training) ? data.recommended_training : [];
             const playerResult = username
                 ? `<div class="overview-card"><h3>Your result</h3><p>${escapeHtml(safeText(data.player_result, "Unknown"))}</p></div>`
                 : "";
+            const savedNote = isSaved
+                ? `
+                    <div class="saved-analysis-note review-saved-note">
+                        <span>Showing your last saved game review</span>
+                        <button class="secondary-btn clear-analysis-btn" onclick="clearSavedReview()">Clear saved review</button>
+                    </div>
+                `
+                : "";
 
             document.getElementById("reviewResult").innerHTML = `
                 <div class="review-stack">
+                    ${savedNote}
                     <div class="analysis-summary-grid review-summary-grid">
                         <div class="overview-card">
                             <h3>Players</h3>
@@ -131,6 +199,7 @@
                         <div class="overview-card">
                             <h3>Phase</h3>
                             <p>${escapeHtml(safeText(data.estimated_phase))}</p>
+                            <span class="review-phase-note">Phase estimate is based on game length. Engine-based critical moment detection is coming soon.</span>
                         </div>
                         ${playerResult}
                     </div>
@@ -155,6 +224,11 @@
                                 : `<p>No specific training recommendation yet.</p>`
                         }
                         ${renderTrainingActions(data)}
+                    </div>
+
+                    <div class="card review-detail-card review-future-card">
+                        <h2>Future engine review</h2>
+                        <p>Coming soon: critical move detection, evaluation swings, and blunder detection.</p>
                     </div>
                 </div>
             `;
@@ -206,6 +280,7 @@
                     return;
                 }
 
+                saveReview(pgn, username, data);
                 renderReview(data, username);
             } catch (error) {
                 console.error(error);
@@ -231,6 +306,7 @@
         }
 
         setActiveNav();
+        loadSavedReview();
     </script>
 </body>
 

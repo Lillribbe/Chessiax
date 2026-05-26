@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+
+<div class="brand-bar">
+    <div class="brand-logo" onclick="window.location.href='home.html'">
+        ♞ Chessiax <span class="beta-badge">Beta</span>
+    </div>
+    <div class="brand-links">
+        <button onclick="window.location.href='home.html'">Home</button>
+        <button onclick="window.location.href='dashboard.html'">Dashboard</button>
+        <button onclick="window.location.href='openings.html'">Library</button>
+        <button onclick="window.location.href='index.html'">Analyze</button>
+        <button onclick="window.location.href='tactics.html'">Tactics</button>
+        <button onclick="window.location.href='review.html'">Review</button>
+    </div>
+</div>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <button class="back-btn" onclick="window.location.href='home.html'">🏠 Home</button>
+
+        <section class="page-hero dashboard-hero">
+            <div class="hero-badge">Coach Hub</div>
+            <h1>Coach Dashboard</h1>
+            <p>See your current Chessiax progress and pick the next useful training step.</p>
+        </section>
+
+        <section id="dashboardContent" class="dashboard-stack"></section>
+
+        <footer class="app-footer">
+            <div>
+                <strong>Chessiax</strong>
+                <p>AI-powered chess opening training for learning, practice and progress tracking.</p>
+            </div>
+
+            <div class="footer-links">
+                <button onclick="window.location.href='home.html'">Home</button>
+                <button onclick="window.location.href='dashboard.html'">Dashboard</button>
+                <button onclick="window.location.href='openings.html'">Library</button>
+                <button onclick="window.location.href='index.html'">Analyze</button>
+                <button onclick="window.location.href='tactics.html'">Tactics</button>
+                <button onclick="window.location.href='review.html'">Review</button>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        const GAME_ANALYSIS_STORAGE_KEY = "chessiax_game_analysis";
+        const STUDY_PLAN_PROGRESS_PREFIX = "chessiax_study_plan_progress_";
+        const TACTICS_PROGRESS_STORAGE_KEY = "chessiax_tactics_progress";
+        const SAVED_REVIEW_STORAGE_KEY = "chessiax_saved_game_review";
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function safeNumber(value, fallback = 0) {
+            return Number.isFinite(Number(value)) ? Number(value) : fallback;
+        }
+
+        function safeReadJson(key, fallback = null) {
+            try {
+                const saved = localStorage.getItem(key);
+                if (!saved) {
+                    return fallback;
+                }
+
+                return JSON.parse(saved);
+            } catch (error) {
+                console.warn(`Could not read ${key}`, error);
+                return fallback;
+            }
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return "N/A";
+            }
+
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return "N/A";
+            }
+
+            return date.toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            });
+        }
+
+        function getStudyPlanProgressKey(username) {
+            return `${STUDY_PLAN_PROGRESS_PREFIX}${String(username || "unknown").trim().toLowerCase()}`;
+        }
+
+        function getSavedGameAnalysis() {
+            const saved = safeReadJson(GAME_ANALYSIS_STORAGE_KEY);
+            return saved && saved.analysis ? saved : null;
+        }
+
+        function getStudyPlanProgress(savedAnalysis) {
+            const candidates = [];
+
+            if (savedAnalysis?.username) {
+                candidates.push({
+                    username: savedAnalysis.username,
+                    key: getStudyPlanProgressKey(savedAnalysis.username)
+                });
+            }
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(STUDY_PLAN_PROGRESS_PREFIX)) {
+                    candidates.push({
+                        username: key.replace(STUDY_PLAN_PROGRESS_PREFIX, ""),
+                        key
+                    });
+                }
+            }
+
+            for (const candidate of candidates) {
+                const days = safeReadJson(candidate.key, []);
+                const completedDays = Array.isArray(days)
+                    ? [...new Set(days.filter(day => Number.isInteger(day) && day >= 1 && day <= 7))].sort((a, b) => a - b)
+                    : [];
+
+                if (completedDays.length > 0) {
+                    return {
+                        username: candidate.username,
+                        completedDays,
+                        completedCount: completedDays.length,
+                        nextDay: [1, 2, 3, 4, 5, 6, 7].find(day => !completedDays.includes(day)) || null
+                    };
+                }
+            }
+
+            return null;
+        }
+
+        function getTacticsProgress() {
+            const progress = safeReadJson(TACTICS_PROGRESS_STORAGE_KEY);
+            if (!progress || !Array.isArray(progress.sessions) || progress.sessions.length === 0) {
+                return null;
+            }
+
+            return {
+                sessions: progress.sessions,
+                lastSession: progress.lastSession || progress.sessions[progress.sessions.length - 1]
+            };
+        }
+
+        function getSavedReview() {
+            const saved = safeReadJson(SAVED_REVIEW_STORAGE_KEY);
+            return saved && saved.data ? saved : null;
+        }
+
+        function renderQuickActions() {
+            return `
+                <div class="dashboard-actions">
+                    <button onclick="window.location.href='profile.html'">Analyze Profile</button>
+                    <button class="secondary-btn" onclick="window.location.href='review.html'">Review a Game</button>
+                    <button class="secondary-btn" onclick="window.location.href='tactics.html'">Train Tactics</button>
+                    <button class="secondary-btn" onclick="window.location.href='openings.html'">Opening Library</button>
+                </div>
+            `;
+        }
+
+        function buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress) {
+            const lastTactics = tacticsProgress?.lastSession;
+            const tacticsLowAccuracy = lastTactics && safeNumber(lastTactics.accuracy) < 70;
+            const tacticsIncomplete = lastTactics && safeNumber(lastTactics.correct) < safeNumber(lastTactics.totalPuzzles);
+
+            if (studyProgress && studyProgress.completedCount < 7) {
+                return {
+                    title: `Continue Day ${studyProgress.nextDay}`,
+                    body: `Your 7-Day Study Plan is ${studyProgress.completedCount}/7 complete. Continue the next unfinished day.`,
+                    button: "Open Profile",
+                    href: "profile.html"
+                };
+            }
+
+            if (tacticsProgress && (tacticsIncomplete || tacticsLowAccuracy)) {
+                return {
+                    title: "Train tactics next",
+                    body: `Your last tactics accuracy was ${safeNumber(lastTactics.accuracy)}%. A short tactics session is the best next step.`,
+                    button: "Train Tactics",
+                    href: "tactics.html"
+                };
+            }
+
+            if (savedAnalysis) {
+                return {
+                    title: "Review recommended study",
+                    body: "You have saved Chess.com game analysis. Review the recommended study targets and keep the plan moving.",
+                    button: "Open Profile",
+                    href: "profile.html"
+                };
+            }
+
+            return {
+                title: "Start with profile analysis",
+                body: "Analyze your Chess.com profile to unlock game-based recommendations and a study plan.",
+                button: "Analyze Profile",
+                href: "profile.html"
+            };
+        }
+
+        function renderDashboard() {
+            const savedAnalysis = getSavedGameAnalysis();
+            const studyProgress = getStudyPlanProgress(savedAnalysis);
+            const tacticsProgress = getTacticsProgress();
+            const savedReview = getSavedReview();
+            const hasAnyData = Boolean(savedAnalysis || studyProgress || tacticsProgress || savedReview);
+            const nextAction = buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress);
+            const cards = [];
+
+            if (savedAnalysis) {
+                const analysis = savedAnalysis.analysis || {};
+                const overall = analysis.overall || {};
+                const study = Array.isArray(analysis.recommended_study) ? analysis.recommended_study : [];
+                cards.push(`
+                    <div class="card dashboard-card">
+                        <h2>Latest game analysis</h2>
+                        <p><strong>${escapeHtml(savedAnalysis.username || analysis.username || "Saved player")}</strong></p>
+                        <p>${safeNumber(analysis.games_analyzed)} games analyzed</p>
+                        <p>${safeNumber(overall.wins)}W / ${safeNumber(overall.draws)}D / ${safeNumber(overall.losses)}L</p>
+                        <p>Top study target: ${escapeHtml(study[0]?.family || "No study target yet")}</p>
+                    </div>
+                `);
+            }
+
+            if (studyProgress) {
+                cards.push(`
+                    <div class="card dashboard-card">
+                        <h2>Study plan progress</h2>
+                        <p><strong>${studyProgress.completedCount}/7 days complete</strong></p>
+                        <p>${studyProgress.nextDay ? `Next incomplete day: Day ${studyProgress.nextDay}` : "Plan complete"}</p>
+                        <div class="dashboard-progress-bar">
+                            <div class="dashboard-progress-fill" style="width: ${Math.round((studyProgress.completedCount / 7) * 100)}%"></div>
+                        </div>
+                    </div>
+                `);
+            }
+
+            if (tacticsProgress) {
+                const last = tacticsProgress.lastSession || {};
+                cards.push(`
+                    <div class="card dashboard-card">
+                        <h2>Tactics progress</h2>
+                        <p>Last accuracy: <strong>${safeNumber(last.accuracy)}%</strong></p>
+                        <p>${safeNumber(last.correct)} correct over ${safeNumber(last.attempts)} attempts</p>
+                        <p>Total completed sessions: ${safeNumber(tacticsProgress.sessions.length)}</p>
+                    </div>
+                `);
+            }
+
+            if (savedReview) {
+                const review = savedReview.data || {};
+                cards.push(`
+                    <div class="card dashboard-card">
+                        <h2>Last game review</h2>
+                        <p><strong>${escapeHtml(review.opening || "Unknown Opening")}</strong></p>
+                        <p>${escapeHtml(review.white || "White")} vs ${escapeHtml(review.black || "Black")} · ${escapeHtml(review.result || "*")}</p>
+                        <p>Phase: ${escapeHtml(review.estimated_phase || "unknown")}</p>
+                    </div>
+                `);
+            }
+
+            document.getElementById("dashboardContent").innerHTML = `
+                <div class="card dashboard-next-card">
+                    <div>
+                        <h2>Recommended Next Action</h2>
+                        <h3>${escapeHtml(nextAction.title)}</h3>
+                        <p>${escapeHtml(nextAction.body)}</p>
+                    </div>
+                    <button onclick="window.location.href='${nextAction.href}'">${escapeHtml(nextAction.button)}</button>
+                </div>
+
+                ${renderQuickActions()}
+
+                ${
+                    hasAnyData
+                        ? `<div class="dashboard-grid">${cards.join("")}</div>`
+                        : `
+                            <div class="card dashboard-empty-state">
+                                <h2>No saved Chessiax progress yet</h2>
+                                <p>Start by analyzing your profile, reviewing one PGN, or completing a tactics session. Your coach dashboard will fill in automatically.</p>
+                            </div>
+                        `
+                }
+            `;
+        }
+
+        function setActiveNav() {
+            const buttons = document.querySelectorAll(".brand-links button");
+            buttons.forEach(button => {
+                if (button.textContent.trim().toLowerCase() === "dashboard") {
+                    button.classList.add("active-nav");
+                }
+            });
+        }
+
+        setActiveNav();
+        renderDashboard();
+    </script>
+</body>
+
+</html>

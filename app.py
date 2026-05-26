@@ -358,6 +358,10 @@ def serve_tactics():
 def serve_review():
     return send_from_directory(".", "review.html")
 
+@app.route("/dashboard.html")
+def serve_dashboard():
+    return send_from_directory(".", "dashboard.html")
+
 @app.route("/style.css")
 def serve_css():
     return send_from_directory(".", "style.css")
