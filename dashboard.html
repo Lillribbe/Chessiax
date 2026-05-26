@@ -167,6 +167,154 @@
             return saved && saved.data ? saved : null;
         }
 
+        function getRecommendedStudyItems(data) {
+            return Array.isArray(data?.recommended_study) ? data.recommended_study : [];
+        }
+
+        function phaseNeedsWork(weaknessBreakdown, area) {
+            if (!Array.isArray(weaknessBreakdown)) {
+                return false;
+            }
+
+            return weaknessBreakdown.some(item =>
+                String(item?.area || "").toLowerCase() === area
+                && String(item?.status || "").toLowerCase() === "needs work"
+            );
+        }
+
+        function createOpeningPlanDay(studyItem, task, purpose) {
+            const focus = studyItem?.family || studyItem?.opening || "Opening Review";
+            return {
+                focus,
+                category: "Opening",
+                task,
+                purpose,
+                openingName: studyItem ? focus : ""
+            };
+        }
+
+        function generateSevenDayPlan(data) {
+            const recommendations = getRecommendedStudyItems(data);
+            const phaseSummary = data && typeof data.phase_summary === "object" ? data.phase_summary : {};
+            const weaknessBreakdown = Array.isArray(data?.weakness_breakdown) ? data.weakness_breakdown : [];
+            const mostCommonLossPhase = String(phaseSummary?.most_common_loss_phase || "none").toLowerCase();
+            const needsMiddlegame = phaseNeedsWork(weaknessBreakdown, "middlegame") || mostCommonLossPhase === "middlegame";
+            const needsEndgame = phaseNeedsWork(weaknessBreakdown, "endgame") || mostCommonLossPhase === "endgame";
+            const needsExtraOpening = mostCommonLossPhase === "opening";
+            const plan = [];
+
+            const openingTasks = [
+                { task: "Learn the main ideas", purpose: "Understand the plans before memorizing moves." },
+                { task: "Practice the opening line", purpose: "Build comfort with the first critical moves." },
+                { task: "Review common mistakes", purpose: "Spot the patterns that usually cost you points." },
+                { task: "Repeat from memory", purpose: "Strengthen recall without relying on notes." }
+            ];
+
+            if (recommendations.length > 0) {
+                openingTasks.forEach((taskType, index) => {
+                    plan.push(createOpeningPlanDay(
+                        recommendations[index % recommendations.length],
+                        taskType.task,
+                        taskType.purpose
+                    ));
+                });
+            }
+
+            if (needsMiddlegame) {
+                plan.push({
+                    focus: "Middlegame Tactics",
+                    category: "Middlegame",
+                    task: "Review tactical misses and forcing moves",
+                    purpose: "Practice calculation and candidate moves from your critical phase."
+                });
+            }
+
+            if (needsEndgame) {
+                plan.push({
+                    focus: "Endgame Technique",
+                    category: "Endgame",
+                    task: "Practice conversion and defensive endgame basics",
+                    purpose: "Spend time on simplifying, converting, and holding late positions."
+                });
+            }
+
+            if (needsExtraOpening) {
+                plan.push(createOpeningPlanDay(
+                    recommendations[0],
+                    "Extra opening review",
+                    "Check move-order traps and early plans from your most common loss phase."
+                ));
+            }
+
+            const fillDays = [
+                createOpeningPlanDay(
+                    recommendations[0],
+                    "Compare your results",
+                    "Connect the study plan to your actual games and note recurring positions."
+                ),
+                {
+                    focus: "Critical Positions",
+                    category: "Review",
+                    task: "Review two recent turning points",
+                    purpose: "Find the first moment where your plan became unclear."
+                },
+                createOpeningPlanDay(
+                    recommendations[1] || recommendations[0],
+                    "Final opening review",
+                    "Lock in the ideas you want to keep practicing next."
+                ),
+                {
+                    focus: "Full Game Review",
+                    category: "Review",
+                    task: "Replay one loss without engine help first",
+                    purpose: "Build your own diagnosis before checking details."
+                }
+            ];
+
+            let fillIndex = 0;
+            while (plan.length < 7) {
+                plan.push(fillDays[fillIndex % fillDays.length]);
+                fillIndex += 1;
+            }
+
+            return plan.slice(0, 7).map((day, index) => ({
+                ...day,
+                day: index + 1
+            }));
+        }
+
+        function getStudyDayAction(day) {
+            const category = String(day?.category || "").toLowerCase();
+            const focus = day?.openingName || day?.focus || "";
+
+            if (category === "opening" && focus) {
+                return {
+                    primaryLabel: "Practice Opening",
+                    primaryHref: `opening.html?name=${encodeURIComponent(focus)}&mode=practice`
+                };
+            }
+
+            if (category === "middlegame" || focus.toLowerCase().includes("tactics")) {
+                return {
+                    primaryLabel: "Train Tactics",
+                    primaryHref: "tactics.html"
+                };
+            }
+
+            if (category === "endgame") {
+                return {
+                    disabledLabel: "Endgame training coming soon",
+                    secondaryLabel: "Review Game",
+                    secondaryHref: "review.html"
+                };
+            }
+
+            return {
+                primaryLabel: "Continue Study Plan",
+                primaryHref: "profile.html"
+            };
+        }
+
         function renderQuickActions() {
             return `
                 <div class="dashboard-actions">
@@ -178,26 +326,90 @@
             `;
         }
 
-        function buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress) {
+        function buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress, savedReview) {
             const lastTactics = tacticsProgress?.lastSession;
             const tacticsLowAccuracy = lastTactics && safeNumber(lastTactics.accuracy) < 70;
-            const tacticsIncomplete = lastTactics && safeNumber(lastTactics.correct) < safeNumber(lastTactics.totalPuzzles);
 
             if (studyProgress && studyProgress.completedCount < 7) {
+                const plan = generateSevenDayPlan(savedAnalysis?.analysis || {});
+                const day = plan.find(item => item.day === studyProgress.nextDay) || {
+                    day: studyProgress.nextDay,
+                    focus: `Day ${studyProgress.nextDay}`,
+                    category: "Review",
+                    task: "Continue your next study-plan task"
+                };
+                const action = getStudyDayAction(day);
+                if (!action.secondaryHref && action.primaryHref !== "profile.html") {
+                    action.secondaryLabel = "Continue Study Plan";
+                    action.secondaryHref = "profile.html";
+                }
                 return {
-                    title: `Continue Day ${studyProgress.nextDay}`,
-                    body: `Your 7-Day Study Plan is ${studyProgress.completedCount}/7 complete. Continue the next unfinished day.`,
-                    button: "Open Profile",
-                    href: "profile.html"
+                    title: `Continue Day ${day.day}`,
+                    body: "Your 7-Day Study Plan has an unfinished day ready.",
+                    meta: [
+                        `Focus: ${day.focus}`,
+                        `Category: ${day.category || "Review"}`,
+                        `Task: ${day.task}`
+                    ],
+                    ...action
                 };
             }
 
-            if (tacticsProgress && (tacticsIncomplete || tacticsLowAccuracy)) {
+            if (savedReview) {
+                const review = savedReview.data || {};
+                const phase = String(review.estimated_phase || "").toLowerCase();
+                const opening = review.opening || "";
+
+                if (phase === "middlegame") {
+                    return {
+                        title: "Train tactics from your review",
+                        body: "Your latest reviewed game reached its key phase in the middlegame.",
+                        meta: [`Game: ${review.white || "White"} vs ${review.black || "Black"}`, `Phase: ${phase}`],
+                        primaryLabel: "Train Tactics",
+                        primaryHref: "tactics.html",
+                        secondaryLabel: "Review Game",
+                        secondaryHref: "review.html"
+                    };
+                }
+
+                if (phase === "opening" && opening && opening !== "Unknown Opening") {
+                    return {
+                        title: "Study the reviewed opening",
+                        body: "Your latest reviewed game points back to opening work.",
+                        meta: [`Opening: ${opening}`, `Phase: ${phase}`],
+                        primaryLabel: "Practice Opening",
+                        primaryHref: `opening.html?name=${encodeURIComponent(opening)}&mode=practice`,
+                        secondaryLabel: "Review Game",
+                        secondaryHref: "review.html"
+                    };
+                }
+
+                if (phase === "endgame") {
+                    return {
+                        title: "Review endgame notes",
+                        body: "Your latest reviewed game reached the endgame. Dedicated endgame training is still coming soon.",
+                        meta: [`Game: ${review.white || "White"} vs ${review.black || "Black"}`, `Phase: ${phase}`],
+                        disabledLabel: "Endgame training coming soon",
+                        secondaryLabel: "Review Game",
+                        secondaryHref: "review.html"
+                    };
+                }
+
+                return {
+                    title: "Review your latest game",
+                    body: "Use the saved single-game review to choose your next training target.",
+                    meta: [`Opening: ${opening || "Unknown Opening"}`],
+                    primaryLabel: "Review Game",
+                    primaryHref: "review.html"
+                };
+            }
+
+            if (tacticsProgress && tacticsLowAccuracy) {
                 return {
                     title: "Train tactics next",
                     body: `Your last tactics accuracy was ${safeNumber(lastTactics.accuracy)}%. A short tactics session is the best next step.`,
-                    button: "Train Tactics",
-                    href: "tactics.html"
+                    primaryLabel: "Train Tactics",
+                    primaryHref: "tactics.html"
                 };
             }
 
@@ -205,17 +417,48 @@
                 return {
                     title: "Review recommended study",
                     body: "You have saved Chess.com game analysis. Review the recommended study targets and keep the plan moving.",
-                    button: "Open Profile",
-                    href: "profile.html"
+                    primaryLabel: "Continue Study Plan",
+                    primaryHref: "profile.html"
                 };
             }
 
             return {
                 title: "Start with profile analysis",
                 body: "Analyze your Chess.com profile to unlock game-based recommendations and a study plan.",
-                button: "Analyze Profile",
-                href: "profile.html"
+                primaryLabel: "Analyze Profile",
+                primaryHref: "profile.html"
             };
+        }
+
+        function renderRecommendedAction(action) {
+            const meta = Array.isArray(action.meta) && action.meta.length > 0
+                ? `<div class="dashboard-next-meta">${action.meta.map(item => `<span>${escapeHtml(item)}</span>`).join("")}</div>`
+                : "";
+            const disabledAction = action.disabledLabel
+                ? `<span class="module-soon-pill dashboard-disabled-action">${escapeHtml(action.disabledLabel)}</span>`
+                : "";
+            const primaryAction = action.primaryHref
+                ? `<button onclick="window.location.href='${action.primaryHref}'">${escapeHtml(action.primaryLabel || "Continue")}</button>`
+                : "";
+            const secondaryAction = action.secondaryHref
+                ? `<button class="secondary-btn" onclick="window.location.href='${action.secondaryHref}'">${escapeHtml(action.secondaryLabel || "Open")}</button>`
+                : "";
+
+            return `
+                <div class="card dashboard-next-card">
+                    <div>
+                        <h2>Recommended Next Action</h2>
+                        <h3>${escapeHtml(action.title)}</h3>
+                        <p>${escapeHtml(action.body)}</p>
+                        ${meta}
+                    </div>
+                    <div class="dashboard-next-actions">
+                        ${disabledAction}
+                        ${primaryAction}
+                        ${secondaryAction}
+                    </div>
+                </div>
+            `;
         }
 
         function renderDashboard() {
@@ -224,7 +467,7 @@
             const tacticsProgress = getTacticsProgress();
             const savedReview = getSavedReview();
             const hasAnyData = Boolean(savedAnalysis || studyProgress || tacticsProgress || savedReview);
-            const nextAction = buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress);
+            const nextAction = buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress, savedReview);
             const cards = [];
 
             if (savedAnalysis) {
@@ -280,14 +523,7 @@
             }
 
             document.getElementById("dashboardContent").innerHTML = `
-                <div class="card dashboard-next-card">
-                    <div>
-                        <h2>Recommended Next Action</h2>
-                        <h3>${escapeHtml(nextAction.title)}</h3>
-                        <p>${escapeHtml(nextAction.body)}</p>
-                    </div>
-                    <button onclick="window.location.href='${nextAction.href}'">${escapeHtml(nextAction.button)}</button>
-                </div>
+                ${renderRecommendedAction(nextAction)}
 
                 ${renderQuickActions()}
 
