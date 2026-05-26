@@ -57,6 +57,29 @@
         const STUDY_PLAN_PROGRESS_PREFIX = "chessiax_study_plan_progress_";
         const TACTICS_PROGRESS_STORAGE_KEY = "chessiax_tactics_progress";
         const SAVED_REVIEW_STORAGE_KEY = "chessiax_saved_game_review";
+        const TRAINING_GOAL_STORAGE_KEY = "chessiax_training_goal";
+        const TRAINING_GOALS = {
+            balanced: {
+                label: "Balanced improvement",
+                description: "Keep openings, tactics, reviews, and consistency moving together."
+            },
+            openings: {
+                label: "Improve openings",
+                description: "Prioritize opening study, opening practice, and opening-related plan days."
+            },
+            tactics: {
+                label: "Improve tactics",
+                description: "Prioritize calculation, tactical pattern work, and middlegame training."
+            },
+            reviews: {
+                label: "Review more games",
+                description: "Prioritize reviewing PGNs and turning games into practical training notes."
+            },
+            consistency: {
+                label: "Build consistency",
+                description: "Prioritize small repeatable actions and unfinished study-plan days."
+            }
+        };
 
         function escapeHtml(value) {
             return String(value ?? "")
@@ -165,6 +188,34 @@
         function getSavedReview() {
             const saved = safeReadJson(SAVED_REVIEW_STORAGE_KEY);
             return saved && saved.data ? saved : null;
+        }
+
+        function getSavedTrainingGoal() {
+            const goal = safeReadJson(TRAINING_GOAL_STORAGE_KEY, "balanced");
+            return TRAINING_GOALS[goal] ? goal : "balanced";
+        }
+
+        function saveTrainingGoal() {
+            const select = document.getElementById("trainingGoalSelect");
+            const goal = TRAINING_GOALS[select?.value] ? select.value : "balanced";
+
+            try {
+                localStorage.setItem(TRAINING_GOAL_STORAGE_KEY, JSON.stringify(goal));
+            } catch (error) {
+                console.warn("Could not save training goal", error);
+            }
+
+            renderDashboard();
+        }
+
+        function clearTrainingGoal() {
+            try {
+                localStorage.removeItem(TRAINING_GOAL_STORAGE_KEY);
+            } catch (error) {
+                console.warn("Could not clear training goal", error);
+            }
+
+            renderDashboard();
         }
 
         function getReviewHistory() {
@@ -395,6 +446,36 @@
             };
         }
 
+        function findNextGoalStudyDay(savedAnalysis, studyProgress, goal) {
+            if (!studyProgress || studyProgress.completedCount >= 7) {
+                return null;
+            }
+
+            const plan = generateSevenDayPlan(savedAnalysis?.analysis || {});
+            const incompleteDays = plan.filter(day => !studyProgress.completedDays.includes(day.day));
+            if (!incompleteDays.length) {
+                return null;
+            }
+
+            if (goal === "openings") {
+                return incompleteDays.find(day => String(day.category || "").toLowerCase() === "opening") || incompleteDays[0];
+            }
+
+            if (goal === "tactics") {
+                return incompleteDays.find(day => {
+                    const category = String(day.category || "").toLowerCase();
+                    const focus = String(day.focus || "").toLowerCase();
+                    return category === "middlegame" || focus.includes("tactics");
+                }) || incompleteDays[0];
+            }
+
+            if (goal === "reviews") {
+                return incompleteDays.find(day => String(day.category || "").toLowerCase() === "review") || incompleteDays[0];
+            }
+
+            return incompleteDays.find(day => day.day === studyProgress.nextDay) || incompleteDays[0];
+        }
+
         function renderQuickActions() {
             return `
                 <div class="dashboard-actions">
@@ -449,13 +530,89 @@
             `;
         }
 
-        function buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress, savedReview) {
+        function renderTrainingGoal(goal) {
+            const selectedGoal = TRAINING_GOALS[goal] ? goal : "balanced";
+            const options = Object.entries(TRAINING_GOALS).map(([value, item]) => `
+                <option value="${value}" ${value === selectedGoal ? "selected" : ""}>${escapeHtml(item.label)}</option>
+            `).join("");
+
+            return `
+                <section class="card dashboard-goal-card">
+                    <div>
+                        <h2>Your Training Goal</h2>
+                        <p>${escapeHtml(TRAINING_GOALS[selectedGoal].description)}</p>
+                    </div>
+                    <div class="dashboard-goal-controls">
+                        <select id="trainingGoalSelect" aria-label="Training goal">${options}</select>
+                        <button onclick="saveTrainingGoal()">Save Goal</button>
+                        <button class="secondary-btn" onclick="clearTrainingGoal()">Clear Goal</button>
+                    </div>
+                </section>
+            `;
+        }
+
+        function buildGoalAction(goal, savedAnalysis, savedReview) {
+            if (goal === "openings") {
+                const study = getRecommendedStudyItems(savedAnalysis?.analysis || {});
+                const opening = study[0]?.family || savedReview?.data?.opening;
+                if (opening && opening !== "Unknown Opening") {
+                    return {
+                        title: "Practice openings next",
+                        body: "Your selected goal is opening improvement, so start with a focused opening practice session.",
+                        meta: [`Opening: ${opening}`],
+                        primaryLabel: "Practice Opening",
+                        primaryHref: `opening.html?name=${encodeURIComponent(opening)}&mode=practice`,
+                        secondaryLabel: "Opening Library",
+                        secondaryHref: "openings.html"
+                    };
+                }
+
+                return {
+                    title: "Build your opening base",
+                    body: "Your selected goal is opening improvement. Pick an opening from the library and practice the first critical line.",
+                    primaryLabel: "Opening Library",
+                    primaryHref: "openings.html"
+                };
+            }
+
+            if (goal === "tactics") {
+                return {
+                    title: "Train tactics next",
+                    body: "Your selected goal is tactical improvement. A short tactics session is the clearest next step.",
+                    primaryLabel: "Train Tactics",
+                    primaryHref: "tactics.html"
+                };
+            }
+
+            if (goal === "reviews") {
+                return {
+                    title: "Review another game",
+                    body: "Your selected goal is reviewing more games. Paste one PGN and turn it into training notes.",
+                    primaryLabel: "Review Game",
+                    primaryHref: "review.html"
+                };
+            }
+
+            if (goal === "consistency") {
+                return {
+                    title: "Keep the streak alive",
+                    body: "Your selected goal is consistency. Choose one quick training action and complete it today.",
+                    primaryLabel: "Train Tactics",
+                    primaryHref: "tactics.html",
+                    secondaryLabel: "Review Game",
+                    secondaryHref: "review.html"
+                };
+            }
+
+            return null;
+        }
+
+        function buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress, savedReview, goal = "balanced") {
             const lastTactics = tacticsProgress?.lastSession;
             const tacticsLowAccuracy = lastTactics && safeNumber(lastTactics.accuracy) < 70;
 
             if (studyProgress && studyProgress.completedCount < 7) {
-                const plan = generateSevenDayPlan(savedAnalysis?.analysis || {});
-                const day = plan.find(item => item.day === studyProgress.nextDay) || {
+                const day = findNextGoalStudyDay(savedAnalysis, studyProgress, goal) || {
                     day: studyProgress.nextDay,
                     focus: `Day ${studyProgress.nextDay}`,
                     category: "Review",
@@ -476,6 +633,13 @@
                     ],
                     ...action
                 };
+            }
+
+            if (goal !== "balanced") {
+                const goalAction = buildGoalAction(goal, savedAnalysis, savedReview);
+                if (goalAction) {
+                    return goalAction;
+                }
             }
 
             if (savedReview) {
@@ -590,8 +754,9 @@
             const tacticsProgress = getTacticsProgress();
             const savedReview = getSavedReview();
             const trainingProgress = getTrainingProgress(tacticsProgress);
+            const selectedGoal = getSavedTrainingGoal();
             const hasAnyData = Boolean(savedAnalysis || studyProgress || tacticsProgress || savedReview);
-            const nextAction = buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress, savedReview);
+            const nextAction = buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress, savedReview, selectedGoal);
             const cards = [];
 
             if (savedAnalysis) {
@@ -650,6 +815,8 @@
                 ${renderRecommendedAction(nextAction)}
 
                 ${renderQuickActions()}
+
+                ${renderTrainingGoal(selectedGoal)}
 
                 ${renderTrainingProgress(trainingProgress)}
 

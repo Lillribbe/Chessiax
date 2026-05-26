@@ -1695,6 +1695,35 @@ textarea {
     flex-wrap: wrap;
 }
 
+.dashboard-goal-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.dashboard-goal-card h2,
+.dashboard-goal-card p {
+    margin: 0;
+}
+
+.dashboard-goal-card p {
+    margin-top: 6px;
+    color: var(--text-muted);
+}
+
+.dashboard-goal-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dashboard-goal-controls select {
+    min-width: 210px;
+}
+
 .dashboard-progress-section {
     display: grid;
     gap: 14px;
@@ -2366,6 +2395,15 @@ iframe {
         align-items: stretch;
     }
 
+    .dashboard-goal-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dashboard-goal-controls {
+        justify-content: flex-start;
+    }
+
     .dashboard-next-actions {
         justify-content: flex-start;
     }
@@ -2442,6 +2480,8 @@ iframe {
     .tactics-completion-actions button,
     .tactics-progress-card button,
     .dashboard-actions button,
+    .dashboard-goal-controls button,
+    .dashboard-goal-controls select,
     .dashboard-next-card button,
     .dashboard-next-actions .module-soon-pill,
     .dashboard-score-pill,
