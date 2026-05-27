@@ -928,6 +928,150 @@
             `;
         }
 
+        function getGoalPriorityAdjustment(goal, category) {
+            if (goal === "tactics" && category === "Tactics") {
+                return -18;
+            }
+            if (goal === "openings" && ["Opening Review", "Opening Practice"].includes(category)) {
+                return -18;
+            }
+            if (goal === "reviews" && category === "Game Review") {
+                return -18;
+            }
+            if (goal === "consistency" && category === "Study Plan") {
+                return -12;
+            }
+            return 0;
+        }
+
+        function createTrainingQueueItem(title, category, reason, label, href, priority) {
+            return {
+                title,
+                category,
+                reason,
+                label,
+                href,
+                priority
+            };
+        }
+
+        function buildTrainingQueue(savedAnalysis, studyProgress, tacticsProgress, savedReview, openingMasteryItems, goal = "balanced") {
+            const queue = [];
+
+            if (studyProgress && studyProgress.completedCount < 7) {
+                const day = findNextGoalStudyDay(savedAnalysis, studyProgress, goal) || {
+                    day: studyProgress.nextDay,
+                    focus: `Day ${studyProgress.nextDay}`,
+                    category: "Review",
+                    task: "Continue your next study-plan task"
+                };
+                const action = getStudyDayAction(day);
+                queue.push(createTrainingQueueItem(
+                    `Continue Day ${day.day}: ${day.focus}`,
+                    "Study Plan",
+                    day.task || "Your study plan has an incomplete day ready.",
+                    action.primaryLabel || action.secondaryLabel || "Continue Study Plan",
+                    action.primaryHref || action.secondaryHref || "profile.html",
+                    10
+                ));
+            }
+
+            getOpeningsDueForReview(openingMasteryItems).forEach((item, index) => {
+                queue.push(createTrainingQueueItem(
+                    `Review ${item.opening}`,
+                    "Opening Review",
+                    item.dueReason,
+                    "Practice Now",
+                    `opening.html?name=${encodeURIComponent(item.opening)}&mode=practice`,
+                    20 + index
+                ));
+            });
+
+            if (tacticsProgress) {
+                const last = tacticsProgress.lastSession || {};
+                const accuracy = safeNumber(last.accuracy);
+                queue.push(createTrainingQueueItem(
+                    accuracy < 70 ? "Rebuild tactics accuracy" : "Keep tactics sharp",
+                    "Tactics",
+                    accuracy < 70
+                        ? `Your last tactics accuracy was ${accuracy}%, so a short session is useful.`
+                        : "You have tactics progress saved. Keep the pattern-recognition habit alive.",
+                    "Train Tactics",
+                    "tactics.html",
+                    accuracy < 70 ? 30 : 45
+                ));
+            }
+
+            if (savedReview) {
+                const review = savedReview.data || {};
+                const phase = review.estimated_phase || "unknown";
+                queue.push(createTrainingQueueItem(
+                    "Follow up on latest game review",
+                    "Game Review",
+                    `Your latest reviewed game points to the ${phase} phase.`,
+                    "Open Review",
+                    "review.html",
+                    40
+                ));
+            }
+
+            if (openingMasteryItems.length) {
+                const practiceTarget = [...openingMasteryItems].sort((a, b) => a.mastery - b.mastery)[0];
+                queue.push(createTrainingQueueItem(
+                    `Practice ${practiceTarget.opening}`,
+                    "Opening Practice",
+                    `Lowest current mastery score: ${safeNumber(practiceTarget.mastery)}%.`,
+                    "Practice Opening",
+                    `opening.html?name=${encodeURIComponent(practiceTarget.opening)}&mode=practice`,
+                    50
+                ));
+            }
+
+            if (!queue.length) {
+                queue.push(createTrainingQueueItem(
+                    "Start with profile analysis",
+                    "Getting Started",
+                    "Analyze your Chess.com profile to unlock personalized study targets.",
+                    "Analyze Profile",
+                    "profile.html",
+                    90
+                ));
+            }
+
+            return queue
+                .map(item => ({
+                    ...item,
+                    adjustedPriority: item.priority + getGoalPriorityAdjustment(goal, item.category)
+                }))
+                .sort((a, b) => a.adjustedPriority - b.adjustedPriority)
+                .slice(0, 5);
+        }
+
+        function renderTrainingQueue(queue) {
+            return `
+                <section class="card dashboard-training-queue">
+                    <div class="dashboard-training-queue-header">
+                        <div>
+                            <h2>Training Queue</h2>
+                            <p>Your next prioritized training tasks.</p>
+                        </div>
+                    </div>
+                    <div class="training-queue-list">
+                        ${queue.map(item => `
+                            <div class="training-queue-item">
+                                <div>
+                                    <span class="training-queue-category">${escapeHtml(item.category)}</span>
+                                    <h3>${escapeHtml(item.title)}</h3>
+                                    <p>${escapeHtml(item.reason)}</p>
+                                </div>
+                                <button onclick="window.location.href='${escapeHtml(item.href)}'">${escapeHtml(item.label)}</button>
+                            </div>
+                        `).join("")}
+                    </div>
+                </section>
+            `;
+        }
+
         function buildGoalAction(goal, savedAnalysis, savedReview) {
             if (goal === "openings") {
                 const study = getRecommendedStudyItems(savedAnalysis?.analysis || {});
@@ -1135,6 +1279,14 @@
             const trainingProgress = getTrainingProgress(tacticsProgress);
             const selectedGoal = getSavedTrainingGoal();
             const nextAction = buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress, savedReview, selectedGoal);
+            const trainingQueue = buildTrainingQueue(
+                savedAnalysis,
+                studyProgress,
+                tacticsProgress,
+                savedReview,
+                openingMasteryItems,
+                selectedGoal
+            );
             const cards = [];
 
             if (savedAnalysis) {
@@ -1195,6 +1347,8 @@
                 ${renderQuickActions()}
 
                 ${renderTrainingGoal(selectedGoal)}
+
+                ${renderTrainingQueue(trainingQueue)}
 
                 ${renderTrainingProgress(trainingProgress)}
 

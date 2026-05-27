@@ -1847,6 +1847,55 @@ textarea {
     gap: 14px;
 }
 
+.dashboard-training-queue {
+    display: grid;
+    gap: 14px;
+}
+
+.dashboard-training-queue-header h2,
+.dashboard-training-queue-header p,
+.training-queue-item h3,
+.training-queue-item p {
+    margin: 0;
+}
+
+.dashboard-training-queue-header p,
+.training-queue-item p {
+    color: var(--text-muted);
+}
+
+.training-queue-list {
+    display: grid;
+    gap: 10px;
+}
+
+.training-queue-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.training-queue-item > div {
+    display: grid;
+    gap: 6px;
+}
+
+.training-queue-category {
+    width: fit-content;
+    padding: 5px 9px;
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    border-radius: 999px;
+    color: var(--accent);
+    background: rgba(56, 189, 248, 0.1);
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
 .dashboard-opening-mastery-header {
     display: flex;
     align-items: center;
@@ -2766,6 +2815,7 @@ iframe {
     }
 
     .due-opening-header,
+    .training-queue-item,
     .opening-mastery-row {
         align-items: stretch;
         flex-direction: column;
@@ -2785,6 +2835,7 @@ iframe {
     .review-actions .module-soon-pill,
     .review-actions .learn-btn,
     .coach-note-actions button,
+    .training-queue-item button,
     .dashboard-opening-mastery-header button,
     .dashboard-coach-notes-header button {
         width: 100%;
