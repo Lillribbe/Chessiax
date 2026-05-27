@@ -2337,13 +2337,54 @@ textarea {
 }
 
 .session-summary h4 {
-    margin-top: 0;
+    margin: 0;
     color: #bbf7d0;
 }
 
-.session-summary button {
-    margin-right: 8px;
-    margin-top: 10px;
+.session-summary-header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.session-summary-header p {
+    margin: 6px 0 0;
+    color: var(--text-muted);
+}
+
+.session-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.session-summary-grid p {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.58);
+}
+
+.session-summary-grid strong {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.session-summary-grid span {
+    color: var(--text-main);
+    font-weight: 800;
+}
+
+.session-summary-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
 }
 
 .move-controls {
@@ -2876,6 +2917,15 @@ iframe {
         flex-direction: column;
     }
 
+    .session-summary-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .session-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
     .tactics-completion-actions button,
     .tactics-progress-card button,
     .dashboard-actions button,
@@ -2891,6 +2941,7 @@ iframe {
     .review-actions .learn-btn,
     .coach-note-actions button,
     .training-queue-item button,
+    .session-summary-actions button,
     .dashboard-opening-mastery-header button,
     .dashboard-coach-notes-header button {
         width: 100%;

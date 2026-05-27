@@ -762,8 +762,8 @@ function processPracticeMove(userMove) {
                 "complete"
             );
 
-            savePracticeStats(accuracy);
-            showSessionSummary(accuracy);
+            const updatedStats = savePracticeStats(accuracy);
+            showSessionSummary(accuracy, updatedStats);
         } else {
             setPracticeStatus("Correct. Find the next move.", "success");
         }
@@ -1127,8 +1127,8 @@ function playPracticeAnswer() {
 
         document.getElementById("practiceStatus").innerText =
             `Line complete. Accuracy: ${accuracy}%.`;
-            savePracticeStats(accuracy);
-            showSessionSummary(accuracy);
+            const updatedStats = savePracticeStats(accuracy);
+            showSessionSummary(accuracy, updatedStats);
     } else {
         document.getElementById("practiceStatus").innerText =
             "Answer played. Find the next move.";
@@ -1215,6 +1215,43 @@ function getMasteryStatus(score) {
     return "Strong";
 }
 
+function getDaysSinceLastPractice(lastPracticed) {
+    if (!lastPracticed) {
+        return null;
+    }
+
+    const practicedAt = new Date(lastPracticed).getTime();
+    if (!Number.isFinite(practicedAt)) {
+        return null;
+    }
+
+    const dayMs = 1000 * 60 * 60 * 24;
+    return Math.max(0, Math.floor((Date.now() - practicedAt) / dayMs));
+}
+
+function getDueForReviewStatus(stats) {
+    if (!stats) {
+        return "No practice data yet";
+    }
+
+    const mastery = calculateOpeningMastery(stats);
+    const daysSinceLastPractice = getDaysSinceLastPractice(stats.lastPracticed);
+
+    if (daysSinceLastPractice === null) {
+        return "Due for review: practice date missing";
+    }
+    if (mastery < 40) {
+        return "Due for review: mastery below 40%";
+    }
+    if (mastery <= 70 && daysSinceLastPractice > 3) {
+        return "Due for review: more than 3 days since practice";
+    }
+    if (mastery > 70 && daysSinceLastPractice > 7) {
+        return "Due for review: more than 7 days since practice";
+    }
+    return "Not due right now";
+}
+
 function renderOpeningMastery(stats) {
     const card = document.getElementById("openingMasteryCard");
     if (!card) {
@@ -1287,6 +1324,7 @@ function savePracticeStats(accuracy) {
         console.warn("Could not save practice stats", error);
     }
     loadPracticeStats();
+    return stats;
 }
 
 function setPracticeStatus(message, type = "neutral") {
@@ -1374,29 +1412,52 @@ function loadMistakeReviewPosition() {
     updateStudyStatus();
 }
 
-function showSessionSummary(accuracy) {
+function getRecommendedNextStep(accuracy) {
+    if (accuracy < 60) {
+        return "Practice this line again and review the mistakes before moving on.";
+    }
+    if (accuracy <= 80) {
+        return "Review your mistakes now, then repeat this opening later.";
+    }
+    return "Strong session. Move to another opening or continue from your dashboard queue.";
+}
+
+function showSessionSummary(accuracy, stats = getPracticeStats()) {
     const summaryDiv = document.getElementById("sessionSummary");
     if (!summaryDiv) return;
 
-    let message = "Good work.";
-
-    if (accuracy >= 90) {
-        message = "Excellent. You know this line very well.";
-    } else if (accuracy >= 70) {
-        message = "Good job. Review the mistakes and try again.";
-    } else {
-        message = "Keep practicing. This line needs more repetition.";
-    }
+    const latestStats = stats || getPracticeStats() || {};
+    const attempts = practiceCorrect + practiceMistakes;
+    const mastery = calculateOpeningMastery(latestStats);
+    const status = getMasteryStatus(mastery);
+    const dueStatus = getDueForReviewStatus(latestStats);
+    const nextStep = getRecommendedNextStep(accuracy);
 
     summaryDiv.style.display = "block";
     summaryDiv.innerHTML = `
-        <h4>✅ Session Complete</h4>
-        <p><strong>Accuracy:</strong> ${accuracy}%</p>
-        <p><strong>Correct:</strong> ${practiceCorrect}</p>
-        <p><strong>Mistakes:</strong> ${practiceMistakes}</p>
-        <p>${message}</p>
-        <button onclick="startPracticeMode()">Practice Again</button>
-        <button onclick="startMistakeReview()">Review Mistakes</button>
+        <div class="session-summary-header">
+            <div>
+                <h4>Session Complete</h4>
+                <p>${nextStep}</p>
+            </div>
+            <span class="mastery-status mastery-${status.toLowerCase()}">${status}</span>
+        </div>
+        <div class="session-summary-grid">
+            <p><strong>Accuracy</strong><span>${accuracy}%</span></p>
+            <p><strong>Correct moves</strong><span>${practiceCorrect}</span></p>
+            <p><strong>Mistakes</strong><span>${practiceMistakes}</span></p>
+            <p><strong>Attempts</strong><span>${attempts}</span></p>
+            <p><strong>Mastery</strong><span>${mastery}%</span></p>
+            <p><strong>Last accuracy</strong><span>${Number(latestStats.lastAccuracy) || 0}%</span></p>
+            <p><strong>Best accuracy</strong><span>${Number(latestStats.bestAccuracy) || 0}%</span></p>
+            <p><strong>Review status</strong><span>${dueStatus}</span></p>
+        </div>
+        <div class="session-summary-actions">
+            <button onclick="startPracticeMode()">Practice Again</button>
+            <button class="secondary-btn" onclick="startMistakeReview()">Review Mistakes</button>
+            <button class="secondary-btn" onclick="window.location.href='openings.html'">Back to Library</button>
+            <button class="secondary-btn" onclick="window.location.href='dashboard.html'">Go to Dashboard</button>
+        </div>
     `;
 }
 
