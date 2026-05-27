@@ -1446,6 +1446,46 @@ textarea {
     flex-wrap: wrap;
 }
 
+.coach-note-inline {
+    display: grid;
+    gap: 10px;
+    text-align: left;
+    padding: 14px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.coach-note-inline h3,
+.coach-note-inline p,
+.coach-note-card h2,
+.coach-note-card p {
+    margin: 0;
+}
+
+.coach-note-card {
+    display: grid;
+    gap: 12px;
+}
+
+.coach-note-input {
+    min-height: 96px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.coach-note-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.coach-note-status {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+}
+
 .tactics-progress-card {
     display: flex;
     align-items: center;
@@ -1790,6 +1830,60 @@ textarea {
 .dashboard-empty-state {
     display: grid;
     gap: 10px;
+}
+
+.dashboard-coach-notes {
+    display: grid;
+    gap: 14px;
+}
+
+.dashboard-coach-notes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dashboard-coach-notes-header h2,
+.dashboard-coach-notes-header p,
+.coach-note-list-card p,
+.coach-note-empty h3,
+.coach-note-empty p {
+    margin: 0;
+}
+
+.dashboard-coach-notes-header p,
+.coach-note-list-card p,
+.coach-note-empty p {
+    color: var(--text-muted);
+}
+
+.coach-notes-list {
+    display: grid;
+    gap: 10px;
+}
+
+.coach-note-list-card,
+.coach-note-empty {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.coach-note-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.coach-note-meta strong {
+    color: var(--text-main);
 }
 
 .dashboard-progress-bar {
@@ -2477,6 +2571,12 @@ iframe {
         flex-direction: column;
     }
 
+    .dashboard-coach-notes-header,
+    .coach-note-meta {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
     .tactics-completion-actions button,
     .tactics-progress-card button,
     .dashboard-actions button,
@@ -2489,7 +2589,9 @@ iframe {
     .review-history-actions button,
     .review-actions button,
     .review-actions .module-soon-pill,
-    .review-actions .learn-btn {
+    .review-actions .learn-btn,
+    .coach-note-actions button,
+    .dashboard-coach-notes-header button {
         width: 100%;
         justify-content: center;
     }

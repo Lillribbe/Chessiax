@@ -58,6 +58,7 @@
         const TACTICS_PROGRESS_STORAGE_KEY = "chessiax_tactics_progress";
         const SAVED_REVIEW_STORAGE_KEY = "chessiax_saved_game_review";
         const TRAINING_GOAL_STORAGE_KEY = "chessiax_training_goal";
+        const COACH_NOTES_STORAGE_KEY = "chessiax_coach_notes";
         const TRAINING_GOALS = {
             balanced: {
                 label: "Balanced improvement",
@@ -125,6 +126,25 @@
             });
         }
 
+        function formatDateTime(value) {
+            if (!value) {
+                return "N/A";
+            }
+
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return "N/A";
+            }
+
+            return date.toLocaleString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        }
+
         function getStudyPlanProgressKey(username) {
             return `${STUDY_PLAN_PROGRESS_PREFIX}${String(username || "unknown").trim().toLowerCase()}`;
         }
@@ -188,6 +208,23 @@
         function getSavedReview() {
             const saved = safeReadJson(SAVED_REVIEW_STORAGE_KEY);
             return saved && saved.data ? saved : null;
+        }
+
+        function getCoachNotes() {
+            const notes = safeReadJson(COACH_NOTES_STORAGE_KEY, []);
+            return Array.isArray(notes)
+                ? notes.filter(note => note && typeof note.text === "string" && note.timestamp)
+                : [];
+        }
+
+        function clearCoachNotes() {
+            try {
+                localStorage.removeItem(COACH_NOTES_STORAGE_KEY);
+            } catch (error) {
+                console.warn("Could not clear coach notes", error);
+            }
+
+            renderDashboard();
         }
 
         function getSavedTrainingGoal() {
@@ -640,6 +677,41 @@
             `;
         }
 
+        function renderCoachNotes(notes) {
+            const latestNotes = notes.slice(0, 5);
+            const noteCards = latestNotes.length
+                ? latestNotes.map(note => `
+                    <div class="coach-note-list-card">
+                        <div class="coach-note-meta">
+                            <strong>${escapeHtml(note.source || "Coach Note")}</strong>
+                            <span>${escapeHtml(formatDateTime(note.timestamp))}</span>
+                        </div>
+                        <p>${escapeHtml(note.text)}</p>
+                    </div>
+                `).join("")
+                : `
+                    <div class="coach-note-empty">
+                        <h3>No coach notes yet.</h3>
+                        <p>Save lessons after a game review or tactics session to build your personal training journal.</p>
+                    </div>
+                `;
+
+            return `
+                <section class="card dashboard-coach-notes">
+                    <div class="dashboard-coach-notes-header">
+                        <div>
+                            <h2>Coach Notes</h2>
+                            <p>Your latest lessons learned across Chessiax.</p>
+                        </div>
+                        <button class="secondary-btn" onclick="clearCoachNotes()" ${notes.length ? "" : "disabled"}>Clear Notes</button>
+                    </div>
+                    <div class="coach-notes-list">
+                        ${noteCards}
+                    </div>
+                </section>
+            `;
+        }
+
         function buildGoalAction(goal, savedAnalysis, savedReview) {
             if (goal === "openings") {
                 const study = getRecommendedStudyItems(savedAnalysis?.analysis || {});
@@ -842,9 +914,9 @@
             const studyProgress = getStudyPlanProgress(savedAnalysis);
             const tacticsProgress = getTacticsProgress();
             const savedReview = getSavedReview();
+            const coachNotes = getCoachNotes();
             const trainingProgress = getTrainingProgress(tacticsProgress);
             const selectedGoal = getSavedTrainingGoal();
-            const hasAnyData = Boolean(savedAnalysis || studyProgress || tacticsProgress || savedReview);
             const nextAction = buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress, savedReview, selectedGoal);
             const cards = [];
 
@@ -909,10 +981,14 @@
 
                 ${renderTrainingProgress(trainingProgress)}
 
+                ${renderCoachNotes(coachNotes)}
+
                 ${
-                    hasAnyData
+                    cards.length
                         ? `<div class="dashboard-grid">${cards.join("")}</div>`
-                        : `
+                        : coachNotes.length
+                            ? ""
+                            : `
                             <div class="card dashboard-empty-state">
                                 <h2>No saved Chessiax progress yet</h2>
                                 <p>Start by analyzing your profile, reviewing one PGN, or completing a tactics session. Your coach dashboard will fill in automatically.</p>

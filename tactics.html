@@ -79,6 +79,15 @@
             <div class="card tactics-completion-card">
                 <h2>Tactics session complete</h2>
                 <p id="completionSummary">You solved 0 out of 0 puzzles.</p>
+                <div id="tacticsCoachNoteArea" class="coach-note-inline">
+                    <h3>Save Lesson</h3>
+                    <p>Capture one takeaway from this tactics session for your dashboard.</p>
+                    <textarea id="tacticsCoachNoteInput" class="coach-note-input">I should practice recognizing tactical patterns such as forks, pins, and back-rank ideas.</textarea>
+                    <div class="coach-note-actions">
+                        <button onclick="saveTacticsCoachNote()">Save Lesson</button>
+                        <span id="tacticsCoachNoteStatus" class="coach-note-status"></span>
+                    </div>
+                </div>
                 <div class="tactics-completion-actions">
                     <button onclick="restartSession()">Restart Session</button>
                     <button class="secondary-btn" onclick="window.location.href='profile.html'">Back to Profile</button>
@@ -109,6 +118,7 @@
 
     <script>
         const TACTICS_PROGRESS_STORAGE_KEY = "chessiax_tactics_progress";
+        const COACH_NOTES_STORAGE_KEY = "chessiax_coach_notes";
         const puzzles = [
             {
                 title: "Knight fork on the back rank",
@@ -206,6 +216,55 @@
                 localStorage.setItem(TACTICS_PROGRESS_STORAGE_KEY, JSON.stringify(progress));
             } catch (error) {
                 console.warn("Could not save tactics progress", error);
+            }
+        }
+
+        function getCoachNotes() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(COACH_NOTES_STORAGE_KEY) || "[]");
+                return Array.isArray(parsed)
+                    ? parsed.filter(note => note && typeof note.text === "string" && note.timestamp)
+                    : [];
+            } catch (error) {
+                console.warn("Could not read coach notes", error);
+                return [];
+            }
+        }
+
+        function saveCoachNotes(notes) {
+            try {
+                localStorage.setItem(COACH_NOTES_STORAGE_KEY, JSON.stringify(notes.slice(0, 50)));
+            } catch (error) {
+                console.warn("Could not save coach notes", error);
+            }
+        }
+
+        function saveTacticsCoachNote() {
+            const input = document.getElementById("tacticsCoachNoteInput");
+            const status = document.getElementById("tacticsCoachNoteStatus");
+            const text = String(input?.value || "").trim();
+
+            if (!text) {
+                if (status) {
+                    status.textContent = "Add a short lesson first.";
+                }
+                return;
+            }
+
+            const note = {
+                text,
+                source: "Tactics Trainer",
+                timestamp: new Date().toISOString(),
+                context: {
+                    correct: solvedPuzzleIndexes.size,
+                    attempts,
+                    accuracy: calculateAccuracy()
+                }
+            };
+
+            saveCoachNotes([note, ...getCoachNotes()]);
+            if (status) {
+                status.textContent = "Saved to dashboard.";
             }
         }
 
@@ -375,14 +434,19 @@
         function showCompletionState() {
             document.querySelector(".tactics-layout").style.display = "none";
             document.getElementById("tacticsCompletion").style.display = "block";
+            document.getElementById("tacticsCoachNoteArea").style.display = "grid";
             saveCompletedTacticsSession();
             document.getElementById("completionSummary").textContent =
                 `You solved ${solvedPuzzleIndexes.size} out of ${activePuzzles.length} puzzles with ${calculateAccuracy()}% accuracy.`;
+            document.getElementById("tacticsCoachNoteInput").value =
+                "I should practice recognizing tactical patterns such as forks, pins, and back-rank ideas.";
+            document.getElementById("tacticsCoachNoteStatus").textContent = "";
         }
 
         function showUnavailableState() {
             document.querySelector(".tactics-layout").style.display = "none";
             document.getElementById("tacticsCompletion").style.display = "block";
+            document.getElementById("tacticsCoachNoteArea").style.display = "none";
             document.querySelector(".tactics-completion-card h2").textContent = "No tactics available";
             document.getElementById("completionSummary").textContent = "The current puzzle set could not be loaded.";
         }

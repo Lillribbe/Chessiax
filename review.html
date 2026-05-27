@@ -84,6 +84,8 @@
     <script>
         const SAVED_REVIEW_STORAGE_KEY = "chessiax_saved_game_review";
         const REVIEW_HISTORY_STORAGE_KEY = "chessiax_review_history";
+        const COACH_NOTES_STORAGE_KEY = "chessiax_coach_notes";
+        let currentReviewData = null;
 
         function escapeHtml(value) {
             return String(value ?? "")
@@ -152,6 +154,26 @@
                 localStorage.setItem(REVIEW_HISTORY_STORAGE_KEY, JSON.stringify(history.slice(0, 10)));
             } catch (error) {
                 console.warn("Could not save review history", error);
+            }
+        }
+
+        function getCoachNotes() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(COACH_NOTES_STORAGE_KEY) || "[]");
+                return Array.isArray(parsed)
+                    ? parsed.filter(note => note && typeof note.text === "string" && note.timestamp)
+                    : [];
+            } catch (error) {
+                console.warn("Could not read coach notes", error);
+                return [];
+            }
+        }
+
+        function saveCoachNotes(notes) {
+            try {
+                localStorage.setItem(COACH_NOTES_STORAGE_KEY, JSON.stringify(notes.slice(0, 50)));
+            } catch (error) {
+                console.warn("Could not save coach notes", error);
             }
         }
 
@@ -334,6 +356,62 @@
                 : "";
         }
 
+        function getSuggestedCoachNote(data) {
+            const training = Array.isArray(data.recommended_training) ? data.recommended_training : [];
+            const summary = safeText(data.coach_summary, "");
+            const recommendation = training[0] ? ` Next: ${training[0]}` : "";
+            const phase = safeText(data.estimated_phase, "");
+
+            if (summary) {
+                return `${summary}${recommendation}`.slice(0, 260);
+            }
+
+            return `Lesson learned: my critical phase was ${phase || "unclear"}. I should save one concrete training task from this game.`;
+        }
+
+        function renderCoachNoteArea(data) {
+            return `
+                <div class="card coach-note-card">
+                    <h2>Save Coach Note</h2>
+                    <p>Capture one lesson from this review so it shows up on your dashboard.</p>
+                    <textarea id="reviewCoachNoteInput" class="coach-note-input">${escapeHtml(getSuggestedCoachNote(data))}</textarea>
+                    <div class="coach-note-actions">
+                        <button onclick="saveReviewCoachNote()">Save Note</button>
+                        <span id="reviewCoachNoteStatus" class="coach-note-status"></span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveReviewCoachNote() {
+            const input = document.getElementById("reviewCoachNoteInput");
+            const status = document.getElementById("reviewCoachNoteStatus");
+            const text = String(input?.value || "").trim();
+
+            if (!text) {
+                if (status) {
+                    status.textContent = "Add a short lesson first.";
+                }
+                return;
+            }
+
+            const data = currentReviewData || {};
+            const note = {
+                text,
+                source: "Game Review",
+                timestamp: new Date().toISOString(),
+                context: {
+                    opening: data.opening || "",
+                    estimated_phase: data.estimated_phase || ""
+                }
+            };
+
+            saveCoachNotes([note, ...getCoachNotes()]);
+            if (status) {
+                status.textContent = "Saved to dashboard.";
+            }
+        }
+
         function renderEngineReview(data) {
             const engineReview = data && typeof data.engine_review === "object" ? data.engine_review : null;
 
@@ -385,6 +463,7 @@
         }
 
         function renderReview(data, username, isSaved = false) {
+            currentReviewData = data || {};
             const training = Array.isArray(data.recommended_training) ? data.recommended_training : [];
             const playerResult = username
                 ? `<div class="overview-card"><h3>Your result</h3><p>${escapeHtml(safeText(data.player_result, "Unknown"))}</p></div>`
@@ -449,6 +528,8 @@
                     </div>
 
                     ${renderEngineReview(data)}
+
+                    ${renderCoachNoteArea(data)}
                 </div>
             `;
         }
