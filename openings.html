@@ -79,6 +79,12 @@
                     <button class="practice-filter-btn" onclick="setPracticeFilter('Practiced')">Practiced</button>
                     <button class="practice-filter-btn" onclick="setPracticeFilter('Not Practiced')">Not Practiced</button>
                 </div>
+
+                <div class="filter-buttons">
+                    <button class="review-status-btn active-review-status" onclick="setReviewStatusFilter('All')">All Review Status</button>
+                    <button class="review-status-btn" onclick="setReviewStatusFilter('Due for Review')">Due for Review</button>
+                    <button class="review-status-btn" onclick="setReviewStatusFilter('Not Due')">Not Due</button>
+                </div>
         
                 <div class="filter-buttons">
                     <button class="style-btn active-style" onclick="setStyleFilter('All')">All Styles</button>
@@ -193,6 +199,7 @@
         let selectedLevel = "All";
         let selectedColor = "All";
         let selectedPractice = "All";
+        let selectedReviewStatus = "All";
         let selectedStyle = "All";
         let selectedFamily = "All";
         let selectedVariation = "All";
@@ -288,6 +295,17 @@
                 return "Due after 7 days";
             }
             return "";
+        }
+
+        function isOpeningDueForReview(openingName) {
+            const stats = getPracticeStats(openingName);
+            if (!stats) {
+                return false;
+            }
+
+            const mastery = calculateOpeningMastery(stats);
+            const daysSinceLastPractice = getDaysSinceLastPractice(stats.lastPracticed);
+            return Boolean(getReviewDueReason(mastery, daysSinceLastPractice));
         }
 
         function renderOpeningMastery(openingName) {
@@ -505,6 +523,7 @@
             selectedLevel = "All";
             selectedColor = "All";
             selectedPractice = "All";
+            selectedReviewStatus = "All";
             selectedStyle = "All";
             selectedFamily = "All";
             selectedVariation = "All";
@@ -513,6 +532,7 @@
             updateButtonGroupActive("filter-btn", "active-filter", "All");
             updateButtonGroupActive("color-btn", "active-color", "All");
             updateButtonGroupActive("practice-filter-btn", "active-practice-filter", "All");
+            updateButtonGroupActive("review-status-btn", "active-review-status", "All");
             updateButtonGroupActive("style-btn", "active-style", "All");
             updateButtonGroupActive("family-btn", "active-family", "All");
             updateButtonGroupActive("variation-btn", "active-variation", "All");
@@ -546,6 +566,7 @@
             const levelFilter = selectedLevel || "All";
             const colorFilter = selectedColor || "All";
             const practiceFilter = selectedPractice || "All";
+            const reviewStatusFilter = selectedReviewStatus || "All";
             const styleFilter = selectedStyle || "All";
             const familyFilter = selectedFamily || "All";
             const variationFilter = selectedVariation || "All";
@@ -620,6 +641,21 @@
                     }
                 }
 
+                let matchesReviewStatus = true;
+
+                if (reviewStatusFilter !== "All") {
+                    const stats = getPracticeStats(opening.name);
+                    const isDue = stats ? isOpeningDueForReview(opening.name) : false;
+
+                    if (reviewStatusFilter === "Due for Review") {
+                        matchesReviewStatus = Boolean(stats && isDue);
+                    }
+
+                    if (reviewStatusFilter === "Not Due") {
+                        matchesReviewStatus = Boolean(stats && !isDue);
+                    }
+                }
+
                 return (
                     matchesSearch &&
                     matchesLevel &&
@@ -628,7 +664,8 @@
                     matchesFamily &&
                     matchesVariation &&
                     matchesEco &&
-                    matchesPractice
+                    matchesPractice &&
+                    matchesReviewStatus
                 );
             });
 
@@ -640,6 +677,7 @@
                 levelFilter,
                 colorFilter,
                 practiceFilter,
+                reviewStatusFilter,
                 styleFilter,
                 familyFilter,
                 variationFilter,
@@ -712,6 +750,7 @@
                 selectedLevel !== "All" ||
                 selectedColor !== "All" ||
                 selectedPractice !== "All" ||
+                selectedReviewStatus !== "All" ||
                 selectedStyle !== "All" ||
                 selectedFamily !== "All" ||
                 selectedVariation !== "All" ||
@@ -772,6 +811,12 @@
         function setPracticeFilter(practice) {
             selectedPractice = practice;
             updateButtonGroupActive("practice-filter-btn", "active-practice-filter", practice);
+            filterOpenings();
+        }
+
+        function setReviewStatusFilter(reviewStatus) {
+            selectedReviewStatus = reviewStatus;
+            updateButtonGroupActive("review-status-btn", "active-review-status", reviewStatus);
             filterOpenings();
         }
 
