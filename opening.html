@@ -119,6 +119,11 @@
                     <p><strong>Best Accuracy:</strong> <span id="bestAccuracy">N/A</span></p>
                     <p><strong>Attempts:</strong> <span id="practiceAttempts">0</span></p>
                 </div>
+
+                <div id="openingMasteryCard" class="opening-mastery-card">
+                    <h4>Your Mastery</h4>
+                    <p>No practice data yet. Start Practice Mode to build mastery.</p>
+                </div>
     
                 <div id="sessionSummary" class="session-summary" style="display:none;"></div>
     
@@ -1170,47 +1175,117 @@ function getPracticeStorageKey() {
     return "practice_stats_" + openingName;
 }
 
-function loadPracticeStats() {
+function getPracticeStats() {
     const key = getPracticeStorageKey();
-    const raw = localStorage.getItem(key);
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) {
+            return null;
+        }
+
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : null;
+    } catch (error) {
+        console.warn("Could not read practice stats", error);
+        return null;
+    }
+}
+
+function calculateOpeningMastery(stats) {
+    if (!stats) {
+        return 0;
+    }
+
+    const lastAccuracy = Number(stats.lastAccuracy) || 0;
+    const bestAccuracy = Number(stats.bestAccuracy) || 0;
+    const attempts = Number(stats.attempts) || 0;
+    return Math.min(100, Math.round((bestAccuracy * 0.6) + (lastAccuracy * 0.3) + Math.min(attempts * 2, 10)));
+}
+
+function getMasteryStatus(score) {
+    if (score <= 30) {
+        return "New";
+    }
+    if (score <= 60) {
+        return "Learning";
+    }
+    if (score <= 85) {
+        return "Improving";
+    }
+    return "Strong";
+}
+
+function renderOpeningMastery(stats) {
+    const card = document.getElementById("openingMasteryCard");
+    if (!card) {
+        return;
+    }
+
+    if (!stats) {
+        card.innerHTML = `
+            <h4>Your Mastery</h4>
+            <p>No practice data yet. Start Practice Mode to build mastery.</p>
+        `;
+        return;
+    }
+
+    const mastery = calculateOpeningMastery(stats);
+    const status = getMasteryStatus(mastery);
+
+    card.innerHTML = `
+        <div class="opening-mastery-header">
+            <h4>Your Mastery</h4>
+            <span class="mastery-status mastery-${status.toLowerCase()}">${status}</span>
+        </div>
+        <div class="mastery-score">${mastery}%</div>
+        <div class="mastery-stat-grid">
+            <p><strong>Last:</strong> ${Number(stats.lastAccuracy) || 0}%</p>
+            <p><strong>Best:</strong> ${Number(stats.bestAccuracy) || 0}%</p>
+            <p><strong>Attempts:</strong> ${Number(stats.attempts) || 0}</p>
+        </div>
+    `;
+}
+
+function loadPracticeStats() {
+    const stats = getPracticeStats();
 
     const lastAccuracySpan = document.getElementById("lastAccuracy");
     const bestAccuracySpan = document.getElementById("bestAccuracy");
     const attemptsSpan = document.getElementById("practiceAttempts");
 
-    if (!raw) {
+    if (!stats) {
         if (lastAccuracySpan) lastAccuracySpan.innerText = "N/A";
         if (bestAccuracySpan) bestAccuracySpan.innerText = "N/A";
         if (attemptsSpan) attemptsSpan.innerText = "0";
+        renderOpeningMastery(null);
         return;
     }
 
-    const stats = JSON.parse(raw);
-
-    if (lastAccuracySpan) lastAccuracySpan.innerText = `${stats.lastAccuracy}%`;
-    if (bestAccuracySpan) bestAccuracySpan.innerText = `${stats.bestAccuracy}%`;
-    if (attemptsSpan) attemptsSpan.innerText = stats.attempts;
+    if (lastAccuracySpan) lastAccuracySpan.innerText = `${Number(stats.lastAccuracy) || 0}%`;
+    if (bestAccuracySpan) bestAccuracySpan.innerText = `${Number(stats.bestAccuracy) || 0}%`;
+    if (attemptsSpan) attemptsSpan.innerText = Number(stats.attempts) || 0;
+    renderOpeningMastery(stats);
 }
 
 function savePracticeStats(accuracy) {
     const key = getPracticeStorageKey();
-    const raw = localStorage.getItem(key);
-
-    let stats = raw
-        ? JSON.parse(raw)
-        : {
-            lastAccuracy: 0,
-            bestAccuracy: 0,
-            attempts: 0
-        };
+    let stats = getPracticeStats() || {
+        lastAccuracy: 0,
+        bestAccuracy: 0,
+        attempts: 0
+    };
 
     stats.lastAccuracy = accuracy;
     stats.bestAccuracy = Math.max(stats.bestAccuracy || 0, accuracy);
     stats.attempts = (stats.attempts || 0) + 1; 
     stats.lastPracticed = new Date().toISOString();
     saveDailyPracticeProgress();
-    
-    localStorage.setItem(key, JSON.stringify(stats));
+
+    try {
+        localStorage.setItem(key, JSON.stringify(stats));
+    } catch (error) {
+        console.warn("Could not save practice stats", error);
+    }
     loadPracticeStats();
 }
 

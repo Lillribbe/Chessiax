@@ -300,6 +300,58 @@
             return attempts;
         }
 
+        function calculateOpeningMastery(stats) {
+            if (!stats) {
+                return 0;
+            }
+
+            const bestAccuracy = safeNumber(stats.bestAccuracy);
+            const lastAccuracy = safeNumber(stats.lastAccuracy);
+            const attempts = safeNumber(stats.attempts);
+            return Math.min(100, Math.round((bestAccuracy * 0.6) + (lastAccuracy * 0.3) + Math.min(attempts * 2, 10)));
+        }
+
+        function getMasteryStatus(score) {
+            if (score <= 30) {
+                return "New";
+            }
+            if (score <= 60) {
+                return "Learning";
+            }
+            if (score <= 85) {
+                return "Improving";
+            }
+            return "Strong";
+        }
+
+        function getOpeningMasteryItems() {
+            const items = [];
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key || !key.startsWith("practice_stats_")) {
+                    continue;
+                }
+
+                const stats = safeReadJson(key, null);
+                if (!stats || typeof stats !== "object") {
+                    continue;
+                }
+
+                const opening = key.replace("practice_stats_", "");
+                const mastery = calculateOpeningMastery(stats);
+                items.push({
+                    opening,
+                    stats,
+                    mastery,
+                    status: getMasteryStatus(mastery),
+                    lastPracticedTime: stats.lastPracticed ? new Date(stats.lastPracticed).getTime() : 0
+                });
+            }
+
+            return items;
+        }
+
         function getActivityMessage(score) {
             if (score === 0) {
                 return "Start your first training session.";
@@ -712,6 +764,70 @@
             `;
         }
 
+        function renderMasteryList(items, emptyText) {
+            if (!items.length) {
+                return `<p class="opening-mastery-empty">${escapeHtml(emptyText)}</p>`;
+            }
+
+            return items.map(item => `
+                <div class="opening-mastery-row">
+                    <div>
+                        <strong>${escapeHtml(item.opening)}</strong>
+                        <span>${escapeHtml(item.status)} · ${safeNumber(item.stats.attempts)} attempts</span>
+                    </div>
+                    <div class="opening-mastery-row-score">${safeNumber(item.mastery)}%</div>
+                </div>
+            `).join("");
+        }
+
+        function renderOpeningMasterySection(items) {
+            if (!items.length) {
+                return `
+                    <section class="card dashboard-opening-mastery">
+                        <h2>Opening Mastery</h2>
+                        <div class="coach-note-empty">
+                            <h3>No opening mastery yet.</h3>
+                            <p>Practice an opening to build your first mastery score.</p>
+                        </div>
+                    </section>
+                `;
+            }
+
+            const topOpenings = [...items]
+                .sort((a, b) => b.mastery - a.mastery)
+                .slice(0, 3);
+            const reviewOpenings = [...items]
+                .sort((a, b) => {
+                    if (a.mastery !== b.mastery) {
+                        return a.mastery - b.mastery;
+                    }
+                    return a.lastPracticedTime - b.lastPracticedTime;
+                })
+                .slice(0, 3);
+
+            return `
+                <section class="card dashboard-opening-mastery">
+                    <div class="dashboard-opening-mastery-header">
+                        <div>
+                            <h2>Opening Mastery</h2>
+                            <p>Practice scores based on best accuracy, latest accuracy, and attempts.</p>
+                        </div>
+                        <button class="secondary-btn" onclick="window.location.href='openings.html'">Practice Openings</button>
+                    </div>
+                    <div class="opening-mastery-dashboard-grid">
+                        <div>
+                            <h3>Top mastered</h3>
+                            ${renderMasteryList(topOpenings, "No mastered openings yet.")}
+                        </div>
+                        <div>
+                            <h3>Needs review</h3>
+                            ${renderMasteryList(reviewOpenings, "No review targets yet.")}
+                        </div>
+                    </div>
+                </section>
+            `;
+        }
+
         function buildGoalAction(goal, savedAnalysis, savedReview) {
             if (goal === "openings") {
                 const study = getRecommendedStudyItems(savedAnalysis?.analysis || {});
@@ -915,6 +1031,7 @@
             const tacticsProgress = getTacticsProgress();
             const savedReview = getSavedReview();
             const coachNotes = getCoachNotes();
+            const openingMasteryItems = getOpeningMasteryItems();
             const trainingProgress = getTrainingProgress(tacticsProgress);
             const selectedGoal = getSavedTrainingGoal();
             const nextAction = buildRecommendedAction(savedAnalysis, studyProgress, tacticsProgress, savedReview, selectedGoal);
@@ -980,6 +1097,8 @@
                 ${renderTrainingGoal(selectedGoal)}
 
                 ${renderTrainingProgress(trainingProgress)}
+
+                ${renderOpeningMasterySection(openingMasteryItems)}
 
                 ${renderCoachNotes(coachNotes)}
 

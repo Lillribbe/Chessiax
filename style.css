@@ -1837,6 +1837,68 @@ textarea {
     gap: 14px;
 }
 
+.dashboard-opening-mastery {
+    display: grid;
+    gap: 14px;
+}
+
+.dashboard-opening-mastery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dashboard-opening-mastery-header h2,
+.dashboard-opening-mastery-header p,
+.dashboard-opening-mastery h3,
+.opening-mastery-empty {
+    margin: 0;
+}
+
+.dashboard-opening-mastery-header p,
+.opening-mastery-empty {
+    color: var(--text-muted);
+}
+
+.opening-mastery-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.opening-mastery-dashboard-grid > div {
+    display: grid;
+    gap: 10px;
+}
+
+.opening-mastery-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.opening-mastery-row div:first-child {
+    display: grid;
+    gap: 3px;
+}
+
+.opening-mastery-row span {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.opening-mastery-row-score {
+    color: var(--accent);
+    font-size: 1.25rem;
+    font-weight: 900;
+}
+
 .dashboard-coach-notes-header {
     display: flex;
     align-items: center;
@@ -2039,6 +2101,71 @@ textarea {
 
 .practice-history h4 {
     margin: 0 0 10px;
+}
+
+.opening-mastery-card {
+    display: grid;
+    gap: 10px;
+    margin: 16px 0;
+    padding: 14px;
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    border-radius: 16px;
+    background: rgba(2, 6, 23, 0.35);
+}
+
+.opening-mastery-card h4,
+.opening-mastery-card p {
+    margin: 0;
+}
+
+.opening-mastery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.mastery-score {
+    color: var(--accent);
+    font-size: 2rem;
+    font-weight: 900;
+}
+
+.mastery-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.mastery-stat-grid p {
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.72);
+    color: var(--text-muted);
+}
+
+.mastery-status {
+    padding: 5px 9px;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+.mastery-new,
+.mastery-learning {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.12);
+}
+
+.mastery-improving {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+}
+
+.mastery-strong {
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.12);
 }
 
 .difficulty-box {
@@ -2572,7 +2699,18 @@ iframe {
     }
 
     .dashboard-coach-notes-header,
+    .dashboard-opening-mastery-header,
     .coach-note-meta {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .opening-mastery-dashboard-grid,
+    .mastery-stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .opening-mastery-row {
         align-items: stretch;
         flex-direction: column;
     }
@@ -2591,6 +2729,7 @@ iframe {
     .review-actions .module-soon-pill,
     .review-actions .learn-btn,
     .coach-note-actions button,
+    .dashboard-opening-mastery-header button,
     .dashboard-coach-notes-header button {
         width: 100%;
         justify-content: center;
