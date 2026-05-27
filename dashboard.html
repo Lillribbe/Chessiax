@@ -324,6 +324,20 @@
             return "Strong";
         }
 
+        function getDaysSinceLastPractice(lastPracticed) {
+            if (!lastPracticed) {
+                return null;
+            }
+
+            const practicedAt = new Date(lastPracticed).getTime();
+            if (!Number.isFinite(practicedAt)) {
+                return null;
+            }
+
+            const dayMs = 1000 * 60 * 60 * 24;
+            return Math.max(0, Math.floor((Date.now() - practicedAt) / dayMs));
+        }
+
         function getOpeningMasteryItems() {
             const items = [];
 
@@ -340,16 +354,54 @@
 
                 const opening = key.replace("practice_stats_", "");
                 const mastery = calculateOpeningMastery(stats);
+                const practicedTime = stats.lastPracticed ? new Date(stats.lastPracticed).getTime() : 0;
                 items.push({
                     opening,
                     stats,
                     mastery,
                     status: getMasteryStatus(mastery),
-                    lastPracticedTime: stats.lastPracticed ? new Date(stats.lastPracticed).getTime() : 0
+                    daysSinceLastPractice: getDaysSinceLastPractice(stats.lastPracticed),
+                    lastPracticedTime: Number.isFinite(practicedTime) ? practicedTime : 0
                 });
             }
 
             return items;
+        }
+
+        function getReviewDueReason(item) {
+            if (item.daysSinceLastPractice === null) {
+                return "No practice date saved yet.";
+            }
+
+            if (item.mastery < 40) {
+                return "Mastery is below 40%, so this opening needs reinforcement.";
+            }
+
+            if (item.mastery <= 70 && item.daysSinceLastPractice > 3) {
+                return "Learning-stage opening not practiced in more than 3 days.";
+            }
+
+            if (item.mastery > 70 && item.daysSinceLastPractice > 7) {
+                return "Strong opening is due for a light refresh after 7 days.";
+            }
+
+            return "";
+        }
+
+        function getOpeningsDueForReview(items) {
+            return items
+                .map(item => ({
+                    ...item,
+                    dueReason: getReviewDueReason(item)
+                }))
+                .filter(item => item.dueReason)
+                .sort((a, b) => {
+                    if (a.mastery !== b.mastery) {
+                        return a.mastery - b.mastery;
+                    }
+                    return (b.daysSinceLastPractice ?? 9999) - (a.daysSinceLastPractice ?? 9999);
+                })
+                .slice(0, 5);
         }
 
         function getActivityMessage(score) {
@@ -828,6 +880,54 @@
             `;
         }
 
+        function renderOpeningsDueForReview(items) {
+            const dueOpenings = getOpeningsDueForReview(items);
+
+            if (!dueOpenings.length) {
+                return `
+                    <section class="card dashboard-due-openings">
+                        <div class="dashboard-opening-mastery-header">
+                            <div>
+                                <h2>Openings Due for Review</h2>
+                                <p>No openings due for review right now.</p>
+                            </div>
+                            <button class="secondary-btn" onclick="window.location.href='openings.html'">Opening Library</button>
+                        </div>
+                    </section>
+                `;
+            }
+
+            return `
+                <section class="card dashboard-due-openings">
+                    <div class="dashboard-opening-mastery-header">
+                        <div>
+                            <h2>Openings Due for Review</h2>
+                            <p>Spaced review suggestions based on mastery and last practice date.</p>
+                        </div>
+                        <button class="secondary-btn" onclick="window.location.href='openings.html'">Opening Library</button>
+                    </div>
+                    <div class="due-openings-grid">
+                        ${dueOpenings.map(item => `
+                            <div class="due-opening-card">
+                                <div class="due-opening-header">
+                                    <h3>${escapeHtml(item.opening)}</h3>
+                                    <span class="opening-mastery-row-score">${safeNumber(item.mastery)}%</span>
+                                </div>
+                                <div class="due-opening-stats">
+                                    <span>Last: ${safeNumber(item.stats.lastAccuracy)}%</span>
+                                    <span>Best: ${safeNumber(item.stats.bestAccuracy)}%</span>
+                                    <span>Attempts: ${safeNumber(item.stats.attempts)}</span>
+                                    <span>${item.daysSinceLastPractice === null ? "Last practiced: Unknown" : `${item.daysSinceLastPractice} days ago`}</span>
+                                </div>
+                                <p>${escapeHtml(item.dueReason)}</p>
+                                <button onclick="window.location.href='opening.html?name=${encodeURIComponent(item.opening)}&mode=practice'">Practice Now</button>
+                            </div>
+                        `).join("")}
+                    </div>
+                </section>
+            `;
+        }
+
         function buildGoalAction(goal, savedAnalysis, savedReview) {
             if (goal === "openings") {
                 const study = getRecommendedStudyItems(savedAnalysis?.analysis || {});
@@ -1099,6 +1199,8 @@
                 ${renderTrainingProgress(trainingProgress)}
 
                 ${renderOpeningMasterySection(openingMasteryItems)}
+
+                ${renderOpeningsDueForReview(openingMasteryItems)}
 
                 ${renderCoachNotes(coachNotes)}
 
