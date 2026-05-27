@@ -648,6 +648,53 @@ textarea {
     line-height: 1.4;
 }
 
+.library-mastery {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.library-mastery-empty {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.library-mastery-top,
+.library-mastery-meta,
+.library-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.library-mastery-top {
+    justify-content: space-between;
+}
+
+.library-mastery-top strong {
+    color: var(--accent);
+}
+
+.library-mastery-meta {
+    color: var(--text-muted);
+    font-size: 0.86rem;
+}
+
+.library-due-badge {
+    width: fit-content;
+    padding: 5px 8px;
+    border-radius: 999px;
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
 .glow-text {
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     -webkit-background-clip: text;
@@ -2594,6 +2641,14 @@ iframe {
 
     .card-footer button {
         width: 100%;
+    }
+
+    .library-card-actions {
+        width: 100%;
+    }
+
+    .library-card-actions button {
+        flex: 1 1 100%;
     }
 
     .game-analysis-action {

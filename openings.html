@@ -208,6 +208,120 @@
             window.location.href = url;
         };
 
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function safeNumber(value, fallback = 0) {
+            return Number.isFinite(Number(value)) ? Number(value) : fallback;
+        }
+
+        function getPracticeStats(openingName) {
+            try {
+                const raw = localStorage.getItem("practice_stats_" + openingName);
+                if (!raw) {
+                    return null;
+                }
+
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === "object" ? parsed : null;
+            } catch (error) {
+                console.warn("Could not read practice stats", error);
+                return null;
+            }
+        }
+
+        function calculateOpeningMastery(stats) {
+            if (!stats) {
+                return 0;
+            }
+
+            const bestAccuracy = safeNumber(stats.bestAccuracy);
+            const lastAccuracy = safeNumber(stats.lastAccuracy);
+            const attempts = safeNumber(stats.attempts);
+            return Math.min(100, Math.round((bestAccuracy * 0.6) + (lastAccuracy * 0.3) + Math.min(attempts * 2, 10)));
+        }
+
+        function getMasteryStatus(score) {
+            if (score <= 30) {
+                return "New";
+            }
+            if (score <= 60) {
+                return "Learning";
+            }
+            if (score <= 85) {
+                return "Improving";
+            }
+            return "Strong";
+        }
+
+        function getDaysSinceLastPractice(lastPracticed) {
+            if (!lastPracticed) {
+                return null;
+            }
+
+            const practicedAt = new Date(lastPracticed).getTime();
+            if (!Number.isFinite(practicedAt)) {
+                return null;
+            }
+
+            const dayMs = 1000 * 60 * 60 * 24;
+            return Math.max(0, Math.floor((Date.now() - practicedAt) / dayMs));
+        }
+
+        function getReviewDueReason(mastery, daysSinceLastPractice) {
+            if (daysSinceLastPractice === null) {
+                return "Practice date missing";
+            }
+            if (mastery < 40) {
+                return "Low mastery";
+            }
+            if (mastery <= 70 && daysSinceLastPractice > 3) {
+                return "Due after 3 days";
+            }
+            if (mastery > 70 && daysSinceLastPractice > 7) {
+                return "Due after 7 days";
+            }
+            return "";
+        }
+
+        function renderOpeningMastery(openingName) {
+            const stats = getPracticeStats(openingName);
+
+            if (!stats) {
+                return `<div class="library-mastery library-mastery-empty">No practice data yet</div>`;
+            }
+
+            const mastery = calculateOpeningMastery(stats);
+            const status = getMasteryStatus(mastery);
+            const daysSinceLastPractice = getDaysSinceLastPractice(stats.lastPracticed);
+            const dueReason = getReviewDueReason(mastery, daysSinceLastPractice);
+            const lastPracticedText = daysSinceLastPractice === null
+                ? "Unknown"
+                : daysSinceLastPractice === 0
+                    ? "Today"
+                    : `${daysSinceLastPractice}d ago`;
+
+            return `
+                <div class="library-mastery">
+                    <div class="library-mastery-top">
+                        <strong>${mastery}% mastery</strong>
+                        <span class="mastery-status mastery-${status.toLowerCase()}">${status}</span>
+                    </div>
+                    <div class="library-mastery-meta">
+                        <span>${safeNumber(stats.attempts)} attempts</span>
+                        <span>Last: ${escapeHtml(lastPracticedText)}</span>
+                    </div>
+                    ${dueReason ? `<span class="library-due-badge">Due for review · ${escapeHtml(dueReason)}</span>` : ""}
+                </div>
+            `;
+        }
+
         async function loadOpenings() {
             try {
                 const source = document.getElementById("sourceSelect").value;
@@ -340,32 +454,35 @@
                 const card = document.createElement("div");
                 card.className = "card opening-card";
 
-                const safeName = String(opening.name || "Unknown Opening").replace(/'/g, "\\'");
+                const openingName = opening.name || "Unknown Opening";
 
                 card.innerHTML = `
                     <div class="badge-row">
-                        <span class="badge eco">${opening.eco || "ECO ?"}</span>
-                        <span class="badge level">${opening.level || "Level ?"}</span>
-                        <span class="badge style">${opening.style || "Style ?"}</span>
+                        <span class="badge eco">${escapeHtml(opening.eco || "ECO ?")}</span>
+                        <span class="badge level">${escapeHtml(opening.level || "Level ?")}</span>
+                        <span class="badge style">${escapeHtml(opening.style || "Style ?")}</span>
                     </div>
 
-                    <h3>${opening.name || "Unknown Opening"}</h3>
+                    <h3>${escapeHtml(openingName)}</h3>
 
                     <p class="card-description">
-                        ${opening.description || "Study this opening line, learn the key ideas, and practice it from memory."}
+                        ${escapeHtml(opening.description || "Study this opening line, learn the key ideas, and practice it from memory.")}
                     </p>
 
                     <div class="pill-row">
-                        <span class="pill">${opening.family || "Unknown family"}</span>
-                        <span class="pill">${opening.variation || "Main line"}</span>
-                        <span class="pill">${opening.color || "Both sides"}</span>
+                        <span class="pill">${escapeHtml(opening.family || "Unknown family")}</span>
+                        <span class="pill">${escapeHtml(opening.variation || "Main line")}</span>
+                        <span class="pill">${escapeHtml(opening.color || "Both sides")}</span>
                     </div>
 
+                    ${renderOpeningMastery(openingName)}
+
                     <div class="card-footer">
-                        <span class="muted-small">${opening.movesPreview || "Opening line available"}</span>
-                        <button onclick="goToOpening('${safeName}')">
-                            Study Line
-                        </button>
+                        <span class="muted-small">${escapeHtml(opening.movesPreview || "Opening line available")}</span>
+                        <div class="library-card-actions">
+                            <button onclick="window.location.href='opening.html?name=${encodeURIComponent(openingName)}'">Study</button>
+                            <button class="secondary-btn" onclick="window.location.href='opening.html?name=${encodeURIComponent(openingName)}&mode=practice'">Practice</button>
+                        </div>
                     </div>
                 `;
 
@@ -492,8 +609,7 @@
                 let matchesPractice = true;
 
                 if (practiceFilter !== "All") {
-                    const practiceKey = "practice_stats_" + opening.name;
-                    const hasPractice = localStorage.getItem(practiceKey) !== null;
+                    const hasPractice = getPracticeStats(opening.name) !== null;
 
                     if (practiceFilter === "Practiced") {
                         matchesPractice = hasPractice;
@@ -551,22 +667,22 @@
                 }
 
                 if (sortValue === "bestAccuracy") {
-                    const aStats = JSON.parse(localStorage.getItem("practice_stats_" + a.name) || "{}");
-                    const bStats = JSON.parse(localStorage.getItem("practice_stats_" + b.name) || "{}");
+                    const aStats = getPracticeStats(a.name) || {};
+                    const bStats = getPracticeStats(b.name) || {};
 
                     return (bStats.bestAccuracy || 0) - (aStats.bestAccuracy || 0);
                 }
 
                 if (sortValue === "attempts") {
-                    const aStats = JSON.parse(localStorage.getItem("practice_stats_" + a.name) || "{}");
-                    const bStats = JSON.parse(localStorage.getItem("practice_stats_" + b.name) || "{}");
+                    const aStats = getPracticeStats(a.name) || {};
+                    const bStats = getPracticeStats(b.name) || {};
 
                     return (bStats.attempts || 0) - (aStats.attempts || 0);
                 }
 
                 if (sortValue === "practiceStatus") {
-                    const aPracticed = localStorage.getItem("practice_stats_" + a.name) ? 1 : 0;
-                    const bPracticed = localStorage.getItem("practice_stats_" + b.name) ? 1 : 0;
+                    const aPracticed = getPracticeStats(a.name) ? 1 : 0;
+                    const bPracticed = getPracticeStats(b.name) ? 1 : 0;
 
                     return bPracticed - aPracticed;
                 }
