@@ -26,14 +26,14 @@
 
         <section class="page-hero profile-hero">
             <div class="hero-badge">Chess.com analysis</div>
-            <h1>Analyze your chess profile.</h1>
+            <h1>Chess.com Profile Analysis</h1>
             <p>
-                Connect your Chess.com username, review your strengths and weaknesses,
-                and get opening recommendations based on your player profile.
+                Analyze your Chess.com profile and recent games to turn ratings, openings,
+                and losses into a focused Chessiax training plan.
             </p>
         </section>
 
-        <div class="profile-input-section">
+        <div class="profile-input-section profile-input-card">
             <input id="usernameInput" type="text" placeholder="Enter Chess.com username" oninput="updateAnalyzeGamesButton()">
             <button onclick="analyzeProfile()">Analyze</button>
         </div>
@@ -50,7 +50,7 @@
         <section class="game-analysis-section">
             <div class="card game-analysis-action">
                 <div>
-                    <h2>Opening Performance</h2>
+                    <h2>Game Analysis</h2>
                     <p>Analyze your latest Chess.com games to find opening families to trust, sharpen, or study next.</p>
                 </div>
                 <button id="analyzeGamesButton" onclick="analyzeLatestGames()" disabled>Analyze Latest Games</button>
@@ -119,6 +119,20 @@
                 return `confidence-${normalized}`;
             }
             return "confidence-low";
+        }
+
+        function renderProfileSection(title, subtitle, content, extraClass = "") {
+            return `
+                <section class="profile-flow-section ${extraClass}">
+                    <div class="profile-section-heading">
+                        <h2>${escapeHtml(title)}</h2>
+                        <p>${escapeHtml(subtitle)}</p>
+                    </div>
+                    <div class="profile-section-content">
+                        ${content}
+                    </div>
+                </section>
+            `;
         }
 
         function getSavedTrainingGoal() {
@@ -320,67 +334,77 @@
                     return;
                 }
 
+                const displayName = `${data.title ? `${data.title} ` : ""}${data.username || username}`;
+                const suggestedOpenings = Array.isArray(data.openings) ? data.openings : [];
+
                 resultDiv.innerHTML = `
-                    <div class="card">
-                        <h2>${data.title ? data.title + " " : ""}${data.username}</h2>
-                        ${data.avatar ? `<img src="${data.avatar}" alt="Avatar" class="profile-avatar">` : ""}
-                        <p><strong>Status:</strong> ${data.status || "N/A"}</p>
-                        <p><strong>Followers:</strong> ${data.followers ?? "N/A"}</p>
-                        <p><strong>Country:</strong> ${data.country || "N/A"}</p>
-                        <p><strong>Joined:</strong> ${data.joined || "N/A"}</p>
-                        <p><strong>Rapid:</strong> ${data.ratings?.rapid ?? "N/A"}</p>
-                        <p><strong>Blitz:</strong> ${data.ratings?.blitz ?? "N/A"}</p>
-                        <p><strong>Bullet:</strong> ${data.ratings?.bullet ?? "N/A"}</p>
-                        <p><strong>Rapid W/L/D:</strong> 
-                        ${data.records?.rapid?.win ?? 0} / 
-                        ${data.records?.rapid?.loss ?? 0} / 
-                        ${data.records?.rapid?.draw ?? 0}
-                        </p>
-
-                        <p><strong>Blitz W/L/D:</strong> 
-                        ${data.records?.blitz?.win ?? 0} / 
-                        ${data.records?.blitz?.loss ?? 0} / 
-                        ${data.records?.blitz?.draw ?? 0}
-                        </p>
-
-                        <p><strong>Bullet W/L/D:</strong> 
-                        ${data.records?.bullet?.win ?? 0} / 
-                        ${data.records?.bullet?.loss ?? 0} / 
-                        ${data.records?.bullet?.draw ?? 0}
-                        </p>
-                        <p><strong>Profile:</strong> <a href="${data.url}" target="_blank">${data.url}</a></p>
-                    </div>
-
-                    <div class="card">
-                        <h2>🧠 AI Summary</h2>
-                        <p>${data.summary || "No summary available."}</p>
-                    </div>
-
-                    <div class="card">
-                        <h2>🎯 Recommendation</h2>
-                        <p>${data.recommendation || "No recommendation available."}</p>
-                    </div>
-
-                    <div class="card">
-                        <h2>📚 Suggested Openings</h2>
-                        ${
-                            data.openings && data.openings.length > 0
-                                ? data.openings.map(opening => `
-                                    <div class="suggested-opening">
-                                        <h3>${opening.name}</h3>
-                                        <p>${opening.reason}</p>
-                                        <p><strong>ECO:</strong> ${opening.eco || "N/A"}</p>
-                                        <p><strong>Level:</strong> ${opening.level || "N/A"}</p>
-                                        <p><strong>Style:</strong> ${opening.style || "N/A"}</p>
-                                        <p><strong>Family:</strong> ${opening.family || "N/A"}</p>
-                                        <button class="learn-btn" onclick="studySuggestedOpening('${opening.name.replace(/'/g, "\\'")}')">
-                                            Study this opening
-                                        </button>
+                    ${renderProfileSection(
+                        "Player Snapshot",
+                        "Profile identity, ratings and recent public stats at a glance.",
+                        `
+                            <div class="card profile-snapshot-card">
+                                <div class="profile-snapshot-main">
+                                    ${data.avatar ? `<img src="${escapeHtml(data.avatar)}" alt="Avatar" class="profile-avatar">` : ""}
+                                    <div>
+                                        <h2>${escapeHtml(displayName)}</h2>
+                                        <p>${escapeHtml(data.status || "N/A")} · ${escapeHtml(data.country || "Country N/A")}</p>
+                                        <p>Joined: ${escapeHtml(data.joined || "N/A")} · Followers: ${safeNumber(data.followers)}</p>
+                                        ${data.url ? `<p><a href="${escapeHtml(data.url)}" target="_blank" rel="noopener">Open Chess.com profile</a></p>` : ""}
                                     </div>
-                                `).join("")
-                                : "<p>No opening suggestions available.</p>"
-                        }
-                    </div>
+                                </div>
+                                <div class="profile-stat-grid">
+                                    <div class="overview-card"><h3>Rapid</h3><p>${escapeHtml(data.ratings?.rapid ?? "N/A")}</p><span>${safeNumber(data.records?.rapid?.win)} / ${safeNumber(data.records?.rapid?.loss)} / ${safeNumber(data.records?.rapid?.draw)} W/L/D</span></div>
+                                    <div class="overview-card"><h3>Blitz</h3><p>${escapeHtml(data.ratings?.blitz ?? "N/A")}</p><span>${safeNumber(data.records?.blitz?.win)} / ${safeNumber(data.records?.blitz?.loss)} / ${safeNumber(data.records?.blitz?.draw)} W/L/D</span></div>
+                                    <div class="overview-card"><h3>Bullet</h3><p>${escapeHtml(data.ratings?.bullet ?? "N/A")}</p><span>${safeNumber(data.records?.bullet?.win)} / ${safeNumber(data.records?.bullet?.loss)} / ${safeNumber(data.records?.bullet?.draw)} W/L/D</span></div>
+                                </div>
+                            </div>
+                        `
+                    )}
+
+                    ${renderProfileSection(
+                        "AI Coach Insight",
+                        "A short read on your profile plus suggested openings to study or practice.",
+                        `
+                            <div class="profile-insight-grid">
+                                <div class="card profile-insight-card">
+                                    <h2>AI Summary</h2>
+                                    <p>${escapeHtml(data.summary || "No summary available.")}</p>
+                                </div>
+
+                                <div class="card profile-insight-card">
+                                    <h2>Recommendation</h2>
+                                    <p>${escapeHtml(data.recommendation || "No recommendation available.")}</p>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <h2>Suggested Openings</h2>
+                                ${
+                                    suggestedOpenings.length > 0
+                                        ? suggestedOpenings.map(opening => {
+                                            const openingName = opening.name || "Unknown Opening";
+                                            return `
+                                                <div class="suggested-opening">
+                                                    <h3>${escapeHtml(openingName)}</h3>
+                                                    <p>${escapeHtml(opening.reason || "This opening is worth reviewing.")}</p>
+                                                    <div class="pill-row">
+                                                        <span class="pill">ECO: ${escapeHtml(opening.eco || "N/A")}</span>
+                                                        <span class="pill">${escapeHtml(opening.level || "Level N/A")}</span>
+                                                        <span class="pill">${escapeHtml(opening.style || "Style N/A")}</span>
+                                                        <span class="pill">${escapeHtml(opening.family || "Family N/A")}</span>
+                                                    </div>
+                                                    <div class="study-card-actions">
+                                                        <a class="learn-btn study-link" href="opening.html?name=${encodeURIComponent(openingName)}">Study</a>
+                                                        <a class="learn-btn secondary-btn study-link" href="opening.html?name=${encodeURIComponent(openingName)}&mode=practice">Practice</a>
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }).join("")
+                                        : "<p>No opening suggestions available.</p>"
+                                }
+                            </div>
+                        `
+                    )}
                 `;
 
             } catch (error) {
@@ -478,58 +502,77 @@
 
             resultDiv.innerHTML = `
                 ${savedNote}
-                <div class="opening-performance">
-                    <div class="analysis-summary-grid">
-                        <div class="overview-card">
-                            <h3>Games analyzed</h3>
-                            <p>${safeNumber(data.games_analyzed)}</p>
-                        </div>
-                        <div class="overview-card">
-                            <h3>Overall record</h3>
-                            <p>${safeNumber(data.overall?.wins)} / ${safeNumber(data.overall?.draws)} / ${safeNumber(data.overall?.losses)}</p>
-                        </div>
-                        <div class="overview-card">
-                            <h3>White games</h3>
-                            <p>${safeNumber(data.white_games)}</p>
-                        </div>
-                        <div class="overview-card">
-                            <h3>Black games</h3>
-                            <p>${safeNumber(data.black_games)}</p>
-                        </div>
-                    </div>
+                ${renderProfileSection(
+                    "Game Analysis",
+                    "Deeper performance analysis from recent Chess.com games.",
+                    `
+                        <div class="opening-performance">
+                            <div class="analysis-block">
+                                <h2>Opening Performance</h2>
+                                <div class="analysis-summary-grid">
+                                    <div class="overview-card">
+                                        <h3>Games analyzed</h3>
+                                        <p>${safeNumber(data.games_analyzed)}</p>
+                                    </div>
+                                    <div class="overview-card">
+                                        <h3>Overall record</h3>
+                                        <p>${safeNumber(data.overall?.wins)} / ${safeNumber(data.overall?.draws)} / ${safeNumber(data.overall?.losses)}</p>
+                                    </div>
+                                    <div class="overview-card">
+                                        <h3>White games</h3>
+                                        <p>${safeNumber(data.white_games)}</p>
+                                    </div>
+                                    <div class="overview-card">
+                                        <h3>Black games</h3>
+                                        <p>${safeNumber(data.black_games)}</p>
+                                    </div>
+                                </div>
+                            </div>
 
-                    ${renderGamePhaseBreakdown(data)}
+                            <div class="analysis-block">
+                                <h2>Top Opening Families</h2>
+                                <div class="family-card-grid">
+                                    ${renderFamilyCards(topFamilies, "No top opening families found yet.")}
+                                </div>
+                            </div>
 
-                    <div class="analysis-block">
-                        <h2>Top Opening Families</h2>
-                        <div class="family-card-grid">
-                            ${renderFamilyCards(topFamilies, "No top opening families found yet.")}
+                            <div class="analysis-block">
+                                <h2>Weak Opening Families</h2>
+                                <div class="family-card-grid">
+                                    ${
+                                        weakFamilies.length > 0
+                                            ? renderFamilyCards(weakFamilies, "No clear weak opening families found yet.")
+                                            : `<div class="empty-state"><h3>No clear weak opening families found yet.</h3><p>Analyze more games to build a stronger pattern.</p></div>`
+                                    }
+                                </div>
+                            </div>
+
+                            ${renderGamePhaseBreakdown(data)}
                         </div>
-                    </div>
+                    `,
+                    "profile-game-analysis-flow"
+                )}
 
-                    <div class="analysis-block">
-                        <h2>Weak Opening Families</h2>
-                        <div class="family-card-grid">
-                            ${
-                                weakFamilies.length > 0
-                                    ? renderFamilyCards(weakFamilies, "No clear weak opening families found yet.")
-                                    : `<div class="empty-state"><h3>No clear weak opening families found yet.</h3><p>Analyze more games to build a stronger pattern.</p></div>`
-                            }
+                ${renderProfileSection(
+                    "Training Plan",
+                    "Recommended study targets and a goal-aware 7-day plan.",
+                    `
+                        <div class="opening-performance">
+                            <div class="analysis-block">
+                                <h2>Recommended Study</h2>
+                                <div class="family-card-grid">
+                                    ${renderStudyCards(studyItems)}
+                                </div>
+                            </div>
+
+                            <div class="analysis-block">
+                                <h2>7-Day Study Plan</h2>
+                                ${renderSevenDayStudyPlan(data, studyItems, currentStudyPlanUsername)}
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="analysis-block">
-                        <h2>Recommended Study</h2>
-                        <div class="family-card-grid">
-                            ${renderStudyCards(studyItems)}
-                        </div>
-                    </div>
-
-                    <div class="analysis-block">
-                        <h2>7-Day Study Plan</h2>
-                        ${renderSevenDayStudyPlan(data, studyItems, currentStudyPlanUsername)}
-                    </div>
-                </div>
+                    `,
+                    "profile-training-plan-flow"
+                )}
             `;
         }
 
