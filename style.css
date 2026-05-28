@@ -4199,3 +4199,314 @@ iframe {
         grid-template-columns: 1fr;
     }
 }
+
+/* App-wide visual consistency pass */
+button,
+.learn-btn,
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    font: inherit;
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+button:disabled,
+button[disabled],
+.dashboard-disabled-action,
+.review-action-disabled,
+.module-soon-pill {
+    opacity: 0.58;
+    cursor: not-allowed;
+    filter: grayscale(0.18);
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+button:disabled:hover,
+button[disabled]:hover {
+    transform: none;
+    filter: none;
+}
+
+.secondary-btn,
+.brand-links button,
+.footer-links button,
+.back-btn {
+    background: rgba(15, 23, 42, 0.78);
+    color: var(--text-main);
+    border: 1px solid var(--border-soft);
+    box-shadow: none;
+}
+
+.secondary-btn:hover,
+.brand-links button:hover,
+.footer-links button:hover,
+.back-btn:hover {
+    border-color: rgba(56, 189, 248, 0.36);
+    background: rgba(30, 41, 59, 0.86);
+}
+
+.brand-links button.active-nav {
+    color: #020617;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-color: transparent;
+    box-shadow: 0 10px 26px rgba(56, 189, 248, 0.2);
+}
+
+.card,
+.meta-card,
+.preview-card,
+.opening-info-card,
+.onboarding-card,
+.continue-learning-card,
+.dashboard-card,
+.dashboard-empty-state,
+.overview-card,
+.stat-card,
+.family-card,
+.phase-card,
+.phase-summary-card,
+.study-card,
+.study-plan-card,
+.review-detail-card,
+.review-history-card,
+.review-history-empty,
+.coach-note-empty,
+.opening-mastery-card,
+.due-opening-card,
+.dashboard-opening-mastery,
+.dashboard-due-openings {
+    position: relative;
+    overflow: hidden;
+    border-color: var(--border-soft);
+}
+
+.card > *,
+.meta-card > *,
+.preview-card > *,
+.opening-info-card > *,
+.onboarding-card > *,
+.continue-learning-card > *,
+.dashboard-card > *,
+.dashboard-empty-state > *,
+.overview-card > *,
+.stat-card > *,
+.family-card > *,
+.phase-card > *,
+.phase-summary-card > *,
+.study-card > *,
+.study-plan-card > *,
+.review-detail-card > *,
+.review-history-card > *,
+.review-history-empty > *,
+.coach-note-empty > *,
+.opening-mastery-card > *,
+.due-opening-card > *,
+.dashboard-opening-mastery > *,
+.dashboard-due-openings > * {
+    position: relative;
+    z-index: 1;
+}
+
+.card h2,
+.card h3,
+.dashboard-section-heading h2,
+.dashboard-section-heading p,
+.profile-section-heading h2,
+.profile-section-heading p,
+.review-section-heading h2,
+.review-section-heading p,
+.library-card h3,
+.opening-card h3 {
+    margin-top: 0;
+}
+
+.page-hero,
+.home-hero,
+.finder-hero {
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+.page-hero h1,
+.home-hero h1,
+.finder-hero h1 {
+    text-wrap: balance;
+}
+
+.page-hero p,
+.home-hero p,
+.finder-hero p,
+.landing-section-heading p,
+.dashboard-section-heading p,
+.profile-section-heading p,
+.review-section-heading p {
+    text-wrap: pretty;
+}
+
+input,
+textarea,
+select {
+    max-width: 100%;
+    font: inherit;
+}
+
+textarea,
+.profile-input-card input,
+.review-input-card input,
+.review-input-card textarea,
+.filter-grid input,
+.filter-grid select,
+.library-controls input,
+.library-controls select,
+.coach-note-input {
+    width: 100%;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: rgba(148, 163, 184, 0.72);
+}
+
+select {
+    min-height: 44px;
+}
+
+textarea {
+    min-height: 180px;
+}
+
+.review-input-card textarea {
+    min-height: 300px;
+}
+
+.badge,
+.pill,
+.hero-badge,
+.beta-badge,
+.confidence-pill,
+.category-pill,
+.day-pill,
+.live-pill,
+.dashboard-score-pill,
+.mastery-status,
+.library-due-badge,
+.module-soon-pill {
+    letter-spacing: 0;
+}
+
+.confidence-high,
+.mastery-strong,
+.phase-status-success .phase-card-header span {
+    color: #bbf7d0;
+    background: rgba(34, 197, 94, 0.14);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.confidence-medium,
+.mastery-improving,
+.category-pill,
+.phase-status-info .phase-card-header span {
+    color: #bae6fd;
+    background: rgba(56, 189, 248, 0.13);
+    border-color: rgba(56, 189, 248, 0.28);
+}
+
+.confidence-low,
+.mastery-new,
+.mastery-learning,
+.library-due-badge,
+.phase-status-warning .phase-card-header span {
+    color: #fed7aa;
+    background: rgba(245, 158, 11, 0.14);
+    border-color: rgba(245, 158, 11, 0.32);
+}
+
+.empty-state,
+.dashboard-empty-state,
+.review-history-empty,
+.coach-note-empty,
+.opening-mastery-empty,
+.library-mastery-empty {
+    border: 1px dashed rgba(148, 163, 184, 0.28);
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.54));
+    color: var(--text-muted);
+}
+
+.empty-state button,
+.dashboard-empty-state button,
+.review-history-empty button,
+.coach-note-empty button {
+    margin-top: 6px;
+}
+
+.review-actions,
+.study-card-actions,
+.study-plan-actions,
+.dashboard-actions,
+.dashboard-next-actions,
+.coach-note-actions,
+.tactics-completion-actions,
+.opening-actions,
+.card-footer,
+.library-card-actions,
+.review-history-actions {
+    gap: 10px;
+}
+
+.analysis-summary-grid,
+.family-card-grid,
+.phase-summary-grid,
+.phase-card-grid,
+.dashboard-grid,
+.dashboard-progress-grid,
+.study-plan-grid,
+.review-summary-grid,
+.review-history-grid,
+.engine-review-grid {
+    gap: 14px;
+}
+
+.board-area,
+.trainer-panel,
+.filter-panel,
+.profile-input-card,
+.review-input-card {
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+@media (max-width: 760px) {
+    .container {
+        width: min(100% - 22px, 1180px);
+        padding-top: 14px;
+    }
+
+    .brand-bar {
+        margin-bottom: 18px;
+    }
+
+    .page-hero h1,
+    .home-hero h1,
+    .finder-hero h1 {
+        font-size: clamp(2rem, 12vw, 3.1rem);
+    }
+
+    .page-hero p,
+    .home-hero p,
+    .finder-hero p {
+        font-size: 0.98rem;
+    }
+
+    button,
+    .learn-btn,
+    .back-btn {
+        white-space: normal;
+    }
+}
