@@ -447,6 +447,21 @@ textarea {
     overflow: hidden;
     box-shadow: 0 24px 55px rgba(0, 0, 0, 0.38);
     border: 1px solid var(--border-soft);
+    touch-action: none;
+    overscroll-behavior: contain;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#board .board-b72b1,
+#board .square-55d63,
+#board .piece-417db,
+#board img,
+.piece-417db {
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
 .move-controls,

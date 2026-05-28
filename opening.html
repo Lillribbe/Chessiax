@@ -325,6 +325,7 @@ async function loadOpening() {
             onDrop: handleBoardDrop,
             pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
         });
+        installBoardTouchGuard();
     }
 
     resetBoardState();
@@ -834,6 +835,36 @@ function handleBoardDrop(source, target) {
     }
 
     return processPracticeMove(draggedMove) ? undefined : "snapback";
+}
+
+function installBoardTouchGuard() {
+    const boardElement = document.getElementById("board");
+
+    if (!boardElement || boardElement.dataset.touchGuardInstalled === "true") {
+        return;
+    }
+
+    let touchStartedOnBoard = false;
+
+    boardElement.addEventListener("touchstart", function(event) {
+        touchStartedOnBoard = Boolean(event.target && event.target.closest("#board"));
+    }, { passive: true });
+
+    boardElement.addEventListener("touchmove", function(event) {
+        if (touchStartedOnBoard && event.cancelable) {
+            event.preventDefault();
+        }
+    }, { passive: false, capture: true });
+
+    boardElement.addEventListener("touchend", function() {
+        touchStartedOnBoard = false;
+    }, { passive: true });
+
+    boardElement.addEventListener("touchcancel", function() {
+        touchStartedOnBoard = false;
+    }, { passive: true });
+
+    boardElement.dataset.touchGuardInstalled = "true";
 }
 
 function checkMistakeReviewMove(userMove) {
