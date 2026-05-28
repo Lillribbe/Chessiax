@@ -2,13 +2,15 @@
 <html>
 
 <div class="brand-bar">
-    <div class="brand-logo" onclick="window.location.href='home.html'">
+    <div class="brand-logo" onclick="window.location.href='dashboard.html'">
         ♞ Chessiax <span class="beta-badge">Beta</span>
     </div>
     <div class="brand-links">
-        <button onclick="window.location.href='home.html'">Home</button>
+        <button onclick="window.location.href='dashboard.html'">Dashboard</button>
+        <button onclick="window.location.href='profile.html'">Analyze</button>
+        <button onclick="window.location.href='review.html'">Review</button>
         <button onclick="window.location.href='openings.html'">Library</button>
-        <button onclick="window.location.href='index.html'">Analyze</button>
+        <button onclick="window.location.href='tactics.html'">Train</button>
     </div>
 </div>
 
@@ -28,7 +30,7 @@
 
     <!-- Back -->
     <button class="back-btn" onclick="window.history.back()">⬅ Back</button>
-    <button class="back-btn" onclick="window.location.href='home.html'">🏠 Home</button>
+    <button class="back-btn" onclick="window.location.href='dashboard.html'">Dashboard</button>
 
     <section class="page-hero study-hero">
         <div class="hero-badge">Opening Study</div>
@@ -192,9 +194,11 @@
     </div>
 
     <div class="footer-links">
-        <button onclick="window.location.href='home.html'">Home</button>
+        <button onclick="window.location.href='dashboard.html'">Dashboard</button>
+        <button onclick="window.location.href='profile.html'">Analyze</button>
+        <button onclick="window.location.href='review.html'">Review</button>
         <button onclick="window.location.href='openings.html'">Library</button>
-        <button onclick="window.location.href='index.html'">Analyze</button>
+        <button onclick="window.location.href='tactics.html'">Train</button>
     </div>
 </footer>
 
@@ -1933,18 +1937,18 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function setActiveNav() {
-    const path = window.location.pathname;
+    const currentPage = window.location.pathname.split("/").pop() || "dashboard.html";
     const buttons = document.querySelectorAll(".brand-links button");
 
     buttons.forEach(button => {
-        const text = button.innerText.toLowerCase();
+        const text = button.innerText.trim().toLowerCase();
 
         if (
-            (path.includes("home") && text.includes("home")) ||
-            (path === "/" && text.includes("home")) ||
-            (path.includes("openings") && text.includes("library")) ||
-            (path.includes("index") && text.includes("analyze")) ||
-            (path.includes("profile") && text.includes("profile"))
+            (currentPage === "dashboard.html" && text === "dashboard") ||
+            ((currentPage === "profile.html" || currentPage === "index.html") && text === "analyze") ||
+            (currentPage === "review.html" && text === "review") ||
+            ((currentPage === "openings.html" || currentPage === "opening.html") && text === "library") ||
+            (currentPage === "tactics.html" && text === "train")
         ) {
             button.classList.add("active-nav");
         }

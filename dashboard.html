@@ -2,16 +2,15 @@
 <html>
 
 <div class="brand-bar">
-    <div class="brand-logo" onclick="window.location.href='home.html'">
+    <div class="brand-logo" onclick="window.location.href='dashboard.html'">
         ♞ Chessiax <span class="beta-badge">Beta</span>
     </div>
     <div class="brand-links">
-        <button onclick="window.location.href='home.html'">Home</button>
         <button onclick="window.location.href='dashboard.html'">Dashboard</button>
-        <button onclick="window.location.href='openings.html'">Library</button>
-        <button onclick="window.location.href='index.html'">Analyze</button>
-        <button onclick="window.location.href='tactics.html'">Tactics</button>
+        <button onclick="window.location.href='profile.html'">Analyze</button>
         <button onclick="window.location.href='review.html'">Review</button>
+        <button onclick="window.location.href='openings.html'">Library</button>
+        <button onclick="window.location.href='tactics.html'">Train</button>
     </div>
 </div>
 
@@ -29,7 +28,7 @@
         <section class="page-hero dashboard-hero">
             <div class="hero-badge">Coach Hub</div>
             <h1>Coach Dashboard</h1>
-            <p>See your current Chessiax progress and pick the next useful training step.</p>
+            <p>Your personal Chessiax training hub for deciding what to do next, tracking momentum, and saving lessons.</p>
         </section>
 
         <section id="dashboardContent" class="dashboard-stack"></section>
@@ -41,12 +40,11 @@
             </div>
 
             <div class="footer-links">
-                <button onclick="window.location.href='home.html'">Home</button>
                 <button onclick="window.location.href='dashboard.html'">Dashboard</button>
-                <button onclick="window.location.href='openings.html'">Library</button>
-                <button onclick="window.location.href='index.html'">Analyze</button>
-                <button onclick="window.location.href='tactics.html'">Tactics</button>
+                <button onclick="window.location.href='profile.html'">Analyze</button>
                 <button onclick="window.location.href='review.html'">Review</button>
+                <button onclick="window.location.href='openings.html'">Library</button>
+                <button onclick="window.location.href='tactics.html'">Train</button>
             </div>
         </footer>
 
@@ -1220,6 +1218,52 @@
             `;
         }
 
+        function renderRecentReviews(history) {
+            const reviews = history.slice(0, 3);
+
+            if (!reviews.length) {
+                return `
+                    <section class="card dashboard-recent-reviews">
+                        <h2>Recent Reviews</h2>
+                        <div class="coach-note-empty">
+                            <h3>No recent game reviews yet.</h3>
+                            <p>Review a PGN to save game lessons here.</p>
+                        </div>
+                    </section>
+                `;
+            }
+
+            return `
+                <section class="card dashboard-recent-reviews">
+                    <div class="dashboard-recent-practice-header">
+                        <div>
+                            <h2>Recent Reviews</h2>
+                            <p>Your latest saved single-game reviews.</p>
+                        </div>
+                        <button class="secondary-btn" onclick="window.location.href='review.html'">Review a Game</button>
+                    </div>
+                    <div class="recent-practice-list">
+                        ${reviews.map(entry => {
+                            const data = entry.data || {};
+                            return `
+                                <div class="recent-practice-row">
+                                    <div>
+                                        <strong>${escapeHtml(data.opening || "Unknown Opening")}</strong>
+                                        <span>${escapeHtml(data.white || "White")} vs ${escapeHtml(data.black || "Black")}</span>
+                                    </div>
+                                    <div class="recent-practice-meta">
+                                        <span>${escapeHtml(data.result || "*")}</span>
+                                        <span>${escapeHtml(formatDateTime(entry.timestamp))}</span>
+                                    </div>
+                                    <button onclick="window.location.href='review.html'">Open Review</button>
+                                </div>
+                            `;
+                        }).join("")}
+                    </div>
+                </section>
+            `;
+        }
+
         function buildGoalAction(goal, savedAnalysis, savedReview) {
             if (goal === "openings") {
                 const study = getRecommendedStudyItems(savedAnalysis?.analysis || {});
@@ -1417,6 +1461,20 @@
             `;
         }
 
+        function renderDashboardSection(title, subtitle, content, extraClass = "") {
+            return `
+                <section class="dashboard-hub-section ${extraClass}">
+                    <div class="dashboard-section-heading">
+                        <h2>${escapeHtml(title)}</h2>
+                        <p>${escapeHtml(subtitle)}</p>
+                    </div>
+                    <div class="dashboard-section-content">
+                        ${content}
+                    </div>
+                </section>
+            `;
+        }
+
         function renderDashboard() {
             const savedAnalysis = getSavedGameAnalysis();
             const studyProgress = getStudyPlanProgress(savedAnalysis);
@@ -1438,13 +1496,16 @@
                 openingMasteryItems,
                 selectedGoal
             );
-            const cards = [];
+            let analysisCard = "";
+            let studyProgressCard = "";
+            let tacticsProgressCard = "";
+            let savedReviewCard = "";
 
             if (savedAnalysis) {
                 const analysis = savedAnalysis.analysis || {};
                 const overall = analysis.overall || {};
                 const study = Array.isArray(analysis.recommended_study) ? analysis.recommended_study : [];
-                cards.push(`
+                analysisCard = `
                     <div class="card dashboard-card">
                         <h2>Latest game analysis</h2>
                         <p><strong>${escapeHtml(savedAnalysis.username || analysis.username || "Saved player")}</strong></p>
@@ -1452,11 +1513,11 @@
                         <p>${safeNumber(overall.wins)}W / ${safeNumber(overall.draws)}D / ${safeNumber(overall.losses)}L</p>
                         <p>Top study target: ${escapeHtml(study[0]?.family || "No study target yet")}</p>
                     </div>
-                `);
+                `;
             }
 
             if (studyProgress) {
-                cards.push(`
+                studyProgressCard = `
                     <div class="card dashboard-card">
                         <h2>Study plan progress</h2>
                         <p><strong>${studyProgress.completedCount}/7 days complete</strong></p>
@@ -1465,66 +1526,104 @@
                             <div class="dashboard-progress-fill" style="width: ${Math.round((studyProgress.completedCount / 7) * 100)}%"></div>
                         </div>
                     </div>
-                `);
+                `;
             }
 
             if (tacticsProgress) {
                 const last = tacticsProgress.lastSession || {};
-                cards.push(`
+                tacticsProgressCard = `
                     <div class="card dashboard-card">
                         <h2>Tactics progress</h2>
                         <p>Last accuracy: <strong>${safeNumber(last.accuracy)}%</strong></p>
                         <p>${safeNumber(last.correct)} correct over ${safeNumber(last.attempts)} attempts</p>
                         <p>Total completed sessions: ${safeNumber(tacticsProgress.sessions.length)}</p>
                     </div>
-                `);
+                `;
             }
 
             if (savedReview) {
                 const review = savedReview.data || {};
-                cards.push(`
+                savedReviewCard = `
                     <div class="card dashboard-card">
                         <h2>Last game review</h2>
                         <p><strong>${escapeHtml(review.opening || "Unknown Opening")}</strong></p>
                         <p>${escapeHtml(review.white || "White")} vs ${escapeHtml(review.black || "Black")} · ${escapeHtml(review.result || "*")}</p>
                         <p>Phase: ${escapeHtml(review.estimated_phase || "unknown")}</p>
                     </div>
-                `);
+                `;
             }
 
+            const snapshotCards = [analysisCard, tacticsProgressCard].filter(Boolean).join("");
+            const memoryCards = [savedReviewCard].filter(Boolean).join("");
+            const hasAnyData = Boolean(
+                savedAnalysis ||
+                studyProgress ||
+                tacticsProgress ||
+                savedReview ||
+                coachNotes.length ||
+                openingSessionHistory.length ||
+                openingMasteryItems.length
+            );
+            const emptyState = hasAnyData
+                ? ""
+                : `
+                    <div class="card dashboard-empty-state">
+                        <h2>No saved Chessiax progress yet</h2>
+                        <p>Start by analyzing your profile, reviewing one PGN, or completing a tactics session. Your coach dashboard will fill in automatically.</p>
+                    </div>
+                `;
+
             document.getElementById("dashboardContent").innerHTML = `
-                ${renderRecommendedAction(nextAction)}
+                ${renderDashboardSection(
+                    "Coach Overview",
+                    "One clear next action, with quick routes to the core training tools.",
+                    `
+                        ${renderRecommendedAction(nextAction)}
+                        ${renderQuickActions()}
+                    `,
+                    "dashboard-overview-section"
+                )}
 
-                ${renderQuickActions()}
+                ${renderDashboardSection(
+                    "Today's Training",
+                    "Prioritized work for the next focused session.",
+                    `
+                        ${renderTrainingQueue(trainingQueue)}
+                        ${studyProgressCard ? `<div class="dashboard-grid dashboard-compact-grid">${studyProgressCard}</div>` : ""}
+                        ${renderOpeningsDueForReview(openingMasteryItems)}
+                    `
+                )}
 
-                ${renderTrainingGoal(selectedGoal)}
+                ${renderDashboardSection(
+                    "Progress Snapshot",
+                    "A compact view of recent activity, trends, and opening mastery.",
+                    `
+                        ${renderTrainingProgress(trainingProgress)}
+                        ${renderProgressTrends(openingSessionHistory, tacticsProgress, reviewHistory, studyDaysCompleted)}
+                        ${renderOpeningMasterySection(openingMasteryItems)}
+                        ${snapshotCards ? `<div class="dashboard-grid dashboard-compact-grid">${snapshotCards}</div>` : ""}
+                    `
+                )}
 
-                ${renderTrainingQueue(trainingQueue)}
+                ${renderDashboardSection(
+                    "Training Focus",
+                    "Choose the goal that nudges your plan and queue.",
+                    renderTrainingGoal(selectedGoal),
+                    "dashboard-focus-section"
+                )}
 
-                ${renderTrainingProgress(trainingProgress)}
+                ${renderDashboardSection(
+                    "Coach Memory",
+                    "Saved notes, recent reviews, and opening practice history.",
+                    `
+                        ${renderCoachNotes(coachNotes)}
+                        ${renderRecentReviews(reviewHistory)}
+                        ${renderRecentOpeningPractice(openingSessionHistory)}
+                        ${memoryCards ? `<div class="dashboard-grid dashboard-compact-grid">${memoryCards}</div>` : ""}
+                    `
+                )}
 
-                ${renderProgressTrends(openingSessionHistory, tacticsProgress, reviewHistory, studyDaysCompleted)}
-
-                ${renderRecentOpeningPractice(openingSessionHistory)}
-
-                ${renderOpeningMasterySection(openingMasteryItems)}
-
-                ${renderOpeningsDueForReview(openingMasteryItems)}
-
-                ${renderCoachNotes(coachNotes)}
-
-                ${
-                    cards.length
-                        ? `<div class="dashboard-grid">${cards.join("")}</div>`
-                        : coachNotes.length
-                            ? ""
-                            : `
-                            <div class="card dashboard-empty-state">
-                                <h2>No saved Chessiax progress yet</h2>
-                                <p>Start by analyzing your profile, reviewing one PGN, or completing a tactics session. Your coach dashboard will fill in automatically.</p>
-                            </div>
-                        `
-                }
+                ${emptyState}
             `;
         }
 
