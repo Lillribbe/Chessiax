@@ -1899,6 +1899,48 @@ textarea {
     gap: 14px;
 }
 
+.dashboard-recent-practice {
+    display: grid;
+    gap: 14px;
+}
+
+.dashboard-recent-practice-header h2,
+.dashboard-recent-practice-header p {
+    margin: 0;
+}
+
+.dashboard-recent-practice-header p {
+    color: var(--text-muted);
+}
+
+.recent-practice-list {
+    display: grid;
+    gap: 10px;
+}
+
+.recent-practice-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.recent-practice-row > div,
+.recent-practice-meta {
+    display: grid;
+    gap: 4px;
+}
+
+.recent-practice-row span,
+.recent-practice-meta {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
 .dashboard-training-queue-header h2,
 .dashboard-training-queue-header p,
 .training-queue-item h3,
@@ -2312,6 +2354,53 @@ textarea {
 .mastery-strong {
     color: #34d399;
     background: rgba(52, 211, 153, 0.12);
+}
+
+.opening-session-history {
+    display: grid;
+    gap: 10px;
+    margin: 16px 0;
+    padding: 14px;
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+    background: rgba(2, 6, 23, 0.35);
+}
+
+.opening-session-history h4,
+.opening-session-history p {
+    margin: 0;
+}
+
+.opening-session-history p,
+.opening-session-row span {
+    color: var(--text-muted);
+}
+
+.opening-session-list {
+    display: grid;
+    gap: 8px;
+}
+
+.opening-session-row {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.58);
+}
+
+.opening-session-row > div:first-child,
+.opening-session-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.opening-session-stats {
+    color: var(--text-muted);
+    font-size: 0.9rem;
 }
 
 .difficulty-box {
@@ -2912,9 +3001,14 @@ iframe {
 
     .due-opening-header,
     .training-queue-item,
+    .recent-practice-row,
     .opening-mastery-row {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .recent-practice-row {
+        grid-template-columns: 1fr;
     }
 
     .session-summary-header {
@@ -2941,6 +3035,7 @@ iframe {
     .review-actions .learn-btn,
     .coach-note-actions button,
     .training-queue-item button,
+    .recent-practice-row button,
     .session-summary-actions button,
     .dashboard-opening-mastery-header button,
     .dashboard-coach-notes-header button {

@@ -59,6 +59,7 @@
         const SAVED_REVIEW_STORAGE_KEY = "chessiax_saved_game_review";
         const TRAINING_GOAL_STORAGE_KEY = "chessiax_training_goal";
         const COACH_NOTES_STORAGE_KEY = "chessiax_coach_notes";
+        const OPENING_SESSION_HISTORY_KEY = "chessiax_opening_session_history";
         const TRAINING_GOALS = {
             balanced: {
                 label: "Balanced improvement",
@@ -208,6 +209,14 @@
         function getSavedReview() {
             const saved = safeReadJson(SAVED_REVIEW_STORAGE_KEY);
             return saved && saved.data ? saved : null;
+        }
+
+        function getOpeningSessionHistory() {
+            const history = safeReadJson(OPENING_SESSION_HISTORY_KEY, []);
+            const sessions = Array.isArray(history)
+                ? history.filter(session => session && session.opening && session.timestamp)
+                : [];
+            return sessions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         }
 
         function getCoachNotes() {
@@ -1072,6 +1081,48 @@
             `;
         }
 
+        function renderRecentOpeningPractice(sessions) {
+            const latestSessions = sessions.slice(0, 5);
+
+            if (!latestSessions.length) {
+                return `
+                    <section class="card dashboard-recent-practice">
+                        <h2>Recent Opening Practice</h2>
+                        <div class="coach-note-empty">
+                            <h3>No opening practice sessions yet.</h3>
+                            <p>Practice an opening to start building your session history.</p>
+                        </div>
+                    </section>
+                `;
+            }
+
+            return `
+                <section class="card dashboard-recent-practice">
+                    <div class="dashboard-recent-practice-header">
+                        <div>
+                            <h2>Recent Opening Practice</h2>
+                            <p>Your latest saved opening practice sessions.</p>
+                        </div>
+                    </div>
+                    <div class="recent-practice-list">
+                        ${latestSessions.map(session => `
+                            <div class="recent-practice-row">
+                                <div>
+                                    <strong>${escapeHtml(session.opening)}</strong>
+                                    <span>${escapeHtml(formatDateTime(session.timestamp))}</span>
+                                </div>
+                                <div class="recent-practice-meta">
+                                    <span>${safeNumber(session.accuracy)}% accuracy</span>
+                                    <span>${session.mastery === undefined ? "Mastery N/A" : `${safeNumber(session.mastery)}% mastery`}</span>
+                                </div>
+                                <button onclick="window.location.href='opening.html?name=${encodeURIComponent(session.opening)}&mode=practice'">Practice Again</button>
+                            </div>
+                        `).join("")}
+                    </div>
+                </section>
+            `;
+        }
+
         function buildGoalAction(goal, savedAnalysis, savedReview) {
             if (goal === "openings") {
                 const study = getRecommendedStudyItems(savedAnalysis?.analysis || {});
@@ -1275,6 +1326,7 @@
             const tacticsProgress = getTacticsProgress();
             const savedReview = getSavedReview();
             const coachNotes = getCoachNotes();
+            const openingSessionHistory = getOpeningSessionHistory();
             const openingMasteryItems = getOpeningMasteryItems();
             const trainingProgress = getTrainingProgress(tacticsProgress);
             const selectedGoal = getSavedTrainingGoal();
@@ -1351,6 +1403,8 @@
                 ${renderTrainingQueue(trainingQueue)}
 
                 ${renderTrainingProgress(trainingProgress)}
+
+                ${renderRecentOpeningPractice(openingSessionHistory)}
 
                 ${renderOpeningMasterySection(openingMasteryItems)}
 
