@@ -1682,6 +1682,39 @@ textarea {
     min-width: 0;
 }
 
+.review-flow-section {
+    display: grid;
+    gap: 12px;
+}
+
+.review-section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.review-section-heading h2,
+.review-section-heading p {
+    margin: 0;
+}
+
+.review-section-heading h2 {
+    font-size: 1.12rem;
+}
+
+.review-section-heading p {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin-top: 4px;
+}
+
+.review-section-content {
+    display: grid;
+    gap: 14px;
+}
+
 .review-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1724,6 +1757,23 @@ textarea {
 .review-next-actions h3 {
     margin: 0;
     color: var(--text-main);
+}
+
+.review-coach-highlight {
+    border-color: rgba(96, 165, 250, 0.34);
+    background:
+        radial-gradient(circle at top left, rgba(96, 165, 250, 0.12), transparent 34%),
+        rgba(15, 23, 42, 0.72);
+}
+
+.review-actions-card {
+    border-color: rgba(34, 197, 94, 0.3);
+    background:
+        linear-gradient(180deg, rgba(34, 197, 94, 0.08), rgba(15, 23, 42, 0.74));
+}
+
+.review-actions-card .review-actions {
+    margin-top: 0;
 }
 
 .review-action-disabled {
@@ -3170,6 +3220,11 @@ iframe {
     }
 
     .review-history-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .review-section-heading {
         flex-direction: column;
         align-items: stretch;
     }

@@ -28,7 +28,7 @@
         <section class="page-hero review-hero">
             <div class="hero-badge">Single game analysis</div>
             <h1>Game Review</h1>
-            <p>Paste a PGN and get a quick AI-style training breakdown.</p>
+            <p>Paste a PGN, review the key phase, and turn the game into a focused training plan.</p>
         </section>
 
         <section class="review-layout">
@@ -356,6 +356,22 @@
                 : "";
         }
 
+        function renderReviewSection(title, subtitle, content, extraClass = "") {
+            return `
+                <section class="review-flow-section ${extraClass}">
+                    <div class="review-section-heading">
+                        <div>
+                            <h2>${escapeHtml(title)}</h2>
+                            ${subtitle ? `<p>${escapeHtml(subtitle)}</p>` : ""}
+                        </div>
+                    </div>
+                    <div class="review-section-content">
+                        ${content}
+                    </div>
+                </section>
+            `;
+        }
+
         function getSuggestedCoachNote(data) {
             const training = Array.isArray(data.recommended_training) ? data.recommended_training : [];
             const summary = safeText(data.coach_summary, "");
@@ -465,6 +481,8 @@
         function renderReview(data, username, isSaved = false) {
             currentReviewData = data || {};
             const training = Array.isArray(data.recommended_training) ? data.recommended_training : [];
+            const trainingActions = renderTrainingActions(data);
+            const primaryActions = renderTrainingActions(data, true) || `<p class="review-phase-note">No direct training action is available yet. Use the summary below to choose your next review focus.</p>`;
             const playerResult = username
                 ? `<div class="overview-card"><h3>Your result</h3><p>${escapeHtml(safeText(data.player_result, "Unknown"))}</p></div>`
                 : "";
@@ -476,59 +494,65 @@
                     </div>
                 `
                 : "";
+            const snapshot = `
+                <div class="analysis-summary-grid review-summary-grid">
+                    <div class="overview-card">
+                        <h3>Players</h3>
+                        <p>${escapeHtml(safeText(data.white))} vs ${escapeHtml(safeText(data.black))}</p>
+                    </div>
+                    <div class="overview-card">
+                        <h3>Result</h3>
+                        <p>${escapeHtml(safeText(data.result))}</p>
+                    </div>
+                    <div class="overview-card">
+                        <h3>Opening</h3>
+                        <p>${escapeHtml(safeText(data.opening, "Unknown Opening"))}</p>
+                    </div>
+                    <div class="overview-card">
+                        <h3>ECO</h3>
+                        <p>${escapeHtml(safeText(data.eco, "N/A"))}</p>
+                    </div>
+                    <div class="overview-card">
+                        <h3>Move count</h3>
+                        <p>${escapeHtml(safeText(data.move_count, "0"))}</p>
+                    </div>
+                    <div class="overview-card">
+                        <h3>Estimated phase</h3>
+                        <p>${escapeHtml(safeText(data.estimated_phase))}</p>
+                    </div>
+                    ${playerResult}
+                </div>
+            `;
+            const coachSummary = `
+                <div class="card review-detail-card review-coach-highlight">
+                    <p>${escapeHtml(safeText(data.coach_summary, "No coach summary available."))}</p>
+                    <p class="review-phase-note">Phase estimate is based on game length, not engine evaluation. Engine-based critical moment detection is coming soon.</p>
+                </div>
+            `;
+            const recommendedActions = `
+                <div class="card review-detail-card review-actions-card">
+                    ${primaryActions}
+                </div>
+            `;
+            const recommendedTraining = `
+                <div class="card review-detail-card">
+                    ${
+                        training.length > 0
+                            ? `<ul class="review-training-list">${training.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+                            : `<p>No specific training recommendation yet.</p>`
+                    }
+                    ${trainingActions}
+                </div>
+            `;
 
             document.getElementById("reviewResult").innerHTML = `
                 <div class="review-stack">
                     ${savedNote}
-                    <div class="analysis-summary-grid review-summary-grid">
-                        <div class="overview-card">
-                            <h3>Players</h3>
-                            <p>${escapeHtml(safeText(data.white))} vs ${escapeHtml(safeText(data.black))}</p>
-                        </div>
-                        <div class="overview-card">
-                            <h3>Result</h3>
-                            <p>${escapeHtml(safeText(data.result))}</p>
-                        </div>
-                        <div class="overview-card">
-                            <h3>Move count</h3>
-                            <p>${escapeHtml(safeText(data.move_count, "0"))}</p>
-                        </div>
-                        <div class="overview-card">
-                            <h3>Phase</h3>
-                            <p>${escapeHtml(safeText(data.estimated_phase))}</p>
-                            <span class="review-phase-note">Phase estimate is based on game length. Engine-based critical moment detection is coming soon.</span>
-                        </div>
-                        ${playerResult}
-                    </div>
-
-                    <div class="card review-detail-card">
-                        <h2>Opening</h2>
-                        <p><strong>${escapeHtml(safeText(data.opening, "Unknown Opening"))}</strong></p>
-                        <p>ECO: ${escapeHtml(safeText(data.eco, "N/A"))}</p>
-                        <p>Date: ${escapeHtml(safeText(data.date, "N/A"))}</p>
-                    </div>
-
-                    <div class="card review-detail-card">
-                        <h2>Coach Summary</h2>
-                        <p>${escapeHtml(safeText(data.coach_summary, "No coach summary available."))}</p>
-                        <div class="review-next-actions">
-                            <h3>Next Actions</h3>
-                            ${renderTrainingActions(data, true)}
-                        </div>
-                    </div>
-
-                    <div class="card review-detail-card">
-                        <h2>Recommended Training</h2>
-                        ${
-                            training.length > 0
-                                ? `<ul class="review-training-list">${training.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
-                                : `<p>No specific training recommendation yet.</p>`
-                        }
-                        ${renderTrainingActions(data)}
-                    </div>
-
+                    ${renderReviewSection("Game Snapshot", "A quick scan of the game metadata and estimated critical phase.", snapshot, "review-snapshot-section")}
+                    ${renderReviewSection("Coach Summary", "The main takeaway from this PGN review.", coachSummary, "review-coach-section")}
+                    ${renderReviewSection("Recommended Actions", "One or two useful next steps from this game.", recommendedActions, "review-actions-section")}
+                    ${renderReviewSection("Recommended Training", "Supporting study ideas generated from the review.", recommendedTraining, "review-training-section")}
                     ${renderEngineReview(data)}
-
                     ${renderCoachNoteArea(data)}
                 </div>
             `;
