@@ -769,6 +769,103 @@
             `;
         }
 
+        function renderTrendBar(label, value, detail = "") {
+            const percent = Math.max(0, Math.min(100, safeNumber(value)));
+            return `
+                <div class="trend-bar-row">
+                    <div class="trend-bar-label">
+                        <strong>${escapeHtml(label)}</strong>
+                        <span>${escapeHtml(detail || `${percent}%`)}</span>
+                    </div>
+                    <div class="trend-bar-track">
+                        <div class="trend-bar-fill" style="width: ${percent}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderProgressTrends(openingSessions, tacticsProgress, reviewHistory, studyDaysCompleted) {
+            const openingTrend = openingSessions.slice(0, 10);
+            const tacticsSessions = Array.isArray(tacticsProgress?.sessions)
+                ? [...tacticsProgress.sessions]
+                    .filter(session => session && session.completedAt)
+                    .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
+                    .slice(0, 5)
+                : [];
+            const activityScore = (
+                openingSessions.length +
+                tacticsSessions.length +
+                reviewHistory.length +
+                studyDaysCompleted
+            );
+            const activityMessage = getActivityMessage(activityScore);
+
+            return `
+                <section class="card dashboard-progress-trends">
+                    <div class="dashboard-progress-trends-header">
+                        <div>
+                            <h2>Progress Trends</h2>
+                            <p>Recent practice, tactics, reviews, and study-plan activity.</p>
+                        </div>
+                        <div class="dashboard-score-pill">
+                            <span>Activity score</span>
+                            <strong>${safeNumber(activityScore)}</strong>
+                        </div>
+                    </div>
+
+                    <div class="progress-trends-grid">
+                        <div class="progress-trend-panel">
+                            <h3>Opening Practice Accuracy</h3>
+                            ${
+                                openingTrend.length
+                                    ? openingTrend.map(session => renderTrendBar(
+                                        session.opening || "Opening",
+                                        session.accuracy,
+                                        `${safeNumber(session.accuracy)}% · ${formatDate(session.timestamp)}`
+                                    )).join("")
+                                    : `
+                                        <div class="coach-note-empty">
+                                            <h3>No opening sessions yet.</h3>
+                                            <p>Practice an opening to start charting accuracy.</p>
+                                        </div>
+                                    `
+                            }
+                        </div>
+
+                        <div class="progress-trend-panel">
+                            <h3>Tactics Accuracy</h3>
+                            ${
+                                tacticsSessions.length
+                                    ? tacticsSessions.map((session, index) => renderTrendBar(
+                                        `Session ${tacticsSessions.length - index}`,
+                                        session.accuracy,
+                                        `${safeNumber(session.accuracy)}% · ${safeNumber(session.correct)} correct`
+                                    )).join("")
+                                    : `
+                                        <div class="coach-note-empty">
+                                            <h3>No tactics trend yet.</h3>
+                                            <p>Complete a tactics session to chart accuracy.</p>
+                                            <button onclick="window.location.href='tactics.html'">Train Tactics</button>
+                                        </div>
+                                    `
+                            }
+                        </div>
+                    </div>
+
+                    <div class="progress-activity-summary">
+                        <h3>Training Activity</h3>
+                        <p>${escapeHtml(activityMessage)}</p>
+                        <div class="progress-activity-grid">
+                            <span>${safeNumber(openingSessions.length)} opening sessions</span>
+                            <span>${safeNumber(tacticsSessions.length)} tactics sessions</span>
+                            <span>${safeNumber(reviewHistory.length)} game reviews</span>
+                            <span>${safeNumber(studyDaysCompleted)} study days</span>
+                        </div>
+                    </div>
+                </section>
+            `;
+        }
+
         function renderTrainingGoal(goal) {
             const selectedGoal = TRAINING_GOALS[goal] ? goal : "balanced";
             const options = Object.entries(TRAINING_GOALS).map(([value, item]) => `
@@ -1327,6 +1424,8 @@
             const savedReview = getSavedReview();
             const coachNotes = getCoachNotes();
             const openingSessionHistory = getOpeningSessionHistory();
+            const reviewHistory = getReviewHistory();
+            const studyDaysCompleted = getAllStudyDaysCompleted();
             const openingMasteryItems = getOpeningMasteryItems();
             const trainingProgress = getTrainingProgress(tacticsProgress);
             const selectedGoal = getSavedTrainingGoal();
@@ -1403,6 +1502,8 @@
                 ${renderTrainingQueue(trainingQueue)}
 
                 ${renderTrainingProgress(trainingProgress)}
+
+                ${renderProgressTrends(openingSessionHistory, tacticsProgress, reviewHistory, studyDaysCompleted)}
 
                 ${renderRecentOpeningPractice(openingSessionHistory)}
 
